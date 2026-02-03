@@ -23,10 +23,7 @@
             "Handle the isLoading state carefully, as key generation involves cryptographic operations that may take a moment.",
             "Be explicit with scopes (e.g., 'read' vs 'trade') to ensure the principle of least privilege for user security."
           ],
-          "related": [
-            "useAccountInfo",
-            "useOrderlyContext"
-          ]
+          "related": ["useAccountInfo", "useOrderlyContext"]
         },
         {
           "name": "useApiStatusActions",
@@ -39,10 +36,7 @@
             "It is often used in conjunction with a status selector to display the current state (connected/disconnected) to the user.",
             "Use setMaintenanceMode to gracefully block user actions when the network is scheduled for downtime."
           ],
-          "related": [
-            "useAccountInfo",
-            "useOrderlyContext"
-          ]
+          "related": ["useAccountInfo", "useOrderlyContext"]
         },
         {
           "name": "useDataCenterContext",
@@ -55,11 +49,7 @@
             "Avoids redundant API calls by keeping market configuration data in context.",
             "Helper functions like `getSymbolInfo` are commonly exposed here."
           ],
-          "related": [
-            "useOrderlyContext",
-            "useMarkets",
-            "useSymbolInfo"
-          ]
+          "related": ["useOrderlyContext", "useMarkets", "useSymbolInfo"]
         },
         {
           "name": "useCommission",
@@ -72,11 +62,7 @@
             "Data is often used to calculate VIP tiers or referral rebate percentages.",
             "Requires the user to be part of the referral program to return meaningful data."
           ],
-          "related": [
-            "useRefereeInfo",
-            "useReferralRebateSummary",
-            "useAccountInfo"
-          ]
+          "related": ["useRefereeInfo", "useReferralRebateSummary", "useAccountInfo"]
         },
         {
           "name": "useRefereeInfo",
@@ -89,11 +75,7 @@
             "Useful for building a 'Referral Dashboard' to show network size.",
             "May return an empty array if the user has not referred anyone yet."
           ],
-          "related": [
-            "useCommission",
-            "useReferralRebateSummary",
-            "useReferralCode"
-          ]
+          "related": ["useCommission", "useReferralRebateSummary", "useReferralCode"]
         },
         {
           "name": "useAllBrokers",
@@ -106,10 +88,7 @@
             "This data is relatively static, so it is often cached aggressively by the SDK.",
             "Useful for building a 'Switch Broker' interface or displaying partner attribution."
           ],
-          "related": [
-            "useAccount",
-            "useConfig"
-          ]
+          "related": ["useAccount", "useConfig"]
         },
         {
           "name": "useCurEpochEstimate",
@@ -122,10 +101,7 @@
             "Returns '0' or null if the user has no activity in the current epoch.",
             "Do not use this for final payout logic; it is purely for estimation/UI display."
           ],
-          "related": [
-            "useAccount",
-            "useFeeState"
-          ]
+          "related": ["useAccount", "useFeeState"]
         },
         {
           "name": "useCalculatorService",
@@ -138,10 +114,7 @@
             "Essential for building 'Order Preview' modals to show users exactly what they will spend.",
             "Calculations are based on current order book depth and market conditions."
           ],
-          "related": [
-            "useFeeState",
-            "useAccount"
-          ]
+          "related": ["useFeeState", "useAccount"]
         },
         {
           "name": "useConfig",
@@ -154,10 +127,7 @@
             "Useful for conditional rendering based on the environment (e.g., Testnet vs Mainnet).",
             "Contains domain settings for API endpoints."
           ],
-          "related": [
-            "useAccount",
-            "useKeyStore"
-          ]
+          "related": ["useAccount", "useKeyStore"]
         },
         {
           "name": "useDatabaseInitialization",
@@ -170,10 +140,7 @@
             "Usually runs once on application mount.",
             "If initialization fails, the app may need to prompt the user to clear site data."
           ],
-          "related": [
-            "useAccount",
-            "useEventEmitter"
-          ]
+          "related": ["useAccount", "useEventEmitter"]
         },
         {
           "name": "useEventEmitter",
@@ -186,10 +153,7 @@
             "Crucial for real-time UI updates without constantly polling the API.",
             "Common events include 'ACCOUNT_UPDATE', 'ORDER_FILLED', and 'POSITION_UPDATE'."
           ],
-          "related": [
-            "useAccount",
-            "useDatabaseInitialization"
-          ]
+          "related": ["useAccount", "useDatabaseInitialization"]
         },
         {
           "name": "useFeeState",
@@ -202,10 +166,7 @@
             "Updates automatically when the user's volume tier changes.",
             "Useful for calculating precise costs in the trade preview."
           ],
-          "related": [
-            "useCalculatorService",
-            "useCurEpochEstimate"
-          ]
+          "related": ["useCalculatorService", "useCurEpochEstimate"]
         },
         {
           "name": "useKeyStore",
@@ -218,10 +179,7 @@
             "Never log the raw keyStore object to the console in production.",
             "It is the bridge between the user's wallet (like MetaMask) and the Orderly off-chain signing."
           ],
-          "related": [
-            "useAccount",
-            "useConfig"
-          ]
+          "related": ["useAccount", "useConfig"]
         },
         {
           "name": "useNetworkInfo",
@@ -234,10 +192,7 @@
             "The `info` object often contains metadata like the chain name, native currency symbol, and RPC URL.",
             "It automatically reacts to wallet network changes (e.g., user switching networks in MetaMask)."
           ],
-          "related": [
-            "useAccount",
-            "usePreLoadData"
-          ]
+          "related": ["useAccount", "usePreLoadData"]
         },
         {
           "name": "useParamsCheck",
@@ -250,10 +205,7 @@
             "Reduces load on the API by rejecting malformed requests early in the UI flow.",
             "Always pair this with backend validation, but use this for immediate UI feedback."
           ],
-          "related": [
-            "usePoster",
-            "useAccount"
-          ]
+          "related": ["usePoster", "useAccount"]
         },
         {
           "name": "usePoster",
@@ -266,10 +218,7 @@
             "Essential for any write operations such as placing orders, canceling orders, or updating leverage.",
             "Ensure the user is authenticated (via useAccount) before calling this to avoid signature errors."
           ],
-          "related": [
-            "useAccount",
-            "useWallet"
-          ]
+          "related": ["useAccount", "useWallet"]
         },
         {
           "name": "usePreLoadData",
@@ -282,10 +231,7 @@
             "Returns a `done` boolean to easily toggle loading spinners or splash screens.",
             "Handles global initialization errors gracefully so the app can display a fallback UI."
           ],
-          "related": [
-            "useAccount",
-            "useNetworkInfo"
-          ]
+          "related": ["useAccount", "useNetworkInfo"]
         },
         {
           "name": "useRestrictedInfo",
@@ -298,10 +244,7 @@
             "Use this to block access to specific features or the entire application to remain compliant.",
             "It is a read-only check; blocking the UI is the responsibility of the developer."
           ],
-          "related": [
-            "useAccount",
-            "usePreLoadData"
-          ]
+          "related": ["useAccount", "usePreLoadData"]
         },
         {
           "name": "useTrack",
@@ -314,10 +257,7 @@
             "Useful for monitoring user behavior, conversion funnels, and debugging UI interactions.",
             "Accepts an event name and a payload object for custom metadata."
           ],
-          "related": [
-            "useTrackingInstance",
-            "useAccount"
-          ]
+          "related": ["useTrackingInstance", "useAccount"]
         },
         {
           "name": "useTrackingInstance",
@@ -330,10 +270,7 @@
             "Allows you to integrate custom plugins or middleware into the analytics pipeline.",
             "Ensure the instance exists before calling methods to avoid runtime errors."
           ],
-          "related": [
-            "useTrack",
-            "useAccount"
-          ]
+          "related": ["useTrack", "useAccount"]
         }
       ]
     },
@@ -351,11 +288,7 @@
             "It combines form state and submission logic, which can make testing harder compared to separating concerns.",
             "Ensure you check if the order type is 'LIMIT' before including the price field in the submission payload."
           ],
-          "related": [
-            "useOrderStore",
-            "useOrderEntryFromStore",
-            "useOrderEntity"
-          ]
+          "related": ["useOrderStore", "useOrderEntryFromStore", "useOrderEntity"]
         },
         {
           "name": "useOrderEntryFromStore",
@@ -368,11 +301,7 @@
             "It automatically subscribes to store updates, ensuring the UI re-renders whenever the order form changes.",
             "Useful for calculating derived values (like total cost or margin requirements) in real-time as the user types."
           ],
-          "related": [
-            "useOrderStore",
-            "useOrderEntity",
-            "useAccountInfo"
-          ]
+          "related": ["useOrderStore", "useOrderEntity", "useAccountInfo"]
         },
         {
           "name": "useOrderEntity",
@@ -385,11 +314,7 @@
             "The symbol returned reflects the currently selected trading pair in the order entry store.",
             "This hook helps prevent API errors caused by submitting orders larger than the allowed limit for the specific asset."
           ],
-          "related": [
-            "useOrderEntryFromStore",
-            "useOrderStore",
-            "useAccountInfo"
-          ]
+          "related": ["useOrderEntryFromStore", "useOrderStore", "useAccountInfo"]
         },
         {
           "name": "useOrderStore",
@@ -402,11 +327,7 @@
             "The resetOrder action is useful for clearing the form after a successful submission or when switching trading pairs.",
             "Actions update the global Zustand store, meaning changes are instantly reflected across all components subscribed to that state."
           ],
-          "related": [
-            "useOrderEntryFromStore",
-            "useOrderEntity",
-            "useOrderEntry"
-          ]
+          "related": ["useOrderEntryFromStore", "useOrderEntity", "useOrderEntry"]
         },
         {
           "name": "useMarketTradeStream",
@@ -419,11 +340,7 @@
             "Updates in real-time via WebSocket connection managed by the SDK.",
             "Essential for building 'Recent Trades' or 'Market Activity' components."
           ],
-          "related": [
-            "useMarketsStream",
-            "useOrderBook",
-            "useMarket"
-          ]
+          "related": ["useMarketsStream", "useOrderBook", "useMarket"]
         },
         {
           "name": "useOrderStream",
@@ -436,11 +353,7 @@
             "Automatically handles order status updates (e.g., 'NEW' to 'FILLED') without polling.",
             "The primary data source for the 'Open Orders' and 'Order History' UI components."
           ],
-          "related": [
-            "useSubAccountAlgoOrderStream",
-            "usePositionStream",
-            "useAccountBalance"
-          ]
+          "related": ["useSubAccountAlgoOrderStream", "usePositionStream", "useAccountBalance"]
         },
         {
           "name": "useOrderbookStream",
@@ -453,11 +366,7 @@
             "Data updates automatically on every market tick; no manual polling is required.",
             "Use the symbol argument to ensure you are receiving data for the correct market (e.g., 'PERP_ETH_USDC')."
           ],
-          "related": [
-            "useSymbolInfo",
-            "usePublicDataObserver",
-            "useTradesStream"
-          ]
+          "related": ["useSymbolInfo", "usePublicDataObserver", "useTradesStream"]
         },
         {
           "name": "useOrderlyContext",
@@ -470,11 +379,7 @@
             "Useful for conditional rendering based on connection status or account ID.",
             "Contains the `domain` setting which is crucial for determining if you are on testnet or mainnet."
           ],
-          "related": [
-            "useDataCenterContext",
-            "useWalletTopic",
-            "useAccountInfo"
-          ]
+          "related": ["useDataCenterContext", "useWalletTopic", "useAccountInfo"]
         }
       ]
     },
@@ -492,11 +397,7 @@
             "The isClosing state is crucial for UX, preventing the user from spamming the close button while the transaction is processing.",
             "Always confirm with the user before closing, as this is an irreversible financial action."
           ],
-          "related": [
-            "useAccountInfo",
-            "useOrderEntry",
-            "usePortfolio"
-          ]
+          "related": ["useAccountInfo", "useOrderEntry", "usePortfolio"]
         },
         {
           "name": "usePositionStream",
@@ -509,11 +410,7 @@
             "Values update in real-time as mark prices and funding rates change.",
             "Useful for dashboard headers or portfolio summary widgets where live PnL tracking is critical."
           ],
-          "related": [
-            "useAccount",
-            "usePrivateDataObserver",
-            "useSettleSubscription"
-          ]
+          "related": ["useAccount", "usePrivateDataObserver", "useSettleSubscription"]
         }
       ]
     },
@@ -531,11 +428,7 @@
             "Handle the isLoading state to prevent layout shifts or displaying '0' while data is being fetched on initial load.",
             "Use availableBalance to validate if a user has sufficient funds before allowing an order submission."
           ],
-          "related": [
-            "usePortfolio",
-            "useOrderEntry",
-            "usePositionClose"
-          ]
+          "related": ["usePortfolio", "useOrderEntry", "usePositionClose"]
         },
         {
           "name": "useSubAccountAlgoOrderStream",
@@ -548,11 +441,7 @@
             "Requires the `accountId` (sub-account ID) to filter the stream correctly.",
             "Critical for managing risk strategies and conditional order visibility."
           ],
-          "related": [
-            "useOrderStream",
-            "useAlgoOrder",
-            "useSubAccountList"
-          ]
+          "related": ["useOrderStream", "useAlgoOrder", "useSubAccountList"]
         },
         {
           "name": "useWalletSubscription",
@@ -565,11 +454,7 @@
             "It automatically reconnects if the socket drops, ensuring the UI stays synced with the server.",
             "Use this to update the header bar or dashboard summary in real-time."
           ],
-          "related": [
-            "useBalanceTopic",
-            "usePositionStream",
-            "useAccountInfo"
-          ]
+          "related": ["useBalanceTopic", "usePositionStream", "useAccountInfo"]
         },
         {
           "name": "useWalletTopic",
@@ -582,11 +467,7 @@
             "Automatically handles reconnection logic if the WebSocket drops.",
             "Returns the raw data payload, which you may need to parse or format for display."
           ],
-          "related": [
-            "useOrderlyContext",
-            "useAccountBalance",
-            "usePrivateTopic"
-          ]
+          "related": ["useOrderlyContext", "useAccountBalance", "usePrivateTopic"]
         },
         {
           "name": "useSubAccountDataObserver",
@@ -599,11 +480,7 @@
             "Updates automatically via WebSocket when the sub-account trades or transfers funds.",
             "Useful for portfolio management views across multiple accounts."
           ],
-          "related": [
-            "useSubAccountMaxWithdrawal",
-            "useSubAccountWS",
-            "useSubAccounts"
-          ]
+          "related": ["useSubAccountMaxWithdrawal", "useSubAccountWS", "useSubAccounts"]
         },
         {
           "name": "useSubAccountMaxWithdrawal",
@@ -616,11 +493,7 @@
             "Requires both the `subAccountId` and the `token` symbol (e.g., 'USDC', 'ETH').",
             "The value changes dynamically based on market prices and position sizes."
           ],
-          "related": [
-            "useSubAccountDataObserver",
-            "useSubAccountWS",
-            "useWithdraw"
-          ]
+          "related": ["useSubAccountDataObserver", "useSubAccountWS", "useWithdraw"]
         },
         {
           "name": "useSubAccountWS",
@@ -633,11 +506,7 @@
             "Useful for ensuring connection status before rendering sensitive trading data.",
             "Often used internally by other sub-account hooks, but can be used for UI status indicators."
           ],
-          "related": [
-            "useSubAccountDataObserver",
-            "useSubAccountMaxWithdrawal",
-            "useWalletTopic"
-          ]
+          "related": ["useSubAccountDataObserver", "useSubAccountMaxWithdrawal", "useWalletTopic"]
         },
         {
           "name": "useAccountRewardsHistory",
@@ -650,11 +519,7 @@
             "Useful for auditing past rewards or displaying a 'Rewards History' page.",
             "May require pagination if the history is extensive."
           ],
-          "related": [
-            "useAccountRewards",
-            "useOrderlyContext",
-            "useTradingRewards"
-          ]
+          "related": ["useAccountRewards", "useOrderlyContext", "useTradingRewards"]
         },
         {
           "name": "useAccount",
@@ -667,10 +532,7 @@
             "The refresh function is vital to sync local state after on-chain transactions.",
             "create() handles the logic for generating a new sub-account ID linked to the main account."
           ],
-          "related": [
-            "useKeyStore",
-            "useAllBrokers"
-          ]
+          "related": ["useKeyStore", "useAllBrokers"]
         }
       ]
     },
@@ -688,10 +550,7 @@
             "This hook aggregates data across different sub-accounts or chains if applicable to the Orderly configuration.",
             "Use this data to calculate percentages for a pie chart visualization of asset allocation."
           ],
-          "related": [
-            "useAccountInfo",
-            "useApiKeyManager"
-          ]
+          "related": ["useAccountInfo", "useApiKeyManager"]
         },
         {
           "name": "useStatisticsDaily",
@@ -704,11 +563,7 @@
             "Data is typically aggregated for the current day or the most recent 24-hour period.",
             "Useful for giving users a quick health check of their daily trading activity."
           ],
-          "related": [
-            "useAssetsHistory",
-            "useAccount",
-            "useDistributionHistory"
-          ]
+          "related": ["useAssetsHistory", "useAccount", "useDistributionHistory"]
         },
         {
           "name": "useBalanceSubscription",
@@ -721,11 +576,7 @@
             "Returns a balance object containing `total_equity`, `available_balance`, and `margin_balance`.",
             "Must be used within an Orderly Provider context and requires an authenticated session."
           ],
-          "related": [
-            "useWSObserver",
-            "useAccount",
-            "useOrderSubscription"
-          ]
+          "related": ["useWSObserver", "useAccount", "useOrderSubscription"]
         },
         {
           "name": "useChain",
@@ -738,11 +589,7 @@
             "Use this to conditionally render chain-specific UI elements (e.g., different bridge addresses).",
             "Relies on the OrderlyProvider's configuration; ensure the provider is set up correctly."
           ],
-          "related": [
-            "useChainInfo",
-            "useWallet",
-            "useAccount"
-          ]
+          "related": ["useChainInfo", "useWallet", "useAccount"]
         },
         {
           "name": "useChainInfo",
@@ -755,11 +602,7 @@
             "Essential for constructing valid transaction links or debugging network connection issues.",
             "Pairs well with `useChain` when you need both the name and the configuration details."
           ],
-          "related": [
-            "useChain",
-            "useWallet",
-            "useTransferHistory"
-          ]
+          "related": ["useChain", "useWallet", "useTransferHistory"]
         },
         {
           "name": "useChains",
@@ -772,11 +615,7 @@
             "Chain objects typically include `id`, `name`, and `rpc_url` required for wallet connections.",
             "Useful for dynamically generating dropdown menus for wallet connection flows."
           ],
-          "related": [
-            "useWallet",
-            "useAccount",
-            "useNetwork"
-          ]
+          "related": ["useWallet", "useAccount", "useNetwork"]
         },
         {
           "name": "useComputedLTV",
@@ -789,11 +628,7 @@
             "Relies on real-time oracle data for `indexPrice`.",
             "The `weight` return value is crucial for understanding how much collateral value this specific asset contributes."
           ],
-          "related": [
-            "useAccount",
-            "usePosition",
-            "useMarginSummary"
-          ]
+          "related": ["useAccount", "usePosition", "useMarginSummary"]
         },
         {
           "name": "useConvert",
@@ -806,11 +641,7 @@
             "Returns loading and error states to manage UI feedback during the swap.",
             "Ensure the user has sufficient balance of the `fromToken` before calling."
           ],
-          "related": [
-            "useBalance",
-            "useAllowance",
-            "useWallet"
-          ]
+          "related": ["useBalance", "useAllowance", "useWallet"]
         },
         {
           "name": "useFundingDetails",
@@ -823,11 +654,7 @@
             "Includes timing data (`nextFundingTime`) to display countdowns.",
             "Distinct from historical rates; focuses on the current and immediate future state."
           ],
-          "related": [
-            "useFundingRate",
-            "useFundingRateHistory",
-            "useMarkPrice"
-          ]
+          "related": ["useFundingRate", "useFundingRateHistory", "useMarkPrice"]
         },
         {
           "name": "useFundingRate",
@@ -840,11 +667,7 @@
             "Often includes `markPrice` and `indexPrice` as they are used to calculate the rate.",
             "Updates frequently (often every few seconds) to reflect market conditions."
           ],
-          "related": [
-            "useFundingDetails",
-            "useFundingRateHistory",
-            "usePosition"
-          ]
+          "related": ["useFundingDetails", "useFundingRateHistory", "usePosition"]
         },
         {
           "name": "useFundingRates",
@@ -857,11 +680,7 @@
             "More efficient than calling `useFundingRate` multiple times for different symbols.",
             "Data is usually aggregated, making it perfect for overview lists."
           ],
-          "related": [
-            "useFutures",
-            "useFundingRateHistory",
-            "useMarkets"
-          ]
+          "related": ["useFutures", "useFundingRateHistory", "useMarkets"]
         },
         {
           "name": "useFundingRatesStore",
@@ -874,11 +693,7 @@
             "Does not typically trigger its own fetch; relies on other hooks (like `useFundingRates`) to populate the store.",
             "Best used for performance-critical components like tickers or real-time headers."
           ],
-          "related": [
-            "useFundingRates",
-            "useOrderbookStore",
-            "useMarketsStore"
-          ]
+          "related": ["useFundingRates", "useOrderbookStore", "useMarketsStore"]
         },
         {
           "name": "useFutures",
@@ -891,11 +706,7 @@
             "Contains validation parameters (e.g., `min_order_size`) required for order forms.",
             "Returns a comprehensive array suitable for building market selection tables."
           ],
-          "related": [
-            "useMarket",
-            "useOrderbook",
-            "useTrades"
-          ]
+          "related": ["useMarket", "useOrderbook", "useTrades"]
         },
         {
           "name": "useInternalTransfer",
@@ -908,11 +719,7 @@
             "The `isLoading` state is critical for UI feedback to prevent double-spending or user confusion during blockchain confirmation.",
             "Always wrap the transfer call in a try/catch block to handle network errors or insufficient balance scenarios."
           ],
-          "related": [
-            "useHoldingStream",
-            "useAccount",
-            "useAllowance"
-          ]
+          "related": ["useHoldingStream", "useAccount", "useAllowance"]
         },
         {
           "name": "useMaintenanceStatus",
@@ -925,11 +732,7 @@
             "Can be used to disable specific actions (like deposits) while allowing read-only data (like market history) if the API permits.",
             "Combine with a polling interval or refresh mechanism if the app stays open for long periods."
           ],
-          "related": [
-            "useOrderSubmit",
-            "useAccount",
-            "useMarketList"
-          ]
+          "related": ["useOrderSubmit", "useAccount", "useMarketList"]
         },
         {
           "name": "useOdosQuote",
@@ -942,11 +745,7 @@
             "Returns detailed routing information, including output amount and gas estimates.",
             "Essential for building a 'Swap' interface UI."
           ],
-          "related": [
-            "useOdosSwap",
-            "useTokenBalance",
-            "useAllowance"
-          ]
+          "related": ["useOdosSwap", "useTokenBalance", "useAllowance"]
         },
         {
           "name": "useOpenInterest",
@@ -959,11 +758,7 @@
             "A key indicator of market liquidity and sentiment.",
             "Data is usually aggregated over time intervals (e.g., hourly or daily)."
           ],
-          "related": [
-            "useMarket",
-            "useFundingRate",
-            "useMarketsStream"
-          ]
+          "related": ["useMarket", "useFundingRate", "useMarketsStream"]
         },
         {
           "name": "useSettleSubscription",
@@ -976,11 +771,7 @@
             "This hook ensures the UI reflects these changes immediately without requiring a page refresh.",
             "Essential for accurate accounting in perpetual futures trading."
           ],
-          "related": [
-            "usePositionStream",
-            "useAccount",
-            "usePrivateDataObserver"
-          ]
+          "related": ["usePositionStream", "useAccount", "usePrivateDataObserver"]
         },
         {
           "name": "useStorageLedgerAddress",
@@ -993,11 +784,7 @@
             "Reads from persistent storage, so it can survive page refreshes.",
             "Returns null or undefined if the user has not yet connected/registered a wallet."
           ],
-          "related": [
-            "useAccount",
-            "useWallet",
-            "useOrderlyContext"
-          ]
+          "related": ["useAccount", "useWallet", "useOrderlyContext"]
         },
         {
           "name": "useTokensInfo",
@@ -1010,11 +797,7 @@
             "The `decimals` field here is crucial for formatting user balances correctly in the UI.",
             "Data is usually fetched once and cached, as it doesn't change often."
           ],
-          "related": [
-            "useTokenInfo",
-            "useBalance",
-            "useDeposit"
-          ]
+          "related": ["useTokenInfo", "useBalance", "useDeposit"]
         },
         {
           "name": "useTokenInfo",
@@ -1027,11 +810,7 @@
             "Returns `null` or `undefined` if the token symbol is not supported by Orderly.",
             "Use this to dynamically determine decimal places for input fields based on the selected asset."
           ],
-          "related": [
-            "useTokensInfo",
-            "useTokenBalance",
-            "useWithdraw"
-          ]
+          "related": ["useTokensInfo", "useTokenBalance", "useWithdraw"]
         },
         {
           "name": "useTransfer",
@@ -1044,11 +823,7 @@
             "The `type` parameter determines the direction: `WALLET_TO_TRADING` adds margin, `TRADING_TO_WALLET` removes it.",
             "Transfers usually require a signature from the connected wallet."
           ],
-          "related": [
-            "useBalance",
-            "useWalletAccount",
-            "useAccountInfo"
-          ]
+          "related": ["useBalance", "useWalletAccount", "useAccountInfo"]
         },
         {
           "name": "useBalanceTopic",
@@ -1061,11 +836,7 @@
             "The topic string usually follows a format like `balance` or includes account identifiers.",
             "Useful if you are building a custom data fetching layer and need to know exactly which channel to subscribe to."
           ],
-          "related": [
-            "useWalletSubscription",
-            "useAccountInfo",
-            "usePrivateTopic"
-          ]
+          "related": ["useWalletSubscription", "useAccountInfo", "usePrivateTopic"]
         }
       ]
     },
@@ -1083,11 +854,7 @@
             "The 'predicted' rate helps traders anticipate future costs, while the current rate is used for settlement.",
             "Display the nextFundingTime to inform users when the next fee/reward will be applied to their position."
           ],
-          "related": [
-            "useOrderEntity",
-            "useOrderEntryFromStore",
-            "useAccountInfo"
-          ]
+          "related": ["useOrderEntity", "useOrderEntryFromStore", "useAccountInfo"]
         },
         {
           "name": "useIndexPrice",
@@ -1100,11 +867,7 @@
             "Returns a single value (number or string) representing the price at the time of the fetch or update.",
             "Use this to display the 'Oracle' price to users, helping them understand funding rate calculations."
           ],
-          "related": [
-            "useMarkPrice",
-            "useMarkPricesStream",
-            "useFundingRate"
-          ]
+          "related": ["useMarkPrice", "useMarkPricesStream", "useFundingRate"]
         },
         {
           "name": "useIndexPricesStream",
@@ -1117,11 +880,7 @@
             "The `getIndexPrice` helper allows for quick lookups without manually iterating through the `data` object.",
             "Data updates automatically via WebSocket, providing a live ticker tape experience."
           ],
-          "related": [
-            "useMarkPricesStream",
-            "useMarketList",
-            "useIndexPrice"
-          ]
+          "related": ["useMarkPricesStream", "useMarketList", "useIndexPrice"]
         },
         {
           "name": "useLeverageBySymbol",
@@ -1134,11 +893,7 @@
             "Returns `undefined` or `null` if the symbol is invalid or data hasn't loaded yet.",
             "Useful for calculating margin requirements or liquidation prices in read-only views."
           ],
-          "related": [
-            "useLeverage",
-            "usePosition",
-            "useMarkPrice"
-          ]
+          "related": ["useLeverage", "usePosition", "useMarkPrice"]
         },
         {
           "name": "useMarkPrice",
@@ -1151,11 +906,7 @@
             "This is the price you should use when calculating user equity and margin ratio for liquidation warnings.",
             "Updates frequently; ensure your display components handle rapid number changes gracefully."
           ],
-          "related": [
-            "useIndexPrice",
-            "usePosition",
-            "useMarkPricesStream"
-          ]
+          "related": ["useIndexPrice", "usePosition", "useMarkPricesStream"]
         },
         {
           "name": "useMarkPricesStream",
@@ -1168,11 +919,7 @@
             "Returns an object/map keyed by symbol, allowing O(1) lookup time.",
             "Since this is a stream, ensure your component is optimized to handle re-renders, or memoize the calculated values."
           ],
-          "related": [
-            "usePositionsStream",
-            "useIndexPricesStream",
-            "useHoldingStream"
-          ]
+          "related": ["usePositionsStream", "useIndexPricesStream", "useHoldingStream"]
         },
         {
           "name": "useMarketList",
@@ -1185,11 +932,7 @@
             "Contains vital validation data like `min_order_qty` and `tick_size` which must be used in order forms to prevent API rejections.",
             "The data is relatively static, so it's often cached or fetched once on app mount."
           ],
-          "related": [
-            "useSymbolInfo",
-            "useOrderBook",
-            "useTrades"
-          ]
+          "related": ["useSymbolInfo", "useOrderBook", "useTrades"]
         },
         {
           "name": "useMarketMap",
@@ -1202,11 +945,7 @@
             "Data is usually cached in the Zustand store, making access synchronous and extremely fast.",
             "Use this to derive lists of symbols for UI selectors rather than hardcoding them."
           ],
-          "related": [
-            "useMarket",
-            "useMarketsStream",
-            "useMarketsStore"
-          ]
+          "related": ["useMarket", "useMarketsStream", "useMarketsStore"]
         },
         {
           "name": "useMarket",
@@ -1219,11 +958,7 @@
             "Useful for determining precision (dp) for formatting price inputs or displays.",
             "Combines static config data with some dynamic data like Open Interest."
           ],
-          "related": [
-            "useMarketMap",
-            "useOpenInterest",
-            "useMarketsStream"
-          ]
+          "related": ["useMarketMap", "useOpenInterest", "useMarketsStream"]
         },
         {
           "name": "useMarketsStore",
@@ -1236,11 +971,7 @@
             "Allows you to persist user preferences (like favorite trading pairs) locally.",
             "Changes made here reflect immediately across all components consuming the store."
           ],
-          "related": [
-            "useMarketMap",
-            "useMarketsStream",
-            "useMarkets"
-          ]
+          "related": ["useMarketMap", "useMarketsStream", "useMarkets"]
         },
         {
           "name": "useMarketsStream",
@@ -1253,11 +984,7 @@
             "Data updates frequently via WebSocket; ensure your UI handles re-renders efficiently.",
             "The `data` array contains objects keyed by market symbol."
           ],
-          "related": [
-            "useMarketTradeStream",
-            "useMarketMap",
-            "useMarket"
-          ]
+          "related": ["useMarketTradeStream", "useMarketMap", "useMarket"]
         },
         {
           "name": "useRwaSymbolsInfo",
@@ -1270,11 +997,7 @@
             "Helps prevent order placement errors by checking the 'open' boolean before allowing trades.",
             "Returns ISO timestamps for scheduling purposes."
           ],
-          "related": [
-            "useRwaSymbolsInfoStore",
-            "useInitRwaSymbolsRuntime",
-            "useSymbolInfo"
-          ]
+          "related": ["useRwaSymbolsInfoStore", "useInitRwaSymbolsRuntime", "useSymbolInfo"]
         },
         {
           "name": "useRwaSymbolsInfoStore",
@@ -1287,11 +1010,7 @@
             "More performant than `useRwaSymbolsInfo` if you just need to read data without side effects.",
             "Ensure `useInitRwaSymbolsRuntime` has been called to populate this store."
           ],
-          "related": [
-            "useInitRwaSymbolsRuntime",
-            "useRwaSymbolsInfo",
-            "useSymbolInfo"
-          ]
+          "related": ["useInitRwaSymbolsRuntime", "useRwaSymbolsInfo", "useSymbolInfo"]
         },
         {
           "name": "useInitRwaSymbolsRuntime",
@@ -1304,11 +1023,7 @@
             "It populates the store used by `useRwaSymbolsInfoStore`.",
             "Necessary for any RWA-related logic to function correctly within the SDK."
           ],
-          "related": [
-            "useRwaSymbolsInfoStore",
-            "useRwaSymbolsInfo",
-            "useSymbolInfo"
-          ]
+          "related": ["useRwaSymbolsInfoStore", "useRwaSymbolsInfo", "useSymbolInfo"]
         },
         {
           "name": "useSymbolInfo",
@@ -1321,11 +1036,7 @@
             "Data is often fetched once and cached, but should be checked before allowing order submission.",
             "Helps in dynamically configuring input fields (step amounts) based on the symbol."
           ],
-          "related": [
-            "useOrderbookStream",
-            "useRwaSymbolsInfo",
-            "useCreateOrder"
-          ]
+          "related": ["useOrderbookStream", "useRwaSymbolsInfo", "useCreateOrder"]
         },
         {
           "name": "useSymbolLeverage",
@@ -1338,11 +1049,7 @@
             "The `updateLeverage` function is asynchronous; ensure you handle loading states to prevent double-submissions.",
             "Changing leverage may affect your existing position's liquidation price immediately."
           ],
-          "related": [
-            "usePosition",
-            "useAccountInfo",
-            "useSymbolInfo"
-          ]
+          "related": ["usePosition", "useAccountInfo", "useSymbolInfo"]
         },
         {
           "name": "useSymbolsInfo",
@@ -1355,11 +1062,7 @@
             "Use the `min_order_qty` and `tick_size` fields from this data to validate user order inputs before submission.",
             "The return type is usually an array of objects containing detailed symbol configurations."
           ],
-          "related": [
-            "useSymbolInfo",
-            "useTokenInfo",
-            "useOrderBook"
-          ]
+          "related": ["useSymbolInfo", "useTokenInfo", "useOrderBook"]
         },
         {
           "name": "useSymbolsInfoStore",
@@ -1372,11 +1075,7 @@
             "Use selectors (e.g., `state => state.symbols`) to prevent unnecessary re-renders of components.",
             "It provides helper functions like `getSymbol(id)` for quick lookups."
           ],
-          "related": [
-            "useSymbolsInfo",
-            "useTokenInfoStore",
-            "useOrderlyConfig"
-          ]
+          "related": ["useSymbolsInfo", "useTokenInfoStore", "useOrderlyConfig"]
         }
       ]
     },
@@ -1411,11 +1110,7 @@
             "The 'frozen' return value represents funds locked in open orders; subtract this from 'holding' to get available balance.",
             "Handles connection lifecycle automatically, but you should still check if the data exists before rendering."
           ],
-          "related": [
-            "useAccount",
-            "useInternalTransfer",
-            "useOrderStream"
-          ]
+          "related": ["useAccount", "useInternalTransfer", "useOrderStream"]
         },
         {
           "name": "usePrivateDataObserver",
@@ -1428,11 +1123,7 @@
             "It abstracts the websocket connection logic, providing direct access to data arrays.",
             "Ensure you handle loading states or empty arrays before rendering to avoid UI errors."
           ],
-          "related": [
-            "usePositionStream",
-            "useAccount",
-            "useOrderStream"
-          ]
+          "related": ["usePositionStream", "useAccount", "useOrderStream"]
         },
         {
           "name": "usePublicDataObserver",
@@ -1445,11 +1136,7 @@
             "Useful for building components like 'Recent Trades', 'Market Tickers', or 'Price Tickers'.",
             "Data structure depends on the specific topic (e.g., 'TRADE' vs 'TICKER') requested."
           ],
-          "related": [
-            "useOrderbookStream",
-            "useSymbolInfo",
-            "useCandlestickStream"
-          ]
+          "related": ["useOrderbookStream", "useSymbolInfo", "useCandlestickStream"]
         },
         {
           "name": "useTickerStream",
@@ -1462,11 +1149,7 @@
             "Data updates frequently; ensure your UI rendering is optimized to handle rapid prop changes.",
             "Use this for displaying live market overviews rather than single-order execution data."
           ],
-          "related": [
-            "useOrderBookStream",
-            "useTradeStream",
-            "useCandlestickStream"
-          ]
+          "related": ["useOrderBookStream", "useTradeStream", "useCandlestickStream"]
         },
         {
           "name": "useWS",
@@ -1479,10 +1162,7 @@
             "Always clean up subscriptions (using `off`) in the useEffect cleanup to prevent memory leaks.",
             "Handles the connection lifecycle (connect/disconnect/reconnect) internally."
           ],
-          "related": [
-            "useWsStatus",
-            "useAccount"
-          ]
+          "related": ["useWsStatus", "useAccount"]
         },
         {
           "name": "useWsStatus",
@@ -1495,10 +1175,7 @@
             "Use this to trigger UI alerts or toasts when the connection is lost.",
             "Helps users distinguish between a frozen market and a connection issue."
           ],
-          "related": [
-            "useWS",
-            "useNetworkInfo"
-          ]
+          "related": ["useWS", "useNetworkInfo"]
         }
       ]
     },
@@ -1516,11 +1193,7 @@
             "Useful for visualizing trading performance or account balance trends.",
             "May require the user to be authenticated (wallet connected) to fetch specific account data."
           ],
-          "related": [
-            "useStatisticsDaily",
-            "useAccount",
-            "useBalanceSubscription"
-          ]
+          "related": ["useStatisticsDaily", "useAccount", "useBalanceSubscription"]
         },
         {
           "name": "useDistributionHistory",
@@ -1533,11 +1206,7 @@
             "Data is useful for calculating ROI on staked or provided liquidity.",
             "Ensure the user has connected their wallet to view personal distribution history."
           ],
-          "related": [
-            "useFundingFeeHistory",
-            "useStatisticsDaily",
-            "useVaultsHistory"
-          ]
+          "related": ["useFundingFeeHistory", "useStatisticsDaily", "useVaultsHistory"]
         },
         {
           "name": "useFundingFeeHistory",
@@ -1550,11 +1219,7 @@
             "Distinguish between positive (received) and negative (paid) amounts in the UI.",
             "Critical for perps traders to understand the 'carry cost' of their positions."
           ],
-          "related": [
-            "useDistributionHistory",
-            "usePosition",
-            "useAccount"
-          ]
+          "related": ["useDistributionHistory", "usePosition", "useAccount"]
         },
         {
           "name": "useTransferHistory",
@@ -1567,11 +1232,7 @@
             "Use this to track the state of pending deposits or withdrawals.",
             "Combine with `useChainInfo` to generate transaction explorer links for on-chain transfers."
           ],
-          "related": [
-            "useChainInfo",
-            "useBalanceSubscription",
-            "useAccount"
-          ]
+          "related": ["useChainInfo", "useBalanceSubscription", "useAccount"]
         },
         {
           "name": "useFundingRateHistory",
@@ -1584,11 +1245,7 @@
             "Includes an `isLoading` state to handle async data fetching gracefully.",
             "Ideal for integration with charting libraries like Recharts or Chart.js."
           ],
-          "related": [
-            "useFundingRate",
-            "useMarketData",
-            "useTrades"
-          ]
+          "related": ["useFundingRate", "useMarketData", "useTrades"]
         }
       ]
     },
@@ -1606,11 +1263,7 @@
             "Can include data on yield farming performance or liquidity provision history.",
             "Ensure the UI handles cases where the user has not interacted with any vaults."
           ],
-          "related": [
-            "useDistributionHistory",
-            "useAssetsHistory",
-            "useAccount"
-          ]
+          "related": ["useDistributionHistory", "useAssetsHistory", "useAccount"]
         },
         {
           "name": "useDeposit",
@@ -1623,11 +1276,7 @@
             "Includes `decimals` to ensure the UI displays amounts correctly.",
             "Crucial for preventing user error (sending tokens to the wrong chain)."
           ],
-          "related": [
-            "useWithdraw",
-            "useBalance",
-            "useAccount"
-          ]
+          "related": ["useWithdraw", "useBalance", "useAccount"]
         },
         {
           "name": "useMaxWithdrawal",
@@ -1640,11 +1289,7 @@
             "The value changes dynamically based on open positions and order collateral.",
             "Useful for validating user input in withdrawal forms to prevent API errors."
           ],
-          "related": [
-            "useAccount",
-            "useBalance",
-            "usePositionStream"
-          ]
+          "related": ["useAccount", "useBalance", "usePositionStream"]
         },
         {
           "name": "useWithdraw",
@@ -1657,11 +1302,7 @@
             "Withdrawals involve on-chain transactions and may take time depending on the network congestion.",
             "Ensure the user has sufficient balance in their *Trading Account* (and has transferred to Wallet if necessary) before withdrawing."
           ],
-          "related": [
-            "useTransfer",
-            "useTokenInfo",
-            "useWalletAccount"
-          ]
+          "related": ["useTransfer", "useTokenInfo", "useWalletAccount"]
         }
       ]
     },
@@ -1679,11 +1320,7 @@
             "`leverageLevers` typically provides an array of safe leverage increments (e.g., [1, 2, 5, 10, 20]) to use in UI dropdowns.",
             "Always respect `maxLeverage` in your UI validation to prevent API errors."
           ],
-          "related": [
-            "usePosition",
-            "useLeverageBySymbol",
-            "useAccount"
-          ]
+          "related": ["usePosition", "useLeverageBySymbol", "useAccount"]
         }
       ]
     },
@@ -1701,11 +1338,7 @@
             "Data is typically aggregated over time (e.g., lifetime earnings).",
             "Ensure you handle cases where rebate data might be undefined or zero."
           ],
-          "related": [
-            "useRefereeInfo",
-            null,
-            "useCommission"
-          ]
+          "related": ["useRefereeInfo", "useCommission"]
         }
       ]
     },
@@ -1723,10 +1356,7 @@
             "Relies on window.matchMedia and updates automatically on resize.",
             "Prefer this over CSS-only solutions when you need to conditionally render entire React components."
           ],
-          "related": [
-            "useConfig",
-            "useAccount"
-          ]
+          "related": ["useConfig", "useAccount"]
         }
       ]
     },
@@ -1743,11 +1373,7 @@
             "The icon itself does not handle state (checked/unchecked); it is purely visual.",
             "Commonly styled with utility classes like `oui-text-primary` or `oui-text-white` depending on the background contrast."
           ],
-          "related": [
-            "Checkbox",
-            "Radio",
-            "Icon"
-          ]
+          "related": ["Checkbox", "Radio", "Icon"]
         },
         {
           "name": "EmptyStateIcon",
@@ -1759,11 +1385,7 @@
             "This is a static SVG component.",
             "Often wrapped in a container with reduced opacity to soften the visual impact."
           ],
-          "related": [
-            "Table",
-            "Card",
-            "StatusIndicator"
-          ]
+          "related": ["Table", "Card", "StatusIndicator"]
         },
         {
           "name": "InputPrefix",
@@ -1775,11 +1397,7 @@
             "The `prefix` prop accepts a React Node (string, number, JSX element).",
             "Ensure the `id` passed to InputPrefix matches the `id` of the input element for accessibility."
           ],
-          "related": [
-            "InputSuffix",
-            "TextField",
-            "Input"
-          ]
+          "related": ["InputSuffix", "TextField", "Input"]
         },
         {
           "name": "InputSuffix",
@@ -1791,11 +1409,7 @@
             "The `suffix` prop accepts a React Node.",
             "Useful for maintaining alignment of input text while keeping labels fixed to the right."
           ],
-          "related": [
-            "InputPrefix",
-            "TextField",
-            "Input"
-          ]
+          "related": ["InputPrefix", "TextField", "Input"]
         },
         {
           "name": "TextField",
@@ -1807,12 +1421,7 @@
             "The `fullWidth` prop makes the input take 100% width of its parent container.",
             "It functions as a controlled input; ensure you manage `value` and `onChange` state."
           ],
-          "related": [
-            "InputPrefix",
-            null,
-            "InputSuffix",
-            "Input"
-          ]
+          "related": ["InputPrefix", "InputSuffix", "Input"]
         },
         {
           "name": "ExtensionProvider",
@@ -1824,11 +1433,7 @@
             "Must be placed higher in the component tree than any `ExtensionSlot` that intends to use its extensions.",
             "Accepts an array of extension objects containing configuration and render logic."
           ],
-          "related": [
-            "ExtensionSlot",
-            "PluginContext",
-            "useExtensions"
-          ]
+          "related": ["ExtensionSlot", "PluginContext", "useExtensions"]
         },
         {
           "name": "ExtensionSlot",
@@ -1840,11 +1445,7 @@
             "Requires an `ExtensionProvider` to be ancestor in the tree.",
             "Uses `ExtensionPositionEnum` to define standard locations (like `MobileAccountMenu` or `EmptyDataIdentifier`)."
           ],
-          "related": [
-            "ExtensionProvider",
-            "ExtensionPositionEnum",
-            "PluginContext"
-          ]
+          "related": ["ExtensionProvider", "ExtensionPositionEnum", "PluginContext"]
         },
         {
           "name": "CombineSelect",
@@ -1857,11 +1458,7 @@
             "Uses `onValueChange` for handling updates rather than standard DOM events.",
             "Accepts `options` prop which is an array of objects with label and value."
           ],
-          "related": [
-            "Select",
-            "Popover",
-            "TextField"
-          ]
+          "related": ["Select", "Popover", "TextField"]
         },
         {
           "name": "TokenSelect",
@@ -1873,11 +1470,7 @@
             "Ensure the tokens array includes 'symbol' and 'logo' properties for proper rendering.",
             "The 'onSelect' callback returns the full token object or symbol depending on implementation."
           ],
-          "related": [
-            "Input",
-            "Button",
-            "TokenBalance"
-          ]
+          "related": ["Input", "Button", "TokenBalance"]
         },
         {
           "name": "SliderTip",
@@ -1889,11 +1482,7 @@
             "Requires a 'value' prop to determine what text to display.",
             "The 'max' prop helps calculate percentage positioning if the component handles internal positioning."
           ],
-          "related": [
-            "Slider",
-            "Input",
-            "Progress"
-          ]
+          "related": ["Slider", "Input", "Progress"]
         },
         {
           "name": "DataFilter",
@@ -1905,11 +1494,7 @@
             "The 'items' prop expects an array of objects with 'label' and 'value'.",
             "It supports custom className for styling overrides, specifically useful for removing borders or padding."
           ],
-          "related": [
-            "DataTable",
-            "Tabs",
-            "StatusBadge"
-          ]
+          "related": ["DataTable", "Tabs", "StatusBadge"]
         },
         {
           "name": "DataTable",
@@ -1922,11 +1507,7 @@
             "'classNames' prop allows deep styling customization for root, header, body, etc.",
             "Provide an 'emptyView' component to handle cases with no data."
           ],
-          "related": [
-            "DataFilter",
-            "TableBody",
-            "TableCell"
-          ]
+          "related": ["DataFilter", "TableBody", "TableCell"]
         },
         {
           "name": "TableBody",
@@ -1938,11 +1519,7 @@
             "The 'rows' prop typically contains the data structure to be iterated over.",
             "The 'bordered' prop toggles borders between rows/cells."
           ],
-          "related": [
-            "DataTable",
-            "TableCell",
-            "TableHeader"
-          ]
+          "related": ["DataTable", "TableCell", "TableHeader"]
         },
         {
           "name": "TableCell",
@@ -1954,11 +1531,7 @@
             "The 'cell' prop usually contains the raw value and metadata (like alignment).",
             "Supports className overrides for specific cell styling."
           ],
-          "related": [
-            "TableBody",
-            "DataTable",
-            "NumType"
-          ]
+          "related": ["TableBody", "DataTable", "NumType"]
         },
         {
           "name": "NumTypeRoi",
@@ -1970,11 +1543,7 @@
             "Automatically handles color based on the sign of the value.",
             "Accepts a 'suffix' prop (e.g., '%') to append units."
           ],
-          "related": [
-            "NumTypePnl",
-            "Percent",
-            "StatusBadge"
-          ]
+          "related": ["NumTypePnl", "Percent", "StatusBadge"]
         },
         {
           "name": "NumTypePnl",
@@ -1986,11 +1555,7 @@
             "Use 'decimals' to control precision.",
             "Colors typically default to green for positive and red for negative values."
           ],
-          "related": [
-            "NumTypeRoi",
-            "TokenBalance",
-            "Decimal"
-          ]
+          "related": ["NumTypeRoi", "TokenBalance", "Decimal"]
         },
         {
           "name": "NumTypeNotional",
@@ -2002,11 +1567,7 @@
             "Automatically formats large numbers with commas or abbreviations depending on the internal configuration.",
             "Typically inherits color themes from the parent theme (e.g., red/green for PnL contexts if applicable)."
           ],
-          "related": [
-            "NumTypeAssetValue",
-            "NumTypeCollateral",
-            "Decimal"
-          ]
+          "related": ["NumTypeAssetValue", "NumTypeCollateral", "Decimal"]
         },
         {
           "name": "NumTypeAssetValue",
@@ -2018,11 +1579,7 @@
             "Use the `symbol` prop to append currency tickers (e.g., USD, ETH).",
             "Handles precision scaling automatically based on the asset type if not explicitly overridden."
           ],
-          "related": [
-            "NumTypeNotional",
-            "NumTypeCollateral",
-            "TokenIcon"
-          ]
+          "related": ["NumTypeNotional", "NumTypeCollateral", "TokenIcon"]
         },
         {
           "name": "NumTypeCollateral",
@@ -2034,11 +1591,7 @@
             "Ensures high precision is maintained where required for margin calculations.",
             "Often used in conjunction with health bars or risk meters."
           ],
-          "related": [
-            "NumTypeAssetValue",
-            "AccountHealthBar",
-            "MarginRatio"
-          ]
+          "related": ["NumTypeAssetValue", "AccountHealthBar", "MarginRatio"]
         },
         {
           "name": "AuthGuard",
@@ -2050,11 +1603,7 @@
             "Accepts `buttonProps` to customize the appearance of the 'Connect' button that appears when unauthenticated.",
             "Requires `OrderlyContext` to be available in the component tree."
           ],
-          "related": [
-            "AuthGuardEmpty",
-            "WalletConnectorWidget",
-            "useAccount"
-          ]
+          "related": ["AuthGuardEmpty", "WalletConnectorWidget", "useAccount"]
         },
         {
           "name": "AuthGuardEmpty",
@@ -2066,11 +1615,7 @@
             "Does not render any UI feedback for unauthenticated users.",
             "Useful for 'clean' UI layouts where you don't want empty placeholders or login buttons cluttering the view."
           ],
-          "related": [
-            "AuthGuard",
-            "useAccount",
-            "WalletConnectorWidget"
-          ]
+          "related": ["AuthGuard", "useAccount", "WalletConnectorWidget"]
         },
         {
           "name": "WalletConnectorWidget",
@@ -2082,11 +1627,7 @@
             "Handles the connection flow logic internally via the Orderly Connector context.",
             "Usually supports switching networks and disconnecting within its dropdown menu."
           ],
-          "related": [
-            "AuthGuard",
-            "useWallet",
-            "AccountInfo"
-          ]
+          "related": ["AuthGuard", "useWallet", "AccountInfo"]
         },
         {
           "name": "LeverageInput",
@@ -2098,11 +1639,7 @@
             "Often includes visual indicators for max leverage limits.",
             "Prevents invalid inputs (like negative numbers or text)."
           ],
-          "related": [
-            "LeverageSelector",
-            "useLeverage",
-            "OrderEntry"
-          ]
+          "related": ["LeverageSelector", "useLeverage", "OrderEntry"]
         },
         {
           "name": "LeverageSelector",
@@ -2114,11 +1651,7 @@
             "The `marks` prop allows you to define specific leverage steps available to the user.",
             "Provides immediate visual feedback on the risk level associated with the leverage."
           ],
-          "related": [
-            "LeverageInput",
-            "Slider",
-            "useLeverage"
-          ]
+          "related": ["LeverageInput", "Slider", "useLeverage"]
         },
         {
           "name": "LTVRiskTooltipUI",
@@ -2130,11 +1663,7 @@
             "Typically appears as an icon (info/warning) that expands on hover.",
             "Ensure the `ltv` prop is a decimal (e.g., 0.5 for 50%)."
           ],
-          "related": [
-            "AssetInfo",
-            "AccountBalance",
-            "OrderEntry"
-          ]
+          "related": ["AssetInfo", "AccountBalance", "OrderEntry"]
         },
         {
           "name": "AdditionalConfigButton",
@@ -2146,11 +1675,7 @@
             "The `active` prop usually changes the visual style (e.g., background color) to indicate the panel is open.",
             "It accepts children to customize the button label."
           ],
-          "related": [
-            "AdvancedTPSLResult",
-            "OrderEntry",
-            "TPSLInput"
-          ]
+          "related": ["AdvancedTPSLResult", "OrderEntry", "TPSLInput"]
         },
         {
           "name": "AdvancedTPSLResult",
@@ -2162,11 +1687,7 @@
             "Requires `symbolInfo` to format prices correctly according to the market's precision.",
             "Passing an `errors` object with keys will display validation messages inline."
           ],
-          "related": [
-            "AdditionalConfigButton",
-            "OrderSummary",
-            "TPSLInput"
-          ]
+          "related": ["AdditionalConfigButton", "OrderSummary", "TPSLInput"]
         },
         {
           "name": "AssetInfo",
@@ -2178,11 +1699,7 @@
             "If `canTrade` is false, the component might visually disable itself or show a warning.",
             "Liquidation price is a key metric for risk management."
           ],
-          "related": [
-            "LTVRiskTooltipUI",
-            "PositionTable",
-            "AccountBalance"
-          ]
+          "related": ["LTVRiskTooltipUI", "PositionTable", "AccountBalance"]
         },
         {
           "name": "EffectiveFeeUI",
@@ -2194,11 +1711,7 @@
             "The `value` prop is typically a decimal number (e.g., 0.001 for 0.1%).",
             "It usually handles formatting (percentage display) internally."
           ],
-          "related": [
-            "EffectiveFeesWidget",
-            "RegularFeesUI",
-            "FeesWidget"
-          ]
+          "related": ["EffectiveFeesWidget", "RegularFeesUI", "FeesWidget"]
         },
         {
           "name": "EffectiveFeesWidget",
@@ -2210,11 +1723,7 @@
             "Handles negative values (rebates) gracefully, often displaying them in green.",
             "Requires both `maker` and `taker` props to render fully."
           ],
-          "related": [
-            "EffectiveFeeUI",
-            "RegularFeesUI",
-            "AccountSummary"
-          ]
+          "related": ["EffectiveFeeUI", "RegularFeesUI", "AccountSummary"]
         },
         {
           "name": "FeesWidget",
@@ -2226,11 +1735,7 @@
             "It likely fetches data from the Orderly SDK context or API based on the `symbol` prop.",
             "Ensure the symbol string matches the Orderly format (e.g., PERP_ETH_USDC)."
           ],
-          "related": [
-            "EffectiveFeesWidget",
-            "SymbolSelect",
-            "OrderEntry"
-          ]
+          "related": ["EffectiveFeesWidget", "SymbolSelect", "OrderEntry"]
         },
         {
           "name": "RegularFeesUI",
@@ -2242,11 +1747,7 @@
             "Unlike `EffectiveFeesWidget`, this is purely presentational and expects raw number props.",
             "Helpful in pricing pages or FAQ sections regarding fees."
           ],
-          "related": [
-            "EffectiveFeeUI",
-            "EffectiveFeesWidget",
-            "FeesWidget"
-          ]
+          "related": ["EffectiveFeeUI", "EffectiveFeesWidget", "FeesWidget"]
         },
         {
           "name": "RegularFeesWidget",
@@ -2258,11 +1759,7 @@
             "taker (string | number): The fee rate for taker orders (e.g., '0.05').",
             "maker (string | number): The fee rate for maker orders (e.g., '0.02')."
           ],
-          "related": [
-            "OrderEntryWidget",
-            "OrderEntry",
-            "FeeSummary"
-          ]
+          "related": ["OrderEntryWidget", "OrderEntry", "FeeSummary"]
         },
         {
           "name": "OrderEntryHeader",
@@ -2276,11 +1773,7 @@
             "side ('buy' | 'sell'): The current selected side.",
             "order_type ('limit' | 'market'): The current selected order type."
           ],
-          "related": [
-            "OrderEntry",
-            "OrderEntryWidget",
-            "SymbolInfo"
-          ]
+          "related": ["OrderEntry", "OrderEntryWidget", "SymbolInfo"]
         },
         {
           "name": "OrderInput",
@@ -2293,11 +1786,7 @@
             "onValuesChange (function): Callback when inputs change.",
             "priceInputContainerWidth (string): CSS width for the price input container."
           ],
-          "related": [
-            "OrderEntry",
-            "PercentButton",
-            "OrderEntryWidget"
-          ]
+          "related": ["OrderEntry", "PercentButton", "OrderEntryWidget"]
         },
         {
           "name": "PnlInputProvider",
@@ -2310,11 +1799,7 @@
             "type ('SL' | 'TP'): Specifies if this is a Stop Loss or Take Profit input.",
             "onValuesChange (function): Handler for updating TP/SL state."
           ],
-          "related": [
-            "OrderEntry",
-            "ReduceOnlySwitch",
-            "OrderEntryWidget"
-          ]
+          "related": ["OrderEntry", "ReduceOnlySwitch", "OrderEntryWidget"]
         },
         {
           "name": "ReduceOnlySwitch",
@@ -2326,11 +1811,7 @@
             "checked (boolean): Whether the switch is active.",
             "onCheckedChange (function): Callback returning the new boolean state."
           ],
-          "related": [
-            "OrderEntry",
-            "PostOnlySwitch",
-            "OrderEntryWidget"
-          ]
+          "related": ["OrderEntry", "PostOnlySwitch", "OrderEntryWidget"]
         },
         {
           "name": "OrderEntry",
@@ -2343,11 +1824,7 @@
             "disableFeatures (object): Object to hide specific features like 'reduceOnly' or 'postOnly'.",
             "containerRef (RefObject): Reference to the container DOM element."
           ],
-          "related": [
-            "OrderEntryWidget",
-            "OrderEntryHeader",
-            "OrderInput"
-          ]
+          "related": ["OrderEntryWidget", "OrderEntryHeader", "OrderInput"]
         },
         {
           "name": "OrderEntryWidget",
@@ -2360,11 +1837,7 @@
             "containerRef (RefObject): Required ref to the parent div for portal/modal positioning.",
             "disableFeatures (object): Allows granular control over which order features are available."
           ],
-          "related": [
-            "OrderEntry",
-            "AccountBalance",
-            "MobileOrderListWidget"
-          ]
+          "related": ["OrderEntry", "AccountBalance", "MobileOrderListWidget"]
         },
         {
           "name": "MobileOrderListWidget",
@@ -2376,11 +1849,7 @@
             "symbol (string | undefined): The specific symbol to filter orders. Pass undefined for all symbols.",
             "onSymbolChange (function): Callback when the user changes the symbol filter."
           ],
-          "related": [
-            "OrderEntryWidget",
-            "OrderListWidget",
-            "PositionListWidget"
-          ]
+          "related": ["OrderEntryWidget", "OrderListWidget", "PositionListWidget"]
         },
         {
           "name": "Orders",
@@ -2392,11 +1861,7 @@
             "Ensure the app is wrapped in OrderlyProvider.",
             "Install: npm install @orderly.network/ui-orders"
           ],
-          "related": [
-            "OrderlyProvider",
-            "useOrders",
-            "CancelOrderButton"
-          ]
+          "related": ["OrderlyProvider", "useOrders", "CancelOrderButton"]
         },
         {
           "name": "ShareButtonWidget",
@@ -2408,11 +1873,7 @@
             "Can accept either an 'order' or 'position' prop.",
             "Requires a 'sharePnLConfig' object to customize the shareable content."
           ],
-          "related": [
-            "SharePnLModal",
-            "Positions",
-            "usePositions"
-          ]
+          "related": ["SharePnLModal", "Positions", "usePositions"]
         },
         {
           "name": "CloseAllPositionsWidget",
@@ -2424,11 +1885,7 @@
             "Install: npm install @orderly.network/ui-positions",
             "Passing 'undefined' or omitting the symbol prop usually implies closing all positions globally."
           ],
-          "related": [
-            "Positions",
-            "usePositions",
-            "ReduceOnlyOrder"
-          ]
+          "related": ["Positions", "usePositions", "ReduceOnlyOrder"]
         },
         {
           "name": "LiquidationWidget",
@@ -2439,11 +1896,7 @@
           "notes": [
             "If the 'symbol' prop is undefined, it typically shows liquidations for all symbols."
           ],
-          "related": [
-            "MobileLiquidationWidget",
-            "PositionHistoryWidget",
-            "useAccountHistory"
-          ]
+          "related": ["MobileLiquidationWidget", "PositionHistoryWidget", "useAccountHistory"]
         },
         {
           "name": "MobileLiquidationWidget",
@@ -2455,11 +1908,7 @@
             "Supports custom class names for styling cells and rows to match mobile themes.",
             "Includes built-in load more functionality via 'enableLoadMore'."
           ],
-          "related": [
-            "LiquidationWidget",
-            "MobilePositionHistoryWidget",
-            "useBreakpoints"
-          ]
+          "related": ["LiquidationWidget", "MobilePositionHistoryWidget", "useBreakpoints"]
         },
         {
           "name": "PositionHistoryWidget",
@@ -2470,11 +1919,7 @@
           "notes": [
             "Use 'pnlNotionalDecimalPrecision' to control how many decimal places are shown for PnL values."
           ],
-          "related": [
-            "MobilePositionHistoryWidget",
-            "Positions",
-            "useAccountHistory"
-          ]
+          "related": ["MobilePositionHistoryWidget", "Positions", "useAccountHistory"]
         },
         {
           "name": "MobilePositionHistoryWidget",
@@ -2485,11 +1930,7 @@
           "notes": [
             "Provides an 'onSymbolChange' callback to handle filtering logic when a user selects a specific symbol from the history."
           ],
-          "related": [
-            "PositionHistoryWidget",
-            "MobileLiquidationWidget",
-            "useSymbolInfo"
-          ]
+          "related": ["PositionHistoryWidget", "MobileLiquidationWidget", "useSymbolInfo"]
         },
         {
           "name": "NumeralWithCtx",
@@ -2501,11 +1942,7 @@
             "Accepts a 'rm' (rounding mode) prop from the Decimal.js library (e.g., ROUND_UP, ROUND_DOWN).",
             "Requires context to know which symbol's precision to apply."
           ],
-          "related": [
-            "useSymbolInfo",
-            "Decimal",
-            "FormatNumber"
-          ]
+          "related": ["useSymbolInfo", "Decimal", "FormatNumber"]
         },
         {
           "name": "Positions",
@@ -2517,11 +1954,7 @@
             "Requires an OrderlyProvider context to fetch position data.",
             "This component focuses purely on the data table; it does not include the outer card styling or headers found in the Widget version."
           ],
-          "related": [
-            "PositionsWidget",
-            "MobilePositions",
-            "usePositions"
-          ]
+          "related": ["PositionsWidget", "MobilePositions", "usePositions"]
         },
         {
           "name": "MobilePositions",
@@ -2533,11 +1966,7 @@
             "Designed for smaller viewports.",
             "Interactions are tailored for touch (e.g., larger tap targets)."
           ],
-          "related": [
-            "Positions",
-            "MobilePositionsWidget",
-            "usePositions"
-          ]
+          "related": ["Positions", "MobilePositionsWidget", "usePositions"]
         },
         {
           "name": "CombinePositions",
@@ -2549,11 +1978,7 @@
             "Useful for portfolio overview dashboards.",
             "Data aggregation logic is handled internally based on the account mode."
           ],
-          "related": [
-            "Positions",
-            "CombinePositionsWidget",
-            "AccountSummary"
-          ]
+          "related": ["Positions", "CombinePositionsWidget", "AccountSummary"]
         },
         {
           "name": "PositionsWidget",
@@ -2565,11 +1990,7 @@
             "Internal usage indicates it supports filtering by `symbol`.",
             "Includes built-in UI for headers and action buttons."
           ],
-          "related": [
-            "Positions",
-            "MobilePositionsWidget",
-            "AccountSummary"
-          ]
+          "related": ["Positions", "MobilePositionsWidget", "AccountSummary"]
         },
         {
           "name": "MobilePositionsWidget",
@@ -2581,11 +2002,7 @@
             "Handles symbol switching logic via `onSymbolChange`.",
             "Responsive design adapts to mobile screen widths automatically."
           ],
-          "related": [
-            "MobilePositions",
-            "PositionsWidget",
-            "usePositions"
-          ]
+          "related": ["MobilePositions", "PositionsWidget", "usePositions"]
         },
         {
           "name": "CombinePositionsWidget",
@@ -2596,11 +2013,7 @@
           "notes": [
             "Useful for risk management views where individual order details are less important than total exposure."
           ],
-          "related": [
-            "CombinePositions",
-            "PositionsWidget",
-            "AccountSummary"
-          ]
+          "related": ["CombinePositions", "PositionsWidget", "AccountSummary"]
         },
         {
           "name": "ReversePositionWidget",
@@ -2612,11 +2025,7 @@
             "This is a high-level trading action component.",
             "Requires valid position data to function effectively."
           ],
-          "related": [
-            "PositionsWidget",
-            "usePositions",
-            "OrderlyProvider"
-          ]
+          "related": ["PositionsWidget", "usePositions", "OrderlyProvider"]
         },
         {
           "name": "AccountSummary",
@@ -2628,11 +2037,7 @@
             "Found in `@orderly.network/ui-scaffold`.",
             "The `elementKeys` prop maps internal data keys to display labels or determines visibility."
           ],
-          "related": [
-            "PositionsWidget",
-            "useAccount",
-            "OrderlyProvider"
-          ]
+          "related": ["PositionsWidget", "useAccount", "OrderlyProvider"]
         },
         {
           "name": "BottomNav",
@@ -2645,11 +2050,7 @@
             "Ensure icons provided are valid React elements.",
             "The 'mainMenus' prop is required and expects an array of menu configuration objects."
           ],
-          "related": [
-            "BottomNavTradingMenu",
-            "MobileScaffold",
-            "BottomNavWidget"
-          ]
+          "related": ["BottomNavTradingMenu", "MobileScaffold", "BottomNavWidget"]
         },
         {
           "name": "BottomNavWidget",
@@ -2661,11 +2062,7 @@
             "This is the 'Widget' variant, implying it may connect to the Orderly store or router automatically.",
             "Check specific SDK version for default routing behavior if props are omitted."
           ],
-          "related": [
-            "BottomNav",
-            "MainNavWidget",
-            "MobileScaffold"
-          ]
+          "related": ["BottomNav", "MainNavWidget", "MobileScaffold"]
         },
         {
           "name": "BottomNavTradingMenu",
@@ -2678,10 +2075,7 @@
             "Accepts separate 'icon' and 'activeIcon' props for visual feedback.",
             "Commonly used inside the 'mainMenus' array of the BottomNav."
           ],
-          "related": [
-            "BottomNav",
-            "CloseIcon"
-          ]
+          "related": ["BottomNav", "CloseIcon"]
         },
         {
           "name": "FooterWidget",
@@ -2693,10 +2087,7 @@
             "Often styled with a dark theme or border separator.",
             "Content may be static or configurable via props."
           ],
-          "related": [
-            "MobileScaffold",
-            "MainNavWidget"
-          ]
+          "related": ["MobileScaffold", "MainNavWidget"]
         },
         {
           "name": "CloseIcon",
@@ -2709,10 +2100,7 @@
             "Commonly used with 'className' for cursor pointer and hover effects.",
             "Internal usage suggests 'opacity' is a controlled prop."
           ],
-          "related": [
-            "BottomNav",
-            "OfflineInfoWidget"
-          ]
+          "related": ["BottomNav", "OfflineInfoWidget"]
         },
         {
           "name": "MainNavWidget",
@@ -2724,10 +2112,7 @@
             "Distinct from BottomNav, usually for larger viewports.",
             "May handle routing logic internally."
           ],
-          "related": [
-            "BottomNavWidget",
-            "FooterWidget"
-          ]
+          "related": ["BottomNavWidget", "FooterWidget"]
         },
         {
           "name": "OfflineInfoWidget",
@@ -2739,10 +2124,7 @@
             "Crucial for real-time trading applications.",
             "Likely listens to window 'online' and 'offline' events."
           ],
-          "related": [
-            "MobileScaffold",
-            "FooterWidget"
-          ]
+          "related": ["MobileScaffold", "FooterWidget"]
         },
         {
           "name": "MobileScaffold",
@@ -2755,11 +2137,7 @@
             "Manages the viewport height and scrolling internally.",
             "Essential for maintaining the 'app-like' feel on mobile browsers."
           ],
-          "related": [
-            "BottomNav",
-            "MainNavWidget",
-            "FooterWidget"
-          ]
+          "related": ["BottomNav", "MainNavWidget", "FooterWidget"]
         },
         {
           "name": "DesktopScaffold",
@@ -2771,11 +2149,7 @@
             "Typically used internally by the main Scaffold component but can be used for custom desktop layouts.",
             "Ensure the parent container has a defined height if using in a specific viewport."
           ],
-          "related": [
-            "Scaffold",
-            "ScaffoldProvider",
-            "SideNavbarWidget"
-          ]
+          "related": ["Scaffold", "ScaffoldProvider", "SideNavbarWidget"]
         },
         {
           "name": "Scaffold",
@@ -2787,11 +2161,7 @@
             "Accepts `footerProps` to configure social media links and custom footer elements.",
             "Automatically integrates with the ScaffoldProvider for state management."
           ],
-          "related": [
-            "ScaffoldProvider",
-            "DesktopScaffold",
-            "SideNavbarWidget"
-          ]
+          "related": ["ScaffoldProvider", "DesktopScaffold", "SideNavbarWidget"]
         },
         {
           "name": "ScaffoldProvider",
@@ -2803,10 +2173,7 @@
             "Requires a `routerAdapter` prop to bridge the UI with your routing library (e.g., React Router).",
             "Controls the `expanded` state of the sidebar, allowing you to programmatically toggle it."
           ],
-          "related": [
-            "Scaffold",
-            "SideNavbarWidget"
-          ]
+          "related": ["Scaffold", "SideNavbarWidget"]
         },
         {
           "name": "SideNavbarWidget",
@@ -2818,10 +2185,7 @@
             "Usually reads active route from the ScaffoldProvider context.",
             "Styling is typically handled by the parent container or the widget itself."
           ],
-          "related": [
-            "Scaffold",
-            "ScaffoldProvider"
-          ]
+          "related": ["Scaffold", "ScaffoldProvider"]
         },
         {
           "name": "SubAccountUI",
@@ -2833,10 +2197,7 @@
             "The `customTrigger` prop allows you to fully customize the button that opens the account selection menu.",
             "Requires account data context to function correctly."
           ],
-          "related": [
-            "Scaffold",
-            "AccountInfo"
-          ]
+          "related": ["Scaffold", "AccountInfo"]
         },
         {
           "name": "Dot",
@@ -2848,10 +2209,7 @@
             "Accepts an `onClick` handler to make the dots interactive.",
             "Styling changes based on the `active` prop (e.g., filled vs. outline)."
           ],
-          "related": [
-            "Carousel",
-            "SharePnL"
-          ]
+          "related": ["Carousel", "SharePnL"]
         },
         {
           "name": "PriceInput",
@@ -2863,10 +2221,7 @@
             "When `order_type` is 'MARKET', the input is typically disabled or displays 'Market'.",
             "The `bbo` prop is used to display price hints or spread information."
           ],
-          "related": [
-            "TPSL",
-            "OrderEntry"
-          ]
+          "related": ["TPSL", "OrderEntry"]
         },
         {
           "name": "TPSL",
@@ -2878,10 +2233,7 @@
             "Requires position context (symbol, side, size) to calculate valid price ranges.",
             "The `onComplete` callback is triggered when the user confirms the TP/SL settings."
           ],
-          "related": [
-            "PriceInput",
-            "PositionTable"
-          ]
+          "related": ["PriceInput", "PositionTable"]
         },
         {
           "name": "TPSLWidget",
@@ -2893,11 +2245,7 @@
             "Requires position context (symbol, positionType) to function correctly.",
             "Often used within a larger position details view."
           ],
-          "related": [
-            "TPSLSimpleDialogWidget",
-            "PositionTable",
-            "usePosition"
-          ]
+          "related": ["TPSLSimpleDialogWidget", "PositionTable", "usePosition"]
         },
         {
           "name": "TPSLSimpleDialogUI",
@@ -2909,11 +2257,7 @@
             "This is a 'UI' component, meaning it is primarily presentational.",
             "Requires callbacks for `close`, `onComplete`, and navigation to advanced views."
           ],
-          "related": [
-            "TPSLSimpleDialogWidget",
-            "TPSLWidget",
-            "Dialog"
-          ]
+          "related": ["TPSLSimpleDialogWidget", "TPSLWidget", "Dialog"]
         },
         {
           "name": "TPSLSimpleDialogWidget",
@@ -2925,11 +2269,7 @@
             "No internal usages found in the provided context, suggesting it is a standalone entry point.",
             "Likely handles API calls internally via the Orderly provider."
           ],
-          "related": [
-            "TPSLSimpleDialogUI",
-            "TPSLWidget",
-            "useAlpacaOrderly"
-          ]
+          "related": ["TPSLSimpleDialogUI", "TPSLWidget", "useAlpacaOrderly"]
         },
         {
           "name": "DesktopDisplayControl",
@@ -2941,11 +2281,7 @@
             "Designed specifically for desktop layouts.",
             "Often paired with other chart controls like TimeInterval."
           ],
-          "related": [
-            "MobileDisplayControl",
-            "TimeInterval",
-            "TradingView"
-          ]
+          "related": ["MobileDisplayControl", "TimeInterval", "TradingView"]
         },
         {
           "name": "MobileDisplayControl",
@@ -2957,11 +2293,7 @@
             "Ensure responsive layout handling when switching between Desktop and Mobile versions.",
             "Touch-friendly targets."
           ],
-          "related": [
-            "DesktopDisplayControl",
-            "MobileTimeInterval",
-            "TradingView"
-          ]
+          "related": ["DesktopDisplayControl", "MobileTimeInterval", "TradingView"]
         },
         {
           "name": "TimeInterval",
@@ -2973,11 +2305,7 @@
             "Usually syncs with the TradingView widget's chart resolution.",
             "Visual style typically matches the active theme."
           ],
-          "related": [
-            "MobileTimeInterval",
-            "DesktopDisplayControl",
-            "TradingView"
-          ]
+          "related": ["MobileTimeInterval", "DesktopDisplayControl", "TradingView"]
         },
         {
           "name": "MobileTimeInterval",
@@ -2989,11 +2317,7 @@
             "Optimized for touch scrolling or tapping.",
             "Often displays fewer interval options than desktop by default."
           ],
-          "related": [
-            "TimeInterval",
-            "MobileDisplayControl",
-            "TradingView"
-          ]
+          "related": ["TimeInterval", "MobileDisplayControl", "TradingView"]
         },
         {
           "name": "ZoomOutIcon",
@@ -3005,11 +2329,7 @@
             "Internal usage shows it accepts standard className props for styling.",
             "Usually part of a set of zoom controls (ZoomIn, Reset)."
           ],
-          "related": [
-            "DesktopDisplayControl",
-            "MobileDisplayControl",
-            "TradingView"
-          ]
+          "related": ["DesktopDisplayControl", "MobileDisplayControl", "TradingView"]
         },
         {
           "name": "ZoomInIcon",
@@ -3022,11 +2342,7 @@
             "Often paired with ZoomOutIcon.",
             "Uses Orderly utility classes (oui-*) for consistent theming."
           ],
-          "related": [
-            "ZoomOutIcon",
-            "TradingView",
-            "ChartToolbar"
-          ]
+          "related": ["ZoomOutIcon", "TradingView", "ChartToolbar"]
         },
         {
           "name": "LtvUI",
@@ -3039,11 +2355,7 @@
             "Props typically include the current value and the maximum safe threshold.",
             "May render a progress bar or colored text based on risk level."
           ],
-          "related": [
-            "LtvWidget",
-            "CollateralRatioUI",
-            "MarginHealthBar"
-          ]
+          "related": ["LtvWidget", "CollateralRatioUI", "MarginHealthBar"]
         },
         {
           "name": "LtvWidget",
@@ -3056,11 +2368,7 @@
             "Essential for risk management during transfer or trading operations.",
             "Often updates dynamically based on input fields."
           ],
-          "related": [
-            "LtvUI",
-            "CollateralContribution",
-            "BorrowRepayForm"
-          ]
+          "related": ["LtvUI", "CollateralContribution", "BorrowRepayForm"]
         },
         {
           "name": "AccountSelect",
@@ -3073,11 +2381,7 @@
             "Controlled component: requires 'value' and 'onValueChange' props.",
             "Integrates with the broader transfer state management."
           ],
-          "related": [
-            "ChainSelect",
-            "TokenSelect",
-            "TransferForm"
-          ]
+          "related": ["ChainSelect", "TokenSelect", "TransferForm"]
         },
         {
           "name": "ActionButton",
@@ -3090,11 +2394,7 @@
             "Props like 'actionType' and 'symbol' customize the button text and icon.",
             "Can be disabled based on validation logic."
           ],
-          "related": [
-            "TransferButton",
-            "ConnectButton",
-            "WalletProvider"
-          ]
+          "related": ["TransferButton", "ConnectButton", "WalletProvider"]
         },
         {
           "name": "ChainSelect",
@@ -3107,11 +2407,7 @@
             "Controlled component requiring 'value' and 'onValueChange'.",
             "Usually displays network icons alongside names."
           ],
-          "related": [
-            "AccountSelect",
-            "TokenSelect",
-            "CrossChainTransfer"
-          ]
+          "related": ["AccountSelect", "TokenSelect", "CrossChainTransfer"]
         },
         {
           "name": "CollateralContribution",
@@ -3124,11 +2420,7 @@
             "Often includes a 'Max' button functionality internally.",
             "Visual feedback for insufficient balance."
           ],
-          "related": [
-            "LtvWidget",
-            "TransferInput",
-            "MarginAccount"
-          ]
+          "related": ["LtvWidget", "TransferInput", "MarginAccount"]
         },
         {
           "name": "CollateralRatioUI",
@@ -3141,11 +2433,7 @@
             "Likely accepts a 'status' prop (e.g., 'safe', 'warning', 'danger') to trigger color changes.",
             "Complements LtvUI by showing the inverse metric."
           ],
-          "related": [
-            "LtvUI",
-            "LtvWidget",
-            "AccountHealth"
-          ]
+          "related": ["LtvUI", "LtvWidget", "AccountHealth"]
         },
         {
           "name": "CollateralRatioWidget",
@@ -3157,11 +2445,7 @@
             "The value prop usually expects a number (e.g., 1.5 for 150%).",
             "The component handles the visual color coding (e.g., green for safe, red for danger) based on the value internally."
           ],
-          "related": [
-            "AccountSummary",
-            "MarginInfo",
-            "DepositStatusWidget"
-          ]
+          "related": ["AccountSummary", "MarginInfo", "DepositStatusWidget"]
         },
         {
           "name": "ConvertAction",
@@ -3173,11 +2457,7 @@
             "Requires the `networkId` to ensure the transaction is broadcast to the correct chain.",
             "The `loading` prop automatically disables the button and shows a spinner."
           ],
-          "related": [
-            "ConvertFormWidget",
-            "ConvertFormUI",
-            "TokenSelect"
-          ]
+          "related": ["ConvertFormWidget", "ConvertFormUI", "TokenSelect"]
         },
         {
           "name": "ConvertFormUI",
@@ -3189,11 +2469,7 @@
             "This is a presentational component. You must manage the state (amounts, selected tokens) in the parent component.",
             "Requires props for token metadata (symbol, decimals) and current amounts."
           ],
-          "related": [
-            "ConvertFormWidget",
-            "ConvertAction",
-            "TokenInput"
-          ]
+          "related": ["ConvertFormWidget", "ConvertAction", "TokenInput"]
         },
         {
           "name": "ConvertFormWidget",
@@ -3205,11 +2481,7 @@
             "Handles API calls to fetch conversion rates internally.",
             "Takes initial token symbols or addresses as props to pre-fill the form."
           ],
-          "related": [
-            "ConvertFormUI",
-            "ConvertAction",
-            "MinimumReceived"
-          ]
+          "related": ["ConvertFormUI", "ConvertAction", "MinimumReceived"]
         },
         {
           "name": "DepositStatus",
@@ -3221,11 +2493,7 @@
             "Accepts a status string/enum to determine the icon and color scheme.",
             "Does not fetch status; it only displays what is passed to it."
           ],
-          "related": [
-            "DepositStatusWidget",
-            "DepositProvider",
-            "ConvertAction"
-          ]
+          "related": ["DepositStatusWidget", "DepositProvider", "ConvertAction"]
         },
         {
           "name": "DepositStatusWidget",
@@ -3237,11 +2505,7 @@
             "Often includes a button or link to view the transaction details or portfolio.",
             "Manages its own data fetching regarding the deposit state."
           ],
-          "related": [
-            "DepositStatus",
-            "DepositProvider",
-            "CollateralRatioWidget"
-          ]
+          "related": ["DepositStatus", "DepositProvider", "CollateralRatioWidget"]
         },
         {
           "name": "MinimumReceived",
@@ -3253,11 +2517,7 @@
             "Requires the token symbol and precision to format the number correctly.",
             "Helps meet UI requirements for decentralized exchange interfaces."
           ],
-          "related": [
-            "ConvertFormWidget",
-            "ConvertAction",
-            "SlippageSettings"
-          ]
+          "related": ["ConvertFormWidget", "ConvertAction", "SlippageSettings"]
         },
         {
           "name": "DepositProvider",
@@ -3269,11 +2529,7 @@
             "Necessary for 'smart' widgets like DepositStatusWidget to function correctly.",
             "Abstracts away the complex logic of interacting with broker wallets and the Orderly chain."
           ],
-          "related": [
-            "DepositStatusWidget",
-            "WithdrawalWidget",
-            "AccountProvider"
-          ]
+          "related": ["DepositStatusWidget", "WithdrawalWidget", "AccountProvider"]
         },
         {
           "name": "TokenOption",
@@ -3286,11 +2542,7 @@
             "Ensure the `token` object follows the standard Orderly `Token` interface.",
             "The `fetchBalance` function is asynchronous and should return a string representation of the balance."
           ],
-          "related": [
-            "TokenSelect",
-            "QuantityInput",
-            "useTokenBalance"
-          ]
+          "related": ["TokenSelect", "QuantityInput", "useTokenBalance"]
         },
         {
           "name": "SwapDepositProvider",
@@ -3303,11 +2555,7 @@
             "It is required when using complex swap components that rely on shared context.",
             "Place it high in the component tree to ensure all child components have access to token state."
           ],
-          "related": [
-            "SwapForm",
-            "DepositForm",
-            "useSwapContext"
-          ]
+          "related": ["SwapForm", "DepositForm", "useSwapContext"]
         },
         {
           "name": "SwapIndicator",
@@ -3320,11 +2568,7 @@
             "You can pass an `onSwap` callback to handle the logic of switching token values in your parent state.",
             "Styling can be customized via the `className` prop."
           ],
-          "related": [
-            "TokenOption",
-            "SwapForm",
-            "QuantityInput"
-          ]
+          "related": ["TokenOption", "SwapForm", "QuantityInput"]
         },
         {
           "name": "WithdrawForm",
@@ -3337,11 +2581,7 @@
             "The `onSubmit` prop receives the form data (amount, address, chainId) for processing.",
             "Ensure the user has sufficient balance before rendering, or handle errors via the form's feedback mechanisms."
           ],
-          "related": [
-            "WithdrawWarningMessage",
-            "TokenOption",
-            "useWithdrawal"
-          ]
+          "related": ["WithdrawWarningMessage", "TokenOption", "useWithdrawal"]
         },
         {
           "name": "WithdrawWarningMessage",
@@ -3354,11 +2594,7 @@
             "Useful for UX safety, alerting users when they are performing cross-chain transfers which may take longer or cost more.",
             "The component automatically determines which message to show based on the combination of props passed."
           ],
-          "related": [
-            "WithdrawForm",
-            "TransferWarning",
-            "useAccount"
-          ]
+          "related": ["WithdrawForm", "TransferWarning", "useAccount"]
         }
       ]
     }

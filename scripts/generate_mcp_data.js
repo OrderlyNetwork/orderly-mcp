@@ -18,9 +18,7 @@
  *
  * This generates:
  *   - src/data/documentation.json
- *   - src/data/sdk-patterns.json
  *   - src/data/workflows.json
- *   - src/data/api.json
  *   - src/data/component-guides.json
  */
 
@@ -293,52 +291,6 @@ Generate workflows for:
   console.log(`   ✅ Generated ${workflows.workflows.length} workflows\n`);
 }
 
-async function generateApiInfo() {
-  console.log('🔌 Generating api.json...');
-
-  const prompt = `Extract API endpoint documentation from these Q&A pairs.
-
-Data:
-${JSON.stringify(
-  [...tgData, ...docsData]
-    .filter(
-      (qa) =>
-        qa.question.toLowerCase().includes('api') ||
-        qa.question.toLowerCase().includes('endpoint') ||
-        qa.question.toLowerCase().includes('/v1/') ||
-        qa.answer.includes('https://api.orderly')
-    )
-    .slice(0, 30),
-  null,
-  2
-)}
-
-Document:
-1. Authentication process
-2. REST API endpoints (private and public)
-3. WebSocket streams
-4. Rate limits
-5. Error codes`;
-
-  const completion = await openai.beta.chat.completions.parse({
-    model: NEAR_AI_MODEL,
-    messages: [
-      {
-        role: 'system',
-        content: 'Generate comprehensive API documentation for Orderly REST and WebSocket APIs.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    response_format: zodResponseFormat(ApiInfoSchema, 'api_info'),
-    temperature: 0.2,
-  });
-
-  const apiInfo = completion.choices[0].message.parsed;
-
-  fs.writeFileSync(path.join(DATA_DIR, 'api.json'), JSON.stringify(apiInfo, null, 2));
-  console.log(`   ✅ Generated API documentation\n`);
-}
-
 async function generateComponentGuides() {
   console.log('🧩 Generating component-guides.json...');
 
@@ -393,16 +345,6 @@ Create guides for:
 async function main() {
   console.log('⏳ Starting generation (this may take a few minutes)...\n');
 
-  // Check for existing sdk-patterns.json from analyze_sdk.js
-  const sdkPatternsPath = path.join(DATA_DIR, 'sdk-patterns.json');
-  if (fs.existsSync(sdkPatternsPath)) {
-    console.log('💡 Found existing sdk-patterns.json from analyze_sdk.js - will enhance it');
-    console.log('   (Using type-accurate SDK data as base, AI will add Q&A examples)\n');
-  } else {
-    console.log('💡 No existing sdk-patterns.json - generating from scratch');
-    console.log('   (Tip: Run analyze_sdk.js first for better type-accurate results)\n');
-  }
-
   try {
     await generateDocumentation();
     await generateWorkflows();
@@ -412,9 +354,7 @@ async function main() {
     console.log('✅ All data files generated successfully!');
     console.log('\nGenerated files:');
     console.log('  - src/data/documentation.json');
-    console.log('  - src/data/sdk-patterns.json');
     console.log('  - src/data/workflows.json');
-    console.log('  - src/data/api.json');
     console.log('  - src/data/component-guides.json');
     console.log('\nNext step: yarn build && yarn test:run');
   } catch (error) {
