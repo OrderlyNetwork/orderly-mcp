@@ -1,0 +1,212 @@
+{
+  "rest": {
+    "baseUrl": {
+      "mainnet": "https://api.orderly.org",
+      "testnet": "https://testnet-api.orderly.org"
+    },
+    "authentication": {
+      "type": "Ed25519 signature",
+      "description": "All private endpoints require signing with Ed25519 key pair. Headers required: orderly-account-id, orderly-key, orderly-signature, orderly-timestamp"
+    },
+    "endpoints": [
+      {
+        "path": "/v1/order",
+        "method": "POST",
+        "description": "Place a new order",
+        "auth": true,
+        "rateLimit": "10 requests per 1 second per user",
+        "parameters": [
+          {
+            "name": "symbol",
+            "type": "string",
+            "required": true,
+            "description": "Trading pair (e.g., PERP_ETH_USDC)"
+          },
+          {
+            "name": "order_type",
+            "type": "string",
+            "required": true,
+            "description": "MARKET, LIMIT, STOP_MARKET, STOP_LIMIT"
+          },
+          {
+            "name": "side",
+            "type": "string",
+            "required": true,
+            "description": "BUY or SELL"
+          },
+          {
+            "name": "order_price",
+            "type": "number",
+            "required": false,
+            "description": "Required for LIMIT orders"
+          },
+          {
+            "name": "order_quantity",
+            "type": "number",
+            "required": true,
+            "description": "Order quantity in base token"
+          },
+          {
+            "name": "trigger_price",
+            "type": "number",
+            "required": false,
+            "description": "Required for STOP orders"
+          }
+        ],
+        "example": "const res = await signAndSendRequest(\n  orderlyAccountId,\n  privateKey,\n  `${baseUrl}/v1/order`,\n  {\n    method: 'POST',\n    body: JSON.stringify({\n      symbol: 'PERP_ETH_USDC',\n      order_type: 'MARKET',\n      order_quantity: 0.01,\n      side: 'BUY'\n    })\n  }\n);"
+      },
+      {
+        "path": "/v1/orders",
+        "method": "DELETE",
+        "description": "Cancel multiple orders by symbol or order IDs",
+        "auth": true,
+        "rateLimit": "10 requests per 1 second per user"
+      },
+      {
+        "path": "/v1/order/{order_id}",
+        "method": "DELETE",
+        "description": "Cancel a specific order by ID",
+        "auth": true,
+        "rateLimit": "10 requests per 1 second per user"
+      },
+      {
+        "path": "/v1/orders",
+        "method": "GET",
+        "description": "Get open orders with optional filters",
+        "auth": true,
+        "rateLimit": "10 requests per 1 second per user"
+      },
+      {
+        "path": "/v1/order/{order_id}",
+        "method": "GET",
+        "description": "Get details of a specific order",
+        "auth": true
+      },
+      {
+        "path": "/v1/client/info",
+        "method": "GET",
+        "description": "Get account information including fee rates",
+        "auth": true,
+        "rateLimit": "10 requests per 60 seconds"
+      },
+      {
+        "path": "/v1/positions",
+        "method": "GET",
+        "description": "Get current positions",
+        "auth": true,
+        "rateLimit": "10 requests per 60 seconds"
+      },
+      {
+        "path": "/v1/client/holding",
+        "method": "GET",
+        "description": "Get token balances in the account",
+        "auth": true
+      },
+      {
+        "path": "/v1/public/funding_rates",
+        "method": "GET",
+        "description": "Get current funding rates",
+        "auth": false
+      },
+      {
+        "path": "/v1/public/info",
+        "method": "GET",
+        "description": "Get trading symbols and their parameters",
+        "auth": false
+      },
+      {
+        "path": "/v1/public/orderbook",
+        "method": "GET",
+        "description": "Get orderbook snapshot",
+        "auth": false,
+        "parameters": [
+          {
+            "name": "symbol",
+            "type": "string",
+            "required": true,
+            "description": "Trading pair symbol"
+          },
+          {
+            "name": "max_level",
+            "type": "number",
+            "required": false,
+            "description": "Maximum orderbook levels (default: 100)"
+          }
+        ]
+      }
+    ]
+  },
+  "websocket": {
+    "baseUrl": {
+      "mainnet": "wss://ws.orderly.org/ws/stream",
+      "testnet": "wss://testnet-ws.orderly.org/ws/stream"
+    },
+    "streams": [
+      {
+        "name": "Orderbook",
+        "topic": "orderbook",
+        "description": "Real-time orderbook updates with configurable depth",
+        "auth": false,
+        "parameters": ["symbol"],
+        "example": "ws.send(JSON.stringify({\n  id: '1',\n  event: 'subscribe',\n  topic: 'orderbook:PERP_ETH_USDC',\n  params: {\n    binary: false\n  }\n}));"
+      },
+      {
+        "name": "Order Updates",
+        "topic": "executionreport",
+        "description": "Real-time updates for order status changes, fills, and cancellations",
+        "auth": true,
+        "example": "ws.send(JSON.stringify({\n  id: '1',\n  event: 'subscribe',\n  topic: 'executionreport'\n}));"
+      },
+      {
+        "name": "Position Updates",
+        "topic": "position",
+        "description": "Real-time position changes and PnL updates",
+        "auth": true,
+        "example": "ws.send(JSON.stringify({\n  id: '1',\n  event: 'subscribe',\n  topic: 'position'\n}));"
+      },
+      {
+        "name": "Mark Price",
+        "topic": "markprice",
+        "description": "Real-time mark price updates for all symbols",
+        "auth": false,
+        "example": "ws.send(JSON.stringify({\n  id: '1',\n  event: 'subscribe',\n  topic: 'markprice'\n}));"
+      },
+      {
+        "name": "Index Price",
+        "topic": "indexprice",
+        "description": "Real-time index price updates",
+        "auth": false
+      },
+      {
+        "name": "24h Ticker",
+        "topic": "24hrTicker",
+        "description": "24-hour rolling statistics for all symbols",
+        "auth": false,
+        "parameters": ["symbol (optional - omit for all symbols)"]
+      },
+      {
+        "name": "Account Holding",
+        "topic": "balance",
+        "description": "Account balance updates",
+        "auth": true
+      },
+      {
+        "name": "Liquidation Push",
+        "topic": "liquidation",
+        "description": "Liquidation warnings and executions",
+        "auth": true
+      }
+    ]
+  },
+  "auth": {
+    "description": "Orderly uses Ed25519 elliptic curve signatures for request authentication. Each request must include a signature generated with your private key.",
+    "steps": [
+      "Generate Ed25519 key pair or add existing public key to your account",
+      "Create message to sign: timestamp + method + path + body (if any)",
+      "Sign message with Ed25519 private key",
+      "Encode signature as base64url",
+      "Include headers: orderly-account-id, orderly-key, orderly-signature, orderly-timestamp"
+    ],
+    "example": "import { signAsync } from '@noble/ed25519';\n\nconst timestamp = Date.now();\nconst message = `${timestamp}POST/v1/order${JSON.stringify(body)}`;\nconst signature = await signAsync(Buffer.from(message), privateKey);\nconst orderlySignature = Buffer.from(signature).toString('base64url');\n\n// Headers\n{\n  'orderly-timestamp': String(timestamp),\n  'orderly-account-id': accountId,\n  'orderly-key': `ed25519:${publicKey}`,\n  'orderly-signature': orderlySignature\n}"
+  }
+}

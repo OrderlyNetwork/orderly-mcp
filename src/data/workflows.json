@@ -1,0 +1,292 @@
+{
+  "workflows": [
+    {
+      "name": "Wallet Connection",
+      "description": "Complete workflow for connecting a wallet and initializing an Orderly account",
+      "prerequisites": [
+        "React app with OrderlyConfigProvider configured",
+        "Wallet installed (MetaMask, Phantom, etc.)",
+        "Broker ID from Orderly"
+      ],
+      "steps": [
+        {
+          "title": "Setup OrderlyConfigProvider",
+          "description": "Wrap your app with the OrderlyConfigProvider at the root level",
+          "code": "import { OrderlyConfigProvider } from '@orderly.network/hooks';\n\nfunction App() {\n  return (\n    <OrderlyConfigProvider\n      brokerId=\"your-broker-id\"\n      networkId=\"testnet\"\n    >\n      <YourApp />\n    </OrderlyConfigProvider>\n  );\n}"
+        },
+        {
+          "title": "Connect Wallet",
+          "description": "Use useWalletConnector to initiate wallet connection",
+          "code": "import { useWalletConnector } from '@orderly.network/hooks';\n\nfunction ConnectButton() {\n  const wallet = useWalletConnector();\n\n  return (\n    <button onClick={() => wallet.connect()}>\n      Connect Wallet\n    </button>\n  );\n}"
+        },
+        {
+          "title": "Set Address in Orderly",
+          "description": "Use useAccount to set the connected address in Orderly",
+          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction useConnectOrderly() {\n  const { account, createOrderlyKey } = useAccount();\n  const wallet = useWalletConnector();\n\n  const connect = async () => {\n    const connected = await wallet.connect();\n    const nextState = await account.setAddress(\n      connected.accounts[0].address,\n      {\n        provider: connected.provider,\n        chain: { id: connected.connectedChain.id },\n        wallet: { name: connected.label }\n      }\n    );\n    \n    if (nextState.status === 'connected') {\n      await createOrderlyKey(true);\n    }\n  };\n}",
+          "important": [
+            "createOrderlyKey(true) creates key valid for 365 days",
+            "Status will be 'not_activated' if account doesn't exist yet"
+          ]
+        }
+      ],
+      "commonIssues": [
+        "Provider not set correctly - ensure window.ethereum or wallet provider is passed",
+        "Chain ID format - use hex string (e.g., '0x1') for EVM chains",
+        "Account creation - if status is 'not_activated', call createAccount() before createOrderlyKey()"
+      ],
+      "relatedWorkflows": ["Account Creation", "Deposit Funds"]
+    },
+    {
+      "name": "Place First Order",
+      "description": "Step-by-step workflow for placing your first trade after wallet connection",
+      "prerequisites": [
+        "Wallet connected and Orderly key created",
+        "Sufficient collateral deposited",
+        "Understanding of order types"
+      ],
+      "steps": [
+        {
+          "title": "Check Account Status",
+          "description": "Ensure account is properly connected and activated",
+          "code": "import { useAccount, useCollateral } from '@orderly.network/hooks';\n\nfunction TradingCheck() {\n  const { state } = useAccount();\n  const { freeCollateral } = useCollateral();\n\n  if (state.status !== 'connected') {\n    return <div>Please connect wallet</div>;\n  }\n\n  if (Number(freeCollateral) <= 0) {\n    return <div>Please deposit funds</div>;\n  }\n}"
+        },
+        {
+          "title": "Setup Order Entry",
+          "description": "Initialize useOrderEntry hook for the trading pair",
+          "code": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\n\nfunction TradingPanel() {\n  const {\n    submit,\n    formattedOrder,\n    setValue,\n    metaState,\n    isMutating,\n    maxQty,\n  } = useOrderEntry('PERP_ETH_USDC', {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.MARKET,\n    }\n  });\n}"
+        },
+        {
+          "title": "Build Order Form",
+          "description": "Create UI for order input with validation",
+          "code": "function OrderForm() {\n  // ... hook setup\n\n  return (\n    <div>\n      <button onClick={() => setValue('side', OrderSide.BUY)}>Buy</button>\n      <button onClick={() => setValue('side', OrderSide.SELL)}>Sell</button>\n      \n      <select onChange={(e) => setValue('order_type', e.target.value)}>\n        <option value={OrderType.MARKET}>Market</option>\n        <option value={OrderType.LIMIT}>Limit</option>\n      </select>\n      \n      <input\n        type=\"number\"\n        value={formattedOrder.order_quantity || ''}\n        onChange={(e) => setValue('order_quantity', e.target.value)}\n        placeholder={`Max: ${maxQty}`}\n      />\n      \n      {metaState.submitted && metaState.errors && (\n        <div>{metaState.errors.order_quantity?.message}</div>\n      )}\n    </div>\n  );\n}"
+        },
+        {
+          "title": "Submit Order",
+          "description": "Handle order submission with error handling",
+          "code": "const handleSubmit = async () => {\n  try {\n    const result = await submit({ resetOnSuccess: true });\n    console.log('Order placed:', result);\n  } catch (error) {\n    if (metaState.errors) {\n      console.error('Validation errors:', metaState.errors);\n    } else {\n      console.error('Submission error:', error);\n    }\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        "Insufficient margin - check freeCollateral before placing order",
+        "Price not set for limit orders - ensure order_price is defined when using LIMIT",
+        "Quantity too large - maxQty shows the maximum allowed based on available collateral"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "Deposit Funds", "Set TP/SL"]
+    },
+    {
+      "name": "Deposit Funds",
+      "description": "Workflow for depositing USDC or other supported tokens into Orderly",
+      "prerequisites": [
+        "Wallet connected to Orderly",
+        "USDC or supported token in wallet",
+        "Sufficient gas for the transaction"
+      ],
+      "steps": [
+        {
+          "title": "Check Balance and Allowance",
+          "description": "Verify token balance and approve if needed",
+          "code": "import { useDeposit } from '@orderly.network/hooks';\nimport { useChains } from '@orderly.network/hooks';\n\nfunction DepositUI() {\n  const {\n    deposit,\n    balance,\n    allowance,\n    approve,\n    isApproving,\n  } = useDeposit();\n\n  const [chains] = useChains('mainnet');\n  \n  const needsApproval = Number(allowance) < amount;\n}"
+        },
+        {
+          "title": "Approve Token (if needed)",
+          "description": "ERC20 tokens require approval before deposit",
+          "code": "const handleApprove = async () => {\n  await approve(chainId, tokenAddress, amount);\n};\n\n// In UI\n{needsApproval && (\n  <button onClick={handleApprove} disabled={isApproving}>\n    Approve USDC\n  </button>\n)}"
+        },
+        {
+          "title": "Execute Deposit",
+          "description": "Call deposit function to transfer funds to vault",
+          "code": "const handleDeposit = async () => {\n  try {\n    await deposit(chainId, tokenAddress, amount);\n    // Deposit successful\n  } catch (error) {\n    console.error('Deposit failed:', error);\n  }\n};\n\n// In UI\n<button onClick={handleDeposit} disabled={needsApproval}>\n  Deposit {amount} USDC\n</button>"
+        }
+      ],
+      "commonIssues": [
+        "Approval not complete - ensure approve() resolves before calling deposit()",
+        "Wrong chain - verify chainId matches the chain where tokens are held",
+        "Insufficient balance - check balance before attempting deposit"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "Withdraw Funds"]
+    },
+    {
+      "name": "Set TP/SL",
+      "description": "Workflow for setting Take Profit and Stop Loss on positions or orders",
+      "prerequisites": [
+        "Active position or pending order",
+        "Understanding of trigger prices vs limit prices"
+      ],
+      "steps": [
+        {
+          "title": "TP/SL on Order Entry",
+          "description": "Set TP/SL when creating a new order",
+          "code": "const { setValue } = useOrderEntry('PERP_ETH_USDC');\n\n// Method 1: Set trigger price directly\nsetValue('tp_trigger_price', '70000');\nsetValue('sl_trigger_price', '65000');\n\n// Method 2: Set based on PnL\nsetValue('tp_pnl', '500'); // Take profit at $500 profit\nsetValue('sl_pnl', '-200'); // Stop loss at $200 loss\n\n// Method 3: Set percentage offset\nsetValue('tp_offset_percentage', 5); // 5% above entry\nsetValue('sl_offset_percentage', -3); // 3% below entry"
+        },
+        {
+          "title": "TP/SL on Existing Position",
+          "description": "Modify TP/SL for an existing position using position actions",
+          "code": "import { usePositionStream } from '@orderly.network/hooks';\n\nfunction PositionTPSL({ symbol }: { symbol: string }) {\n  const [{ rows }] = usePositionStream(symbol);\n  const position = rows[0];\n  \n  const updateTPSL = async () => {\n    // Use position's updateTPSL method\n    await position.updateTPSL({\n      tp_trigger_price: 70000,\n      sl_trigger_price: 65000,\n    });\n  };\n}"
+        }
+      ],
+      "commonIssues": [
+        "Price vs Trigger - TP/SL uses trigger price, not limit price",
+        "Validation - ensure trigger prices are valid relative to current price and position side",
+        "Partial TP/SL - can set multiple TP/SL levels for partial closes"
+      ],
+      "relatedWorkflows": ["Place First Order", "Position Management"]
+    },
+    {
+      "name": "Subaccount Management",
+      "description": "Workflow for creating and managing subaccounts",
+      "prerequisites": [
+        "Main account already created and activated",
+        "Understanding of main/sub account relationship"
+      ],
+      "steps": [
+        {
+          "title": "Create Subaccount",
+          "description": "Create a new subaccount from the main account",
+          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction SubaccountManager() {\n  const { account, state } = useAccount();\n  \n  const createSubaccount = async () => {\n    const subAccount = await account.createSubAccount();\n    console.log('Subaccount created:', subAccount.accountId);\n  };\n}"
+        },
+        {
+          "title": "Switch Between Accounts",
+          "description": "Switch context between main and subaccounts",
+          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction AccountSwitcher() {\n  const { state, switchAccount, subAccount } = useAccount();\n  \n  // Switch to subaccount\n  await switchAccount(subAccountId);\n  \n  // Switch back to main\n  await switchAccount(state.mainAccountId);\n  \n  return (\n    <div>\n      <span>Current: {state.isSubAccount ? 'Subaccount' : 'Main'}</span>\n      <span>ID: {state.accountId}</span>\n    </div>\n  );\n}"
+        },
+        {
+          "title": "Internal Transfer",
+          "description": "Transfer funds between main and subaccounts",
+          "code": "import { useTransfer } from '@orderly.network/hooks';\n\nfunction TransferForm() {\n  const { transfer, isLoading } = useTransfer();\n  \n  const handleTransfer = async () => {\n    await transfer({\n      amount: 1000,\n      fromAccountId: mainAccountId,\n      toAccountId: subAccountId,\n    });\n  };\n}"
+        }
+      ],
+      "commonIssues": [
+        "Subaccount permissions - main account controls subaccount creation",
+        "Key management - each account needs its own Orderly key",
+        "Cross-account visibility - positions and orders are isolated per account"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "Deposit Funds"]
+    },
+    {
+      "name": "Troubleshoot Wallet Connection Issues",
+      "description": "Step-by-step troubleshooting for common wallet connection problems based on real developer issues",
+      "prerequisites": [
+        "React app with Orderly SDK installed",
+        "Browser DevTools open to check console logs and localStorage"
+      ],
+      "steps": [
+        {
+          "title": "Clear Cache and localStorage",
+          "description": "Most connection issues are resolved by clearing cached state. This fixes stuck pending states and stale connection data.",
+          "code": "// Clear localStorage for Orderly\nlocalStorage.removeItem('orderly:account');\nlocalStorage.removeItem('orderly:key');\n\n// Revoke wallet access\n// In your wallet (MetaMask, etc.), revoke access to asset-manager\n\n// Clear browser cache and reload",
+          "important": [
+            "Check localStorage keys by running: Object.keys(localStorage).filter(k => k.includes('orderly')) in console"
+          ]
+        },
+        {
+          "title": "Verify SDK Build",
+          "description": "Many issues occur when SDK wasn't rebuilt after pulling updates. Modal styles especially fail to load without proper build.",
+          "code": "# In SDK directory\ngit pull\nnpm run build\n\n# In your frontend\nrm -rf node_modules\nrm -rf package-lock.json\nnpm i\nnpm run start",
+          "important": ["Always rebuild SDK after pulling changes, even for small updates"]
+        },
+        {
+          "title": "Check for useEffect Connection Loops",
+          "description": "Putting connection logic in useEffect without guards causes infinite loops and page jumping. Check your component code.",
+          "code": "// BAD - causes infinite connection attempts\nuseEffect(() => {\n  connectWallet(); // Don't do this!\n}, []);\n\n// GOOD - check isSignedIn first\nuseEffect(() => {\n  const isSignedIn = localStorage.getItem('orderly:signed_in');\n  if (isSignedIn === 'true') {\n    connectWallet();\n  }\n}, []);",
+          "important": [
+            "Auto-connection should be handled on frontend, not forced in SDK for flexibility"
+          ]
+        },
+        {
+          "title": "Create Fresh Test Wallet",
+          "description": "Some issues only appear with specific wallet states. Creating a new wallet helps isolate if it's a wallet-specific issue.",
+          "code": "// Create new wallet in MetaMask/Phantom\n// Get testnet funds from faucet\n// Try connecting with new wallet\n\n// If new wallet works but old doesn't:\n// - Old wallet may have stuck transaction state\n// - Try revoking all dApp connections in wallet settings",
+          "important": [
+            "Some bugs only reproduce with specific wallet states that are hard to track"
+          ]
+        }
+      ],
+      "commonIssues": [
+        "Klines loading but trading locked - wallet status stuck in pending",
+        "Page jumping to wallet repeatedly - connection in useEffect without guards",
+        "Modal not appearing - SDK not rebuilt after pull",
+        "API/contract/ft undefined on first load - normal before wallet connection, not an error"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "SDK Update"]
+    },
+    {
+      "name": "SDK Update After Pulling Changes",
+      "description": "Complete workflow for updating SDK dependencies after pulling new versions or switching branches",
+      "prerequisites": ["Git access to SDK repository", "Node.js and npm/yarn installed"],
+      "steps": [
+        {
+          "title": "Update SDK Repository",
+          "description": "Pull latest changes or switch to specific branch for bug fixes",
+          "code": "# Pull latest\ngit pull origin main\n\n# Or switch to bugfix branch\ngit checkout bugfix/OR-1027\ngit pull origin bugfix/OR-1027"
+        },
+        {
+          "title": "Rebuild SDK",
+          "description": "Always rebuild SDK after pulling changes to compile TypeScript and update exports",
+          "code": "cd /path/to/orderly-sdk\nnpm install --force  # Use force if dependency issues\nnpm run build",
+          "important": [
+            "Skipping this step causes 'modal styles not imported' and other cryptic errors"
+          ]
+        },
+        {
+          "title": "Update Frontend Dependencies",
+          "description": "Clean reinstall frontend dependencies to pick up SDK changes",
+          "code": "cd /path/to/your-frontend\nrm -rf node_modules\nrm -rf package-lock.json\nnpm i\nnpm run start",
+          "important": ["The rm -rf steps are crucial - don't skip them"]
+        },
+        {
+          "title": "Verify Installation",
+          "description": "Check that new SDK version is being used and connection works",
+          "code": "# Check package.json for SDK version\n# Try connecting wallet\n# Check console for any import errors\n\n# If issues persist:\nnpm ls @orderly.network/hooks  # Verify version\nnpm install --force @orderly.network/hooks@latest"
+        }
+      ],
+      "commonIssues": [
+        "Build fails - run npm install --force to resolve dependency conflicts",
+        "Styles not loading - SDK wasn't rebuilt, run npm run build in SDK directory",
+        "Changes not appearing - node_modules cache needs clearing with rm -rf",
+        "Type errors after update - TypeScript needs rebuild to pick up new types"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "Troubleshoot Wallet Connection Issues"]
+    },
+    {
+      "name": "Debug API Signature Errors",
+      "description": "Troubleshooting API authentication and signature errors that commonly occur with getOrders and private endpoints",
+      "prerequisites": [
+        "Wallet connected and Orderly key created",
+        "Browser DevTools Network tab open"
+      ],
+      "steps": [
+        {
+          "title": "Verify Headers Are Set",
+          "description": "Check that all required authentication headers are present in API requests",
+          "code": "// In Network tab, check request headers:\norderly-account-id: your-account-id\norderly-key: ed25519:your-public-key\norderly-signature: base64-signature\norderly-timestamp: 1679563337707\n\n// If any are missing, wallet connection is incomplete"
+        },
+        {
+          "title": "Check Timestamp Validity",
+          "description": "Signatures are only valid for 5 minutes. Check that your system clock is correct.",
+          "code": "// Check timestamp in header vs current time\nconst headerTime = 1679563337707;\nconst now = Date.now();\nconst diff = now - headerTime;\n\nif (diff > 300000) {\n  console.error('Timestamp too old - check system clock');\n}\n\n// Fix: Ensure your computer's clock is synced",
+          "important": ["Server rejects requests with timestamps > 5 minutes old"]
+        },
+        {
+          "title": "Test Without Arguments First",
+          "description": "getOrders works without arguments but fails with arguments - this indicates a specific signature issue",
+          "code": "// Test 1: No arguments (should work)\nconst result1 = await getOrders();\n\n// Test 2: With symbol filter (may fail)\nconst result2 = await getOrders({ symbol: 'PERP_ETH_USDC' });\n\n// If Test 1 works but Test 2 fails:\n// - Orderly key might be expired\n// - Try creating new key with createOrderlyKey(true)"
+        },
+        {
+          "title": "Regenerate Orderly Key",
+          "description": "If signature errors persist, regenerate the Orderly key",
+          "code": "import { useAccount } from '@orderly.network/hooks';\n\nconst { createOrderlyKey } = useAccount();\n\n// Create new key valid for 365 days\nawait createOrderlyKey(true);\n\n// Note: Old key will be invalidated",
+          "important": [
+            "Each account can have multiple keys - old ones remain valid unless explicitly removed"
+          ]
+        }
+      ],
+      "commonIssues": [
+        "getOrders fails with arguments but works without - signature scope issue, regenerate key",
+        "getOrderbook returns 500 - backend issue, try different trading pairs",
+        "Position endpoint errors - verify wallet has funds on correct network (testnet vs mainnet)",
+        "Rate limit 429 - reduce API calls, use WebSocket for real-time data"
+      ],
+      "relatedWorkflows": ["Wallet Connection", "Place First Order"]
+    }
+  ]
+}

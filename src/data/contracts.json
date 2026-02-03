@@ -1,0 +1,246 @@
+{
+  "arbitrum": {
+    "chainId": 42161,
+    "testnetChainId": 421614,
+    "contracts": {
+      "USDC": {
+        "mainnet": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "testnet": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+        "description": "USDC token contract"
+      },
+      "USDT": {
+        "mainnet": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        "testnet": "0xEf54C221Fc94517877F0F40eCd71E0A3866D66C2",
+        "description": "USDT token contract"
+      },
+      "Vault": {
+        "mainnet": "0x816f722424B49Cf1275cc86DA9840Fbd5a6167e9",
+        "testnet": "0x0EaC556c0C2321BA25b9DC01e4e3c95aD5CDCd2f",
+        "description": "Orderly Vault contract for deposits and withdrawals"
+      },
+      "VaultProxyAdmin": {
+        "mainnet": "0xA2eA0a58b083c492AdC91A687FAc8b53AdB7c0Fd",
+        "testnet": "0xa3BB1F1Aa238AF13528965f069fD0a4F1595d8e9",
+        "description": "Proxy admin for vault upgrades"
+      },
+      "VaultCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0xc8E38C1Fd1422f49DB592BAe619080EA5Deb50e0",
+        "description": "Manages cross-chain vault operations"
+      },
+      "CrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0x25eB1e506608ab7eb8f91802e1dae6963848ED25",
+        "description": "Cross-chain message relay"
+      }
+    }
+  },
+  "optimism": {
+    "chainId": 10,
+    "testnetChainId": 11155420,
+    "contracts": {
+      "USDC": {
+        "mainnet": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+        "testnet": "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
+        "description": "USDC token contract"
+      },
+      "Vault": {
+        "mainnet": "0x816f722424b49cf1275cc86da9840fbd5a6167e9",
+        "testnet": "0xEfF2896077B6ff95379EfA89Ff903598190805EC",
+        "description": "Orderly Vault contract for deposits and withdrawals"
+      },
+      "VaultProxyAdmin": {
+        "mainnet": "0xA2eA0a58b083c492AdC91A687FAc8b53AdB7c0Fd",
+        "testnet": "0xEfD0cbED3f520cb59c6Cf8cE428a44978C18F8Fb",
+        "description": "Proxy admin for vault upgrades"
+      },
+      "VaultCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0x6C14bf583C142B66EC59F8fc725B255e3a94BAA3",
+        "description": "Manages cross-chain vault operations"
+      },
+      "CrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0x09a766D6bcA1Fd8FdB6c09b76084719cF94d041b",
+        "description": "Cross-chain message relay"
+      }
+    }
+  },
+  "base": {
+    "chainId": 8453,
+    "testnetChainId": 84532,
+    "contracts": {
+      "USDC": {
+        "mainnet": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "testnet": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+        "description": "USDC token contract"
+      },
+      "Vault": {
+        "mainnet": "0x816f722424b49cf1275cc86da9840fbd5a6167e9",
+        "testnet": "0xdc7348975aE9334DbdcB944DDa9163Ba8406a0ec",
+        "description": "Orderly Vault contract for deposits and withdrawals"
+      },
+      "VaultProxyAdmin": {
+        "mainnet": "0xA2eA0a58b083c492AdC91A687FAc8b53AdB7c0Fd",
+        "testnet": "0xe014a38501cF2B8139dED0b60Ed4FbD02C113b59",
+        "description": "Proxy admin for vault upgrades"
+      },
+      "VaultCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0xc8E38C1Fd1422f49DB592BAe619080EA5Deb50e0",
+        "description": "Manages cross-chain vault operations"
+      },
+      "CrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0x25eB1e506608ab7eb8f91802e1dae6963848ED25",
+        "description": "Cross-chain message relay"
+      }
+    }
+  },
+  "ethereum": {
+    "chainId": 1,
+    "testnetChainId": 11155111,
+    "contracts": {
+      "USDC": {
+        "mainnet": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "testnet": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "description": "USDC token contract"
+      },
+      "USDT": {
+        "mainnet": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        "testnet": "0x01a6810727db185bbf7f30ec158c3ac8b8112627",
+        "description": "USDT token contract"
+      },
+      "YUSD": {
+        "mainnet": "0x4274cd7277c7bb0806bd5fe84b9adae466a8da0a",
+        "description": "YUSD stablecoin"
+      },
+      "Vault": {
+        "mainnet": "0x816f722424b49cf1275cc86da9840fbd5a6167e9",
+        "testnet": "0x0EaC556c0C2321BA25b9DC01e4e3c95aD5CDCd2f",
+        "description": "Orderly Vault contract for deposits and withdrawals"
+      },
+      "VaultProxyAdmin": {
+        "mainnet": "0xa2ea0a58b083c492adc91a687fac8b53adb7c0fd",
+        "testnet": "0xa3BB1F1Aa238AF13528965f069fD0a4F1595d8e9",
+        "description": "Proxy admin for vault upgrades"
+      },
+      "VaultCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0xE3a4d50b99758b5A07762B12a61F3832A63AE143",
+        "description": "Manages cross-chain vault operations"
+      },
+      "CrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0xfD89A24390BfEBbA227c0e8BcD4447d0c3A84FC2",
+        "description": "Cross-chain message relay"
+      }
+    }
+  },
+  "mantle": {
+    "chainId": 5000,
+    "testnetChainId": 5003,
+    "contracts": {
+      "USDC.e": {
+        "mainnet": "0x09bc4e0d864854c6afb6eb9a9cdf58ac190d0df9",
+        "testnet": "0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080",
+        "description": "Bridged USDC token"
+      },
+      "Vault": {
+        "mainnet": "0x816f722424b49cf1275cc86da9840fbd5a6167e9",
+        "testnet": "0xfb0E5f3D16758984E668A3d76f0963710E775503",
+        "description": "Orderly Vault contract for deposits and withdrawals"
+      },
+      "VaultProxyAdmin": {
+        "mainnet": "0xa2ea0a58b083c492adc91a687fac8b53adb7c0fd",
+        "testnet": "0xdc7348975aE9334DbdcB944DDa9163Ba8406a0ec",
+        "description": "Proxy admin for vault upgrades"
+      },
+      "VaultCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0xC0031c46DB3A30245400cf3095FdFbac064063DD",
+        "description": "Manages cross-chain vault operations"
+      },
+      "CrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0x92DD844c209Cb519Ab85C5D8b5f0e3F254A8Cdb1",
+        "description": "Cross-chain message relay"
+      }
+    }
+  },
+  "solana": {
+    "chainId": 900900900,
+    "contracts": {
+      "USDC": {
+        "mainnet": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "testnet": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+        "description": "USDC token mint"
+      },
+      "USDT": {
+        "mainnet": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "description": "USDT token mint"
+      },
+      "SolConnector": {
+        "mainnet": "0xCecAe061aa078e13b5e70D5F9eCee90a3F2B6AeA",
+        "testnet": "0x5Bf771A65d057e778C5f0Ed52A0003316f94322D",
+        "description": "Solana connector peer address"
+      },
+      "SolanaVault": {
+        "mainnet": "ErBmAD61mGFKvrFNaTJuxoPwqrS8GgtwtqJTJVjFWx9Q",
+        "testnet": "9shwxWDUNhtwkHocsUAmrNAQfBH2DHh4njdAEdHZZkF2",
+        "description": "Orderly vault on Solana"
+      },
+      "VaultAuthority": {
+        "mainnet": "2AoLiH5kVBG2ot1qKoh4ro8F95KQb7HEBbJmkxrwYBec",
+        "testnet": "CT9AgCVpWQCuPyVMriYKxTdrkH5DFmn2oiYhGKcNwPCm",
+        "description": "Vault authority account"
+      },
+      "OAPPConfig": {
+        "mainnet": "4ffJMy1qwt9bD9r9Ty1VsdYECaDR88sP6JD1EFM7T1Np",
+        "testnet": "5YsvfmqrMY9KWskY1e1uU2haJJZZHK7UAw8V6qpDsYm5",
+        "description": "OAPP configuration account"
+      },
+      "VaultUSDCAccount": {
+        "mainnet": "77puyQ4K4ov82qzBuda4q9iMh2Ux49YnnBNWqxQkcrXE",
+        "testnet": "HL4NkDbY9FgQySWJwpK92W8iXq1b5wovLvL7K3roedCj",
+        "description": "Vault USDC token account"
+      }
+    }
+  },
+  "orderlyL2": {
+    "chainId": 291,
+    "testnetChainId": 29112,
+    "contracts": {
+      "Ledger": {
+        "mainnet": "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203",
+        "testnet": "0x1826B75e2ef249173FC735149AE4B8e9ea10abff",
+        "description": "Ledger contract - verifying contract for EIP-712 withdraw messages"
+      },
+      "LedgerProxyAdmin": {
+        "mainnet": "0xA2eA0a58b083c492AdC91A687FAc8b53AdB7c0Fd",
+        "testnet": "0x24ea35cCD9d8c7aA5D35BDdc140A5f97D89289F8",
+        "description": "Proxy admin for ledger"
+      },
+      "OperatorManager": {
+        "mainnet": "0x7CC5B6433eb33164c88F6512f56C566CFC3420BF",
+        "testnet": "0x1A46be28AB241F5A64F82ddFc384911520E3d557",
+        "description": "Operator manager contract"
+      },
+      "VaultManager": {
+        "mainnet": "0x14a6342A8C1Ef9856898F510FcCE377e46668F33",
+        "testnet": "0x873c120b42C80D528389d85cEA9d4dC0197974aD",
+        "description": "Vault manager contract"
+      },
+      "LedgerCrossChainManager": {
+        "mainnet": "0xa0a07a78c7d31E6f8698F48Fc9219f9a3030f38C",
+        "testnet": "0xb592011550a7E2a85c69EdF1788F460075b958fc",
+        "description": "Cross-chain manager for ledger"
+      },
+      "LedgerCrossChainRelay": {
+        "mainnet": "0x173B47eDBeCa665125edc24C509bfE545CDA60a9",
+        "testnet": "0xa1a9C94bb24B09739Af80E6EfaB7ca0F576182bc",
+        "description": "Cross-chain relay for ledger"
+      }
+    }
+  }
+}

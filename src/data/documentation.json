@@ -1,0 +1,108 @@
+{
+  "chunks": [
+    {
+      "id": "overview-orderbook",
+      "title": "Central Limit Orderbook (CLOB)",
+      "category": "Overview",
+      "content": "Orderly uses a centralized orderbook with low latency matching. The orderbook is shared across all integrated chains, enabling deep liquidity. Orders are matched using price-time priority. The system supports limit orders, market orders, stop orders, and advanced order types like scaled and trailing stop orders.",
+      "keywords": ["orderbook", "clob", "matching", "liquidity", "orders"]
+    },
+    {
+      "id": "overview-leverage",
+      "title": "Leverage and Margin System",
+      "category": "Overview",
+      "content": "Orderly supports customizable leverage per symbol up to 50x. Margin requirements are calculated using IMR (Initial Margin Requirement) and MMR (Maintenance Margin Requirement) factors. The maximum position size depends on the leverage selected and the IMR factor for that symbol. Users can set different leverage levels for different trading pairs.",
+      "keywords": ["leverage", "margin", "IMR", "MMR", "position size", "risk"]
+    },
+    {
+      "id": "sdk-core-concepts",
+      "title": "SDK Core Concepts",
+      "category": "SDK",
+      "content": "The Orderly SDK v2 is built around React hooks that abstract blockchain complexity. Key concepts: OrderlyConfigProvider (root configuration), useAccount (wallet and account management), useOrderEntry (order placement v2), usePositionStream (real-time positions), useOrderbookStream (market data). All hooks follow a consistent pattern of returning data and configuration objects.",
+      "keywords": ["sdk", "hooks", "provider", "useAccount", "useOrderEntry", "v2"]
+    },
+    {
+      "id": "sdk-config",
+      "title": "Configuring OrderlyConfigProvider",
+      "category": "SDK",
+      "content": "OrderlyConfigProvider is the root provider that must wrap your React application. Required props: brokerId (your integration ID), networkId ('mainnet' or 'testnet'). Optional props: brokerName (display name), enableSwapDeposit (cross-chain swaps), walletAdapters (custom adapters), chainFilter (filter available chains), customChains (add custom chain configs).",
+      "keywords": ["config", "provider", "OrderlyConfigProvider", "brokerId", "setup"]
+    },
+    {
+      "id": "order-types-market",
+      "title": "Market Orders",
+      "category": "Trading",
+      "content": "Market orders execute immediately at the best available price. No price needs to be specified. The order will fill against existing orders in the orderbook. Market orders are susceptible to slippage in low-liquidity markets. The SDK validates that you have sufficient margin before submitting.",
+      "keywords": ["market order", "immediate", "execution", "price", "slippage"]
+    },
+    {
+      "id": "order-types-stop",
+      "title": "Stop Orders",
+      "category": "Trading",
+      "content": "Stop orders (stop-loss and take-profit) are triggered when the market reaches a specified price. Stop-market orders execute as market orders once triggered. Stop-limit orders execute as limit orders once triggered. These are used for risk management and automated exit strategies.",
+      "keywords": ["stop order", "stop-loss", "take-profit", "trigger", "risk management"]
+    },
+    {
+      "id": "api-authentication",
+      "title": "API Authentication Details",
+      "category": "API",
+      "content": "All private API endpoints require authentication using Ed25519 signatures. Headers required: orderly-account-id, orderly-key (public key), orderly-signature, orderly-timestamp. The signature is created by signing: timestamp + method + path + body (if any). Timestamps must be within 5 minutes of server time or requests are rejected.",
+      "keywords": ["api auth", "ed25519", "signature", "headers", "timestamp"]
+    },
+    {
+      "id": "liquidation-mechanism",
+      "title": "Liquidation Mechanism",
+      "category": "Risk",
+      "content": "Liquidation occurs when account margin ratio falls below MMR (Maintenance Margin Requirement). Positions are closed to bring account back to safe levels. Liquidators are incentivized with a bonus from the liquidated position. Liquidation price depends on position size, leverage, and collateral. Use usePositionStream to monitor liquidation risk.",
+      "keywords": ["liquidation", "MMR", "margin ratio", "liquidators", "risk"]
+    },
+    {
+      "id": "troubleshooting-wallet-connection",
+      "title": "Wallet Connection Troubleshooting",
+      "category": "Troubleshooting",
+      "content": "Common wallet connection issues: 1) Page reload requires reconnecting - implement auto-connect by checking isSignedIn in localStorage. 2) Connection gets stuck - clear cache/localStorage, revoke wallet access, and try again. 3) Modal not appearing - ensure npm run build was executed in SDK. 4) API/contract/ft undefined on first load - this is normal before wallet is connected. 5) Klines loading but trading locked - wallet status is stuck in pending state, requires clearing localStorage.",
+      "keywords": ["troubleshooting", "wallet", "connection", "localStorage", "cache", "stuck"]
+    },
+    {
+      "id": "troubleshooting-api-errors",
+      "title": "API and Signature Errors",
+      "category": "Troubleshooting",
+      "content": "Common API errors: 1) getOrders fails with 'signature error' when arguments are passed - check that Orderly key is properly created and timestamp is within 5 minutes. 2) getOrderbook returns 500 - this is often a backend issue unrelated to your code, try different trading pairs. 3) '/api/v1/positions' errors - verify wallet is connected and has funds on correct network (testnet vs mainnet). 4) API rate limits (429) - reduce request frequency, use WebSocket for real-time data.",
+      "keywords": ["api", "signature", "error", "500", "getOrders", "rate limit"]
+    },
+    {
+      "id": "troubleshooting-deposit-withdraw",
+      "title": "Deposit and Withdrawal Issues",
+      "category": "Troubleshooting",
+      "content": "Common deposit/withdrawal issues: 1) No UI feedback after deposit - known issue, deposit usually processes but UI doesn't update immediately. Check balance after 1-2 minutes. 2) Withdrawal shows 'amount error' - minimum withdrawal amounts apply, UI should prevent small amounts but sometimes allows them through. 3) Pending withdrawal stuck - infrastructure issue being fixed, requires engineering intervention. 4) High gas fees for cross-chain deposits - can be $40+ USD depending on network congestion. 5) Deposit button location - currently on trading page, design improvements in progress.",
+      "keywords": ["deposit", "withdrawal", "stuck", "pending", "gas", "amount error"]
+    },
+    {
+      "id": "faq-test-wallet-setup",
+      "title": "FAQ: Setting Up Test Wallet",
+      "category": "FAQ",
+      "content": "Question: Do I need to create a new wallet for testing? Answer: Yes, create a new test wallet when testing SDK integration. Testing wallets should have funds on testnet. If you see 'getOrders' errors or connection issues with an existing wallet, try: 1) Creating a new test wallet, 2) Clearing localStorage and cache, 3) Revoking wallet access to asset-manager, 4) Connecting again with the new wallet. Some issues only appear with specific wallet states that are hard to track.",
+      "keywords": ["faq", "test", "wallet", "funds", "testnet", "new wallet"]
+    },
+    {
+      "id": "best-practices-sdk-development",
+      "title": "Best Practice: SDK Development Workflow",
+      "category": "Best Practices",
+      "content": "Best practices for SDK development and updates: 1) Always run npm run build in SDK after pulling changes. 2) Use the complete update sequence for frontend: rm -rf node_modules; rm -rf package-lock.json; npm i; npm run start. 3) For testing bug fixes, create a new wallet to avoid state issues. 4) Clear localStorage and revoke wallet access when switching between testnet and mainnet. 5) Use npm install --force when dependency issues occur. 6) Test with both fresh wallets and existing connections to catch edge cases.",
+      "keywords": ["best practice", "sdk", "development", "testing", "workflow"]
+    },
+    {
+      "id": "best-practices-error-handling",
+      "title": "Best Practice: Error Handling and Debugging",
+      "category": "Best Practices",
+      "content": "Best practices for error handling: 1) Check browser console logs for detailed error messages. 2) For API errors, verify headers are correct: orderly-account-id, orderly-key, orderly-signature, orderly-timestamp. 3) If wallet connection fails, check localStorage state and clear if needed. 4) For getOrderbook 500 errors, try different trading pairs to isolate backend vs frontend issues. 5) Use metaState.errors from useOrderEntry for order validation feedback. 6) Document known issues as you find them - many have workarounds while waiting for fixes.",
+      "keywords": ["best practice", "error handling", "debugging", "console", "logs"]
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-02-03",
+    "totalChunks": 14,
+    "source": "Original high-quality documentation (reset)"
+  }
+}

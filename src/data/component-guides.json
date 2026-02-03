@@ -1,0 +1,106 @@
+{
+  "components": [
+    {
+      "name": "Order Entry",
+      "description": "A form component for placing buy/sell orders with market, limit, and advanced order types",
+      "requiredPackages": ["@orderly.network/hooks", "@orderly.network/types"],
+      "keyHooks": ["useOrderEntry", "useOrderbookStream", "useAccount", "useCollateral"],
+      "variants": [
+        {
+          "complexity": "minimal",
+          "description": "Basic order entry with just side, type, price, and quantity",
+          "code": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\n\nfunction OrderEntryMinimal({ symbol }: { symbol: string }) {\n  const { submit, setValue, formattedOrder, metaState, maxQty } = useOrderEntry(symbol);\n\n  return (\n    <div>\n      <select onChange={(e) => setValue('side', e.target.value)}>\n        <option value={OrderSide.BUY}>Buy</option>\n        <option value={OrderSide.SELL}>Sell</option>\n      </select>\n      \n      <select onChange={(e) => setValue('order_type', e.target.value)}>\n        <option value={OrderType.MARKET}>Market</option>\n        <option value={OrderType.LIMIT}>Limit</option>\n      </select>\n      \n      {formattedOrder.order_type === OrderType.LIMIT && (\n        <input\n          type=\"number\"\n          onChange={(e) => setValue('order_price', e.target.value)}\n          placeholder=\"Price\"\n        />\n      )}\n      \n      <input\n        type=\"number\"\n        onChange={(e) => setValue('order_quantity', e.target.value)}\n        placeholder={`Qty (max: ${maxQty})`}\n      />\n      \n      <button onClick={submit}>Place Order</button>\n      \n      {metaState.submitted && metaState.errors && (\n        <div>{Object.values(metaState.errors).map(e => e.message).join(', ')}</div>\n      )}\n    </div>\n  );\n}",
+          "tips": [
+            "Use formattedOrder to display current values",
+            "metaState.errors contains validation errors"
+          ]
+        },
+        {
+          "complexity": "standard",
+          "description": "Full-featured order entry with validation, loading states, and orderbook integration",
+          "code": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { useOrderbookStream } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\nimport { useState } from 'react';\n\nfunction OrderEntry({ symbol }: { symbol: string }) {\n  const {\n    submit,\n    setValue,\n    formattedOrder,\n    metaState,\n    isMutating,\n    maxQty,\n    freeCollateral,\n    estLiqPrice,\n  } = useOrderEntry(symbol, {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.LIMIT,\n    }\n  });\n\n  const [orderbookData] = useOrderbookStream(symbol);\n  const [selectedSide, setSelectedSide] = useState(OrderSide.BUY);\n\n  const handleSideChange = (side: OrderSide) => {\n    setSelectedSide(side);\n    setValue('side', side);\n  };\n\n  const handlePriceClick = (price: string) => {\n    setValue('order_price', price);\n  };\n\n  return (\n    <div className=\"order-entry\">\n      <div className=\"side-selector\">\n        <button\n          className={selectedSide === OrderSide.BUY ? 'active buy' : 'buy'}\n          onClick={() => handleSideChange(OrderSide.BUY)}\n        >\n          Buy\n        </button>\n        <button\n          className={selectedSide === OrderSide.SELL ? 'active sell' : 'sell'}\n          onClick={() => handleSideChange(OrderSide.SELL)}\n        >\n          Sell\n        </button>\n      </div>\n\n      <select\n        value={formattedOrder.order_type}\n        onChange={(e) => setValue('order_type', e.target.value)}\n        className=\"order-type\">\n        <option value={OrderType.MARKET}>Market</option>\n        <option value={OrderType.LIMIT}>Limit</option>\n        <option value={OrderType.STOP_MARKET}>Stop Market</option>\n        <option value={OrderType.STOP_LIMIT}>Stop Limit</option>\n      </select>\n\n      {formattedOrder.order_type !== OrderType.MARKET && (\n        <div className=\"price-input\">\n          <label>Price</label>\n          <input\n            type=\"number\"\n            value={formattedOrder.order_price || ''}\n            onChange={(e) => setValue('order_price', e.target.value)}\n            step=\"0.01\"\n          />\n          <button onClick={() => handlePriceClick(orderbookData.middlePrice[1])}>\n            Mark\n          </button>\n        </div>\n      )}\n\n      {['STOP_MARKET', 'STOP_LIMIT'].includes(formattedOrder.order_type) && (\n        <div className=\"trigger-input\">\n          <label>Trigger Price</label>\n          <input\n            type=\"number\"\n            onChange={(e) => setValue('trigger_price', e.target.value)}\n          />\n        </div>\n      )}\n\n      <div className=\"quantity-input\">\n        <label>Quantity (Max: {maxQty})</label>\n        <input\n          type=\"number\"\n          value={formattedOrder.order_quantity || ''}\n          onChange={(e) => setValue('order_quantity', e.target.value)}\n        />\n      </div>\n\n      <div className=\"order-summary\">\n        <div>Available: {freeCollateral} USDC</div>\n        {estLiqPrice && <div>Est. Liq Price: {estLiqPrice}</div>}\n      </div>\n\n      <button\n        onClick={submit}\n        disabled={isMutating}\n        className={`submit ${selectedSide}`}\n      >\n        {isMutating ? 'Placing...' : `Place ${selectedSide} Order`}\n      </button>\n\n      {metaState.submitted && metaState.errors && (\n        <div className=\"errors\">\n          {Object.entries(metaState.errors).map(([field, error]) => (\n            <div key={field}>{error.message}</div>\n          ))}\n        </div>\n      )}\n    </div>\n  );\n}",
+          "tips": [
+            "Use orderbook middlePrice as quick price entry",
+            "Show maxQty to help users understand limits",
+            "Display estLiqPrice for risk awareness"
+          ]
+        },
+        {
+          "complexity": "advanced",
+          "description": "Full trading panel with TP/SL, bracket orders, and position sizing",
+          "code": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { usePositionStream } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\nimport { useState } from 'react';\n\nfunction AdvancedOrderEntry({ symbol }: { symbol: string }) {\n  const [showTPSL, setShowTPSL] = useState(false);\n  const [tpType, setTpType] = useState<'price' | 'pnl'>('price');\n  \n  const {\n    submit,\n    setValue,\n    formattedOrder,\n    metaState,\n    isMutating,\n    maxQty,\n    freeCollateral,\n  } = useOrderEntry(symbol, {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.LIMIT,\n    }\n  });\n\n  const handleTPSLChange = (type: 'tp' | 'sl', valueType: 'price' | 'pnl', value: string) => {\n    if (type === 'tp') {\n      if (valueType === 'price') {\n        setValue('tp_trigger_price', value);\n        setValue('tp_pnl', undefined);\n      } else {\n        setValue('tp_pnl', value);\n        setValue('tp_trigger_price', undefined);\n      }\n    } else {\n      if (valueType === 'price') {\n        setValue('sl_trigger_price', value);\n        setValue('sl_pnl', undefined);\n      } else {\n        setValue('sl_pnl', value);\n        setValue('sl_trigger_price', undefined);\n      }\n    }\n  };\n\n  return (\n    <div>\n      {/* Standard order fields */}\n      \n      <label>\n        <input\n          type=\"checkbox\"\n          checked={showTPSL}\n          onChange={(e) => setShowTPSL(e.target.checked)}\n        />\n        TP/SL\n      </label>\n\n      {showTPSL && (\n        <div className=\"tpsl-section\">\n          <div className=\"tp-input\">\n            <label>Take Profit</label>\n            <div className=\"tp-type-selector\">\n              <button onClick={() => setTpType('price')}>Price</button>\n              <button onClick={() => setTpType('pnl')}>PnL</button>\n            </div>\n            <input\n              type=\"number\"\n              onChange={(e) => handleTPSLChange('tp', tpType, e.target.value)}\n              placeholder={tpType === 'price' ? 'Trigger Price' : 'PnL ($)'}/>\n          </div>\n\n          <div className=\"sl-input\">\n            <label>Stop Loss</label>\n            <input\n              type=\"number\"\n              onChange={(e) => handleTPSLChange('sl', tpType, e.target.value)}\n              placeholder={tpType === 'price' ? 'Trigger Price' : 'PnL ($)'}/>\n          </div>\n        </div>\n      )}\n\n      <button onClick={submit} disabled={isMutating}>\n        Place Order\n      </button>\n    </div>\n  );\n}",
+          "tips": [
+            "Clear alternative TP/SL values when switching types",
+            "Consider adding percentage offset option",
+            "Show estimated PnL at TP/SL levels"
+          ]
+        }
+      ],
+      "stylingNotes": "Order entry typically uses green/red color scheme for buy/sell. Display available margin and estimated leverage. Consider adding quick percentage buttons for position sizing.",
+      "commonMistakes": [
+        "Not checking account status before enabling trading",
+        "Forgetting to handle market orders differently (no price needed)",
+        "Not validating quantity against maxQty",
+        "Missing error display for validation failures"
+      ],
+      "relatedComponents": ["Orderbook", "Positions", "Collateral Display"]
+    },
+    {
+      "name": "Orderbook",
+      "description": "Display of buy/sell orders with price aggregation and depth visualization",
+      "requiredPackages": ["@orderly.network/hooks"],
+      "keyHooks": ["useOrderbookStream", "useMarkPrice"],
+      "variants": [
+        {
+          "complexity": "minimal",
+          "description": "Simple list of bids and asks",
+          "code": "import { useOrderbookStream } from '@orderly.network/hooks';\n\nfunction OrderbookMinimal({ symbol }: { symbol: string }) {\n  const [data, { isLoading }] = useOrderbookStream(symbol, undefined, { level: 5 });\n\n  if (isLoading) return <div>Loading...</div>;\n\n  return (\n    <div>\n      <div className=\"asks\">\n        {data.asks.map(([price, qty]) => (\n          <div key={price} className=\"ask-row\">\n            <span className=\"price\">{price}</span>\n            <span className=\"qty\">{qty}</span>\n          </div>\n        ))}\n      </div>\n      <div className=\"mark-price\">{data.markPrice}</div>\n      <div className=\"bids\">\n        {data.bids.map(([price, qty]) => (\n          <div key={price} className=\"bid-row\">\n            <span className=\"price\">{price}</span>\n            <span className=\"qty\">{qty}</span>\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n}"
+        },
+        {
+          "complexity": "standard",
+          "description": "Full orderbook with depth aggregation, spread display, and click-to-fill",
+          "code": "import { useOrderbookStream } from '@orderly.network/hooks';\n\nfunction Orderbook({ symbol, onPriceClick }: { symbol: string; onPriceClick?: (price: string) => void }) {\n  const [\n    data,\n    {\n      depth,\n      allDepths,\n      onDepthChange,\n      isLoading,\n      onItemClick,\n    }\n  ] = useOrderbookStream(symbol, undefined, {\n    level: 10,\n    padding: true\n  });\n\n  const handlePriceClick = (price: string) => {\n    onItemClick?.([price, '0']);\n    onPriceClick?.(price);\n  };\n\n  return (\n    <div className=\"orderbook\">\n      <div className=\"header\">\n        <span>Price</span>\n        <span>Size</span>\n        <span>Total</span>\n      </div>\n      \n      <select value={depth} onChange={(e) => onDepthChange(Number(e.target.value))}>\n        {allDepths.map(d => <option key={d} value={d}>{d}</option>)}\n      </select>\n\n      <div className=\"asks\">\n        {data.asks.map(([price, qty, cumQty, cumAmount]) => (\n          <div\n            key={price}\n            className=\"ask-row\"\n            onClick={() => handlePriceClick(price)}\n          >\n            <span className=\"price\">{price}</span>\n            <span className=\"qty\">{qty}</span>\n            <span className=\"cum-qty\">{cumQty}</span>\n            <div\n              className=\"depth-bar\"\n              style={{ width: `${(Number(cumAmount) / Number(data.asks[data.asks.length - 1][3])) * 100}%` }}\n            />\n          </div>\n        ))}\n      </div>\n\n      <div className=\"spread\">\n        Spread: {(Number(data.asks[0]?.[0]) - Number(data.bids[0]?.[0])).toFixed(2)}\n      </div>\n\n      <div className=\"bids\">\n        {data.bids.map(([price, qty, cumQty, cumAmount]) => (\n          <div\n            key={price}\n            className=\"bid-row\"\n            onClick={() => handlePriceClick(price)}\n          >\n            <span className=\"price\">{price}</span>\n            <span className=\"qty\">{qty}</span>\n            <span className=\"cum-qty\">{cumQty}</span>\n            <div\n              className=\"depth-bar\"\n              style={{ width: `${(Number(cumAmount) / Number(data.bids[data.bids.length - 1][3])) * 100}%` }}\n            />\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n}",
+          "tips": [
+            "Use depth bars to visualize orderbook depth",
+            "Display spread between best bid/ask",
+            "Make rows clickable for quick order entry"
+          ]
+        }
+      ],
+      "stylingNotes": "Asks typically shown in red, bids in green. Best to center the mark price. Depth bars add visual context. Consider reversing ask order (best at bottom near spread).",
+      "commonMistakes": [
+        "Not handling loading state properly",
+        "Forgetting to pass level parameter (defaults to all)",
+        "Not implementing depth aggregation",
+        "Missing spread display"
+      ],
+      "relatedComponents": ["Order Entry", "Recent Trades", "Price Chart"]
+    },
+    {
+      "name": "Positions",
+      "description": "Display of open trading positions with PnL, margin, and management actions",
+      "requiredPackages": ["@orderly.network/hooks"],
+      "keyHooks": ["usePositionStream", "useMarkPrice", "useAccount"],
+      "variants": [
+        {
+          "complexity": "minimal",
+          "description": "Simple position list with basic info",
+          "code": "import { usePositionStream } from '@orderly.network/hooks';\n\nfunction PositionsMinimal() {\n  const [{ rows }] = usePositionStream('all');\n\n  if (rows.length === 0) return <div>No positions</div>;\n\n  return (\n    <div>\n      {rows.map(pos => (\n        <div key={pos.symbol} className=\"position-row\">\n          <span>{pos.symbol}</span>\n          <span>{pos.position_qty > 0 ? 'Long' : 'Short'} {Math.abs(pos.position_qty)}</span>\n          <span>{pos.unrealized_pnl}</span>\n        </div>\n      ))}\n    </div>\n  );\n}"
+        },
+        {
+          "complexity": "standard",
+          "description": "Full position table with close action and TP/SL display",
+          "code": "import { usePositionStream } from '@orderly.network/hooks';\nimport { useAccount } from '@orderly.network/hooks';\n\nfunction Positions() {\n  const [{\n    rows,\n    aggregated,\n    totalCollateral,\n    totalValue,\n  }] = usePositionStream('all', {\n    calcMode: 'markPrice'\n  });\n\n  const { state } = useAccount();\n\n  const handleClose = async (symbol: string) => {\n    // Close position logic\n  };\n\n  const handleAddTPSL = async (symbol: string) => {\n    // Open TP/SL modal\n  };\n\n  return (\n    <div className=\"positions\">\n      <div className=\"summary\">\n        <span>Total Value: {totalValue}</span>\n        <span>Collateral: {totalCollateral}</span>\n      </div>\n\n      <table>\n        <thead>\n          <tr>\n            <th>Symbol</th>\n            <th>Side</th>\n            <th>Size</th>\n            <th>Entry Price</th>\n            <th>Mark Price</th>\n            <th>Liq Price</th>\n            <th>Notional</th>\n            <th>PnL (ROI)</th>\n            <th>TP/SL</th>\n            <th>Actions</th>\n          </tr>\n        </thead>\n        <tbody>\n          {rows.map(pos => (\n            <tr key={pos.symbol} className={pos.unrealized_pnl >= 0 ? 'profit' : 'loss'}>\n              <td>{pos.symbol}</td>\n              <td className={pos.position_qty > 0 ? 'long' : 'short'}>\n                {pos.position_qty > 0 ? 'Long' : 'Short'}\n              </td>\n              <td>{Math.abs(pos.position_qty)}</td>\n              <td>{pos.average_open_price}</td>\n              <td>{pos.mark_price}</td>\n              <td>{pos.liquidation_price}</td>\n              <td>{pos.notional}</td>\n              <td>\n                {pos.unrealized_pnl} ({pos.unsettled_pnl_ROI}%)\n              </td>\n              <td>\n                {pos.full_tp_sl ? (\n                  <span>TP: {pos.full_tp_sl.tp_trigger_price} / SL: {pos.full_tp_sl.sl_trigger_price}</span>\n                ) : (\n                  <button onClick={() => handleAddTPSL(pos.symbol)}>Add TP/SL</button>\n                )}\n              </td>\n              <td>\n                <button onClick={() => handleClose(pos.symbol)}>Close</button>\n              </td>\n            </tr>\n          ))}\n        </tbody>\n      </table>\n    </div>\n  );\n}"
+        }
+      ],
+      "stylingNotes": "Color-code PnL (green for profit, red for loss). Highlight long/short sides distinctly. Show key risk metrics (liq price, margin usage) prominently.",
+      "commonMistakes": [
+        "Not handling empty positions state",
+        "Forgetting to update on mark price changes",
+        "Not displaying TP/SL if set",
+        "Missing liquidation warnings"
+      ],
+      "relatedComponents": ["Order Entry", "Collateral Display", "TP/SL Manager"]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+.yarn/
+.yarnrc
+yarn-error.log
+package-lock.json
+npm-debug.log*
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# IDE and editor files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+result.json
+telegram_chat_exports
+llms-full.txt

@@ -1,0 +1,142 @@
+{
+  "categories": [
+    {
+      "name": "Account & Wallet",
+      "patterns": [
+        {
+          "name": "useAccount",
+          "description": "Core hook for managing Orderly account state, wallet connection, and account creation",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": "Provides account state, wallet operations, and account management functions",
+          "example": "import { useAccount } from '@orderly.network/hooks';\n\nfunction MyComponent() {\n  const { \n    account,        // Account instance\n    state,          // AccountState with address, chainId, status\n    isSubAccount,   // Boolean\n    isMainAccount,  // Boolean\n    createOrderlyKey, // Function to create API key\n    createAccount,   // Function to create account\n  } = useAccount();\n\n  // Connect wallet\n  const connect = async () => {\n    const nextState = await account.setAddress('0x...', {\n      provider: window.ethereum,\n      chain: { id: '0x1' },\n      wallet: { name: 'MetaMask' }\n    });\n    \n    if (nextState.status === 'connected') {\n      await createOrderlyKey(true);\n    }\n  };\n}",
+          "notes": [
+            "Must be used within OrderlyConfigProvider",
+            "createOrderlyKey(true) creates key valid for 365 days",
+            "Account status: 'not_connected' | 'connected' | 'disabled' | 'not_activated'"
+          ],
+          "related": ["useWalletConnector", "OrderlyConfigProvider"]
+        },
+        {
+          "name": "useWalletConnector",
+          "description": "Hook for connecting and managing wallet connections across EVM and Solana",
+          "usage": "Provides wallet connection functions and state",
+          "example": "import { useWalletConnector } from '@orderly.network/hooks';\n\nfunction ConnectButton() {\n  const wallet = useWalletConnector();\n\n  return (\n    <button \n      onClick={() => wallet.connect()}\n      disabled={wallet.connecting}\n    >\n      {wallet.wallet ? `Connected: ${wallet.wallet.label}` : 'Connect Wallet'}\n    </button>\n  );\n}",
+          "notes": [
+            "Supports multiple wallet adapters",
+            "Automatically handles EVM and Solana wallets",
+            "Returns WalletState with provider, accounts, and chain info"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Order Management",
+      "patterns": [
+        {
+          "name": "useOrderEntry",
+          "description": "Primary hook for placing orders (v2). Handles validation, submission, and state management",
+          "usage": "Manages order form state, validation, and submission",
+          "example": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\n\nfunction OrderForm({ symbol }: { symbol: string }) {\n  const {\n    submit,\n    formattedOrder,\n    setValue,\n    metaState,\n    isMutating,\n    maxQty,\n    freeCollateral,\n  } = useOrderEntry(symbol, {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.MARKET,\n    }\n  });\n\n  const handleSubmit = async () => {\n    try {\n      const result = await submit({ resetOnSuccess: true });\n      console.log('Order placed:', result);\n    } catch (error) {\n      console.error(metaState.errors);\n    }\n  };\n}",
+          "notes": [
+            "v2 hook - replaces legacy order entry hooks",
+            "Supports all order types: MARKET, LIMIT, STOP_LIMIT, STOP_MARKET, SCALED, TRAILING_STOP, BRACKET",
+            "Automatically calculates maxQty and validates against freeCollateral",
+            "TP/SL: setValue('tp_trigger_price', '70000') or setValue('tp_pnl', '300')"
+          ],
+          "related": ["useOrderStream", "usePositionStream"]
+        },
+        {
+          "name": "useOrderStream",
+          "description": "Real-time order updates via WebSocket",
+          "usage": "Subscribe to order status changes, fills, and cancellations",
+          "example": "import { useOrderStream } from '@orderly.network/hooks';\n\nfunction Orders() {\n  const orders = useOrderStream();\n  \n  return (\n    <div>\n      {orders.map(order => (\n        <div key={order.order_id}>\n          <span>{order.symbol}</span>\n          <span>{order.status}</span>\n          <span>{order.order_quantity}</span>\n        </div>\n      ))}\n    </div>\n  );\n}",
+          "notes": [
+            "Automatically subscribes to WebSocket on mount",
+            "Handles reconnection logic",
+            "Emits events for order fills, cancels, and updates"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Position & Portfolio",
+      "patterns": [
+        {
+          "name": "usePositionStream",
+          "description": "Real-time position data including PnL, margin, and liquidation prices",
+          "usage": "Subscribe to position changes and aggregated portfolio metrics",
+          "example": "import { usePositionStream } from '@orderly.network/hooks';\n\nfunction Positions() {\n  const [\n    { \n      rows,              // Position rows\n      aggregated,        // Aggregated metrics\n      totalCollateral,   // Total collateral\n      totalValue,        // Total portfolio value\n    },\n    positionGetter,\n    { isLoading }\n  ] = usePositionStream('all', {\n    calcMode: 'markPrice',\n    includedPendingOrder: false\n  });\n\n  return (\n    <div>\n      {rows.map(position => (\n        <div key={position.symbol}>\n          <span>{position.symbol}</span>\n          <span>Qty: {position.position_qty}</span>\n          <span>PnL: {position.unrealized_pnl}</span>\n        </div>\n      ))}\n    </div>\n  );\n}",
+          "notes": [
+            "calcMode: 'markPrice' (default) or 'lastPrice'",
+            "rows include TP/SL info if set (full_tp_sl property)",
+            "Automatically recalculates on mark price updates"
+          ],
+          "related": ["useCollateral", "useMaxQty"]
+        },
+        {
+          "name": "useCollateral",
+          "description": "Get account collateral metrics including total, free, and used collateral",
+          "usage": "Calculate collateral usage and available trading capacity",
+          "example": "import { useCollateral } from '@orderly.network/hooks';\n\nfunction CollateralDisplay() {\n  const {\n    totalCollateral,\n    freeCollateral,\n    usedCollateral,\n    marginUsage,\n  } = useCollateral();\n\n  return (\n    <div>\n      <div>Total: {totalCollateral}</div>\n      <div>Free: {freeCollateral}</div>\n      <div>Usage: {marginUsage}%</div>\n    </div>\n  );\n}",
+          "related": ["useMaxQty", "useMaxWithdrawal"]
+        }
+      ]
+    },
+    {
+      "name": "Market Data",
+      "patterns": [
+        {
+          "name": "useOrderbookStream",
+          "description": "Real-time orderbook data with configurable depth and aggregation",
+          "usage": "Subscribe to orderbook updates for a specific symbol",
+          "example": "import { useOrderbookStream } from '@orderly.network/hooks';\n\nfunction Orderbook({ symbol }: { symbol: string }) {\n  const [\n    data,\n    { \n      onDepthChange,\n      depth,\n      allDepths,\n      isLoading,\n      onItemClick\n    }\n  ] = useOrderbookStream(symbol, undefined, {\n    level: 10,\n    padding: true\n  });\n\n  return (\n    <div>\n      <select value={depth} onChange={(e) => onDepthChange(Number(e.target.value))}>\n        {allDepths.map(d => <option key={d} value={d}>{d}</option>)}\n      </select>\n      \n      {data.asks.map(([price, quantity]) => (\n        <div key={price} onClick={() => onItemClick([price, quantity])}>\n          {price} | {quantity}\n        </div>\n      ))}\n    </div>\n  );\n}",
+          "notes": [
+            "data.asks and data.bids are arrays of [price, quantity, cumulativeQty, cumulativeAmount]",
+            "onItemClick can be used to auto-fill order entry",
+            "Supports configurable aggregation depths"
+          ]
+        },
+        {
+          "name": "useMarkPrice",
+          "description": "Get current mark price for a symbol",
+          "usage": "Single mark price value for calculations",
+          "example": "import { useMarkPrice } from '@orderly.network/hooks';\n\nfunction PriceDisplay({ symbol }: { symbol: string }) {\n  const markPrice = useMarkPrice(symbol);\n  return <div>Mark: {markPrice}</div>;\n}"
+        },
+        {
+          "name": "useTickerStream",
+          "description": "24-hour ticker statistics including volume, high/low, and price change",
+          "usage": "Get 24h market statistics",
+          "example": "import { useTickerStream } from '@orderly.network/hooks';\n\nfunction Ticker({ symbol }: { symbol: string }) {\n  const ticker = useTickerStream(symbol);\n  \n  if (!ticker) return null;\n  \n  return (\n    <div>\n      <div>24h Change: {ticker['24h_change']}%</div>\n      <div>High: {ticker['24h_high']}</div>\n      <div>Low: {ticker['24h_low']}</div>\n      <div>Volume: {ticker['24h_amount']}</div>\n    </div>\n  );\n}"
+        }
+      ]
+    },
+    {
+      "name": "Chain & Network",
+      "patterns": [
+        {
+          "name": "useChains",
+          "description": "Get supported chains and chain information",
+          "usage": "Query available chains for deposits/trading",
+          "example": "import { useChains } from '@orderly.network/hooks';\n\nfunction ChainSelector() {\n  // Get all chains\n  const [chains] = useChains();\n  \n  // Or get only mainnet\n  const [mainnetChains] = useChains('mainnet');\n  \n  // Or get with network info only\n  const [networkInfos] = useChains(undefined, { pick: 'network_infos' });\n\n  return (\n    <select>\n      {mainnetChains?.map(chain => (\n        <option key={chain.network_infos.chain_id} value={chain.network_infos.chain_id}>\n          {chain.network_infos.name}\n        </option>\n      ))}\n    </select>\n  );\n}",
+          "notes": [
+            "Supports 15+ chains including EVM and Solana",
+            "Chain configurations are fetched dynamically",
+            "Use checkChainSupport(chainId, network) to validate"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Asset Operations",
+      "patterns": [
+        {
+          "name": "useDeposit",
+          "description": "Manage deposit flow with balance and allowance checks",
+          "usage": "Handle token deposits to Orderly vault",
+          "example": "import { useDeposit } from '@orderly.network/hooks';\n\nfunction DepositForm() {\n  const {\n    deposit,\n    balance,\n    allowance,\n    approve,\n    isLoading,\n  } = useDeposit();\n\n  const handleDeposit = async () => {\n    await deposit(chainId, token, amount);\n  };\n}",
+          "related": ["useWithdraw", "useTransfer"]
+        }
+      ]
+    }
+  ]
+}

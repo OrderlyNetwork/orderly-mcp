@@ -1,0 +1,299 @@
+# AGENTS.md - Orderly MCP Server
+
+## Project Overview
+
+This is a Model Context Protocol (MCP) server that provides Orderly Network documentation and SDK patterns to AI assistants. It enables developers to query documentation, get code examples, and receive guidance on building trading UIs.
+
+**Key Technologies:**
+
+- TypeScript (ES modules)
+- MCP SDK for tool/resource definitions
+- Vitest for testing
+- Yarn for package management
+- ESLint + Prettier for code quality
+
+## Architecture
+
+**Entry Point:** `src/index.ts`
+
+- Defines all tools and resources
+- Handles tool execution via switch statement
+- Uses stdio transport for MCP communication
+
+**Tools** (`src/tools/*.ts`):
+
+- `searchDocs.ts` - Search documentation chunks
+- `sdkPatterns.ts` - Get SDK hook patterns
+- `contracts.ts` - Contract address lookup
+- `workflows.ts` - Workflow explanations
+- `apiInfo.ts` - API documentation
+- `componentGuides.ts` - Component building guides
+
+**Data** (`src/data/*.json`):
+
+- Static JSON files with documentation, patterns, addresses
+- Imported with `with { type: "json" }` syntax
+- Read at runtime by tools
+
+**Resources** (`src/resources/index.ts`):
+
+- Handles URI-based resource requests
+- Returns markdown or JSON content
+
+## Common Tasks
+
+### Build Project
+
+```bash
+yarn build
+```
+
+### Run Tests
+
+```bash
+yarn test:run          # Run all tests once
+yarn test              # Watch mode
+yarn test:coverage     # With coverage report
+```
+
+### Code Quality
+
+```bash
+yarn lint              # Check for issues
+yarn lint:fix          # Fix auto-fixable issues
+yarn format            # Format all files
+yarn format:check      # Check formatting
+yarn typecheck         # TypeScript check
+```
+
+### Development
+
+```bash
+yarn dev               # Watch mode build
+yarn start             # Run built server
+```
+
+## Project Structure
+
+```
+src/
+├── index.ts                    # MCP server entry
+├── tools/                      # Tool implementations
+│   ├── searchDocs.ts          # Doc search
+│   ├── sdkPatterns.ts         # SDK patterns
+│   ├── contracts.ts           # Contract lookup
+│   ├── workflows.ts           # Workflows
+│   ├── apiInfo.ts             # API info
+│   └── componentGuides.ts     # Component guides
+├── resources/
+│   └── index.ts               # Resource handlers
+├── data/                       # Static data
+│   ├── documentation.json     # Searchable docs
+│   ├── sdk-patterns.json      # SDK patterns
+│   ├── contracts.json         # Contract addresses
+│   ├── workflows.json         # Workflows
+│   ├── api.json               # API docs
+│   ├── component-guides.json   # Component guides
+│   └── resources/
+│       └── overview.md
+└── __tests__/                  # Test files
+    ├── contracts.test.ts
+    └── searchDocs.test.ts
+```
+
+## Updating Documentation
+
+The documentation is auto-generated using NEAR AI Cloud. All data files in `src/data/` are created by scripts, not manually edited.
+
+### Data Generation Workflow
+
+**Prerequisites:**
+
+1. NEAR AI API key in `.env` file: `NEAR_AI_API_KEY=your_key`
+2. Get API key at: https://cloud.near.ai/api-keys
+
+**Option A: Complete Regeneration (Recommended)**
+
+Generate everything from scratch using both Telegram chats and official docs:
+
+```bash
+# 1. Download latest official docs
+curl -o llms-full.txt https://orderly.network/docs/llms-full.txt
+
+# 2. Split Telegram export (if you have one)
+node scripts/split_telegram_chats.js
+
+# 3. Analyze Telegram chats → tg_analysis.json
+node scripts/analyze_chat_openai.js
+
+# 4. Analyze docs → docs_analysis.json
+node scripts/analyze_llms_full.js
+
+# 5. Generate all data files at once
+node scripts/generate_mcp_data.js
+
+# 6. Build and test
+yarn build && yarn test:run
+```
+
+**Option B: Update Only Documentation**
+
+If you just want to refresh from official docs without Telegram data:
+
+```bash
+# 1. Download latest docs
+curl -o llms-full.txt https://orderly.network/docs/llms-full.txt
+
+# 2. Analyze docs only
+node scripts/analyze_llms_full.js
+
+# 3. Generate (will use existing tg_analysis.json if present)
+node scripts/generate_mcp_data.js
+
+# 4. Build
+yarn build
+```
+
+**Option C: Manual Editing (Not Recommended)**
+
+For emergency fixes, you can edit `src/data/*.json` directly, but these will be overwritten next time you run the generation scripts.
+
+```bash
+# Edit files, then validate:
+yarn build && yarn test:run
+```
+
+### Scripts Reference
+
+#### `scripts/analyze_chat_openai.js`
+
+**Purpose:** Extract Q&A from Telegram group chats  
+**Input:** `telegram_chat_exports/*.json` (from split_telegram_chats.js)  
+**Output:** `tg_analysis.json` (root level)  
+**API:** NEAR AI Cloud, Model: `zai-org/GLM-4.7`  
+**Cost:** ~$0.50-1.00
+
+Processes real developer conversations to extract technical Q&A.
+
+#### `scripts/analyze_llms_full.js`
+
+**Purpose:** Extract Q&A from official Orderly docs  
+**Input:** `llms-full.txt`  
+**Output:** `docs_analysis.json` (root level)  
+**API:** NEAR AI Cloud, Model: `zai-org/GLM-4.7`  
+**Cost:** ~$1.00-2.00
+
+Processes official documentation to extract structured Q&A.
+
+#### `scripts/generate_mcp_data.js`
+
+**Purpose:** Master generation script - creates all data files  
+**Input:**
+
+- `tg_analysis.json` (from Telegram analysis)
+- `docs_analysis.json` (from docs analysis)
+
+**Output:** All files in `src/data/`:
+
+- `documentation.json`
+- `sdk-patterns.json`
+- `workflows.json`
+- `api.json`
+- `component-guides.json`
+
+**API:** NEAR AI Cloud with structured output (Zod schemas)  
+**Cost:** ~$2.00-4.00
+
+#### `scripts/split_telegram_chats.js`
+
+**Purpose:** Split large Telegram export into individual chats  
+**Input:** `result.json` (Telegram export)  
+**Output:** `telegram_chat_exports/*.json`
+
+Filters out non-group chats and applies blacklist.
+
+### Cost Management
+
+**Total cost per complete run:** ~$3.50-7.00
+
+- Telegram analysis: ~$0.50-1.00
+- Docs analysis: ~$1.00-2.00
+- Data generation: ~$2.00-4.00
+
+**Money-saving tips:**
+
+1. Keep `tg_analysis.json` and `docs_analysis.json` - don't delete them
+2. Only re-run analysis if source data changes
+3. Use `MAX_FILES_TO_PROCESS` in scripts for testing
+4. Re-use existing analysis files with `generate_mcp_data.js`
+
+## Testing Guidelines
+
+- Test files: `src/__tests__/*.test.ts`
+- Use Vitest (`describe`, `it`, `expect`)
+- Test tool functions directly (they're exported)
+- Add tests for new contract chains
+- Documentation/SDK tests usually covered by existing search tests
+
+## Code Style
+
+- TypeScript with strict mode
+- ES modules (`"type": "module"`)
+- Single quotes, 100 char line width (Prettier)
+- Import assertions: use `with { type: "json" }` not `assert`
+- Export interfaces for tool results
+
+## MCP Protocol
+
+**Tools:** Functions that take parameters and return content
+
+```typescript
+// Tool definition in index.ts
+{
+  name: "tool_name",
+  description: "What it does",
+  inputSchema: { /* JSON schema */ }
+}
+
+// Tool execution
+case "tool_name":
+  return await toolFunction(args);
+```
+
+**Resources:** URI-addressable content
+
+```typescript
+// Resource list in index.ts
+{ uri: "orderly://resource", name: "Name", description: "..." }
+
+// Resource handler in resources/index.ts
+switch (uri) { case "orderly://resource": ... }
+```
+
+## Debugging
+
+**Build Errors:**
+
+- Check TypeScript version compatibility
+- Ensure `with { type: "json" }` not `assert`
+- Run `yarn typecheck` for detailed errors
+
+**MCP Connection Issues:**
+
+- Verify server starts: `node dist/index.js`
+- Check stdio transport (no console.log in production)
+- Validate JSON tool/resource definitions
+
+**Test Failures:**
+
+- Check data file paths
+- Verify JSON imports have correct syntax
+- Ensure test expectations match current data
+
+## External Resources
+
+- Orderly Docs: https://orderly.network/docs
+- SDK Repo: https://github.com/OrderlyNetwork/js-sdk
+- MCP Spec: https://modelcontextprotocol.io
+- Contract ABIs: https://github.com/OrderlyNetwork/contract-evm-abi
+- NEAR AI Cloud: https://cloud.near.ai
