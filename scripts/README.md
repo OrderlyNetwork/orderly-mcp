@@ -32,6 +32,16 @@ node scripts/analyze_llms_full.js
 # Output: docs_analysis.json
 ```
 
+**C. Analyze SDK Source Code (Optional but Recommended)**
+
+```bash
+# Clone and analyze SDK for better patterns
+node scripts/analyze_sdk.js
+# Output: src/data/sdk-patterns.json (enhanced)
+```
+
+This extracts real hook implementations, component props, and type definitions directly from the SDK source code.
+
 ### Step 2: Generate All Data Files
 
 ```bash
@@ -82,6 +92,21 @@ Processes official Orderly documentation to extract structured Q&A.
 **Cost:** ~$2.00-4.00 per run (generates 5 complete data files)
 
 Uses OpenAI with Zod schemas for structured output to generate production-ready data files.
+
+### `analyze_sdk.js` ⭐ NEW
+
+**Input:** Clones from `https://github.com/OrderlyNetwork/js-sdk`  
+**Output:** `src/data/sdk-patterns.json` (enhanced)  
+**Cost:** FREE (no AI calls, pure code analysis)
+
+Directly parses the SDK source code to extract:
+
+- Hook implementations and return types
+- Component props and interfaces
+- Type definitions (enums, interfaces)
+- Real code patterns from the SDK
+
+**Why use this:** Provides more accurate, type-safe patterns than AI analysis alone. Always extracts the latest hook signatures directly from source.
 
 ### `split_telegram_chats.js`
 

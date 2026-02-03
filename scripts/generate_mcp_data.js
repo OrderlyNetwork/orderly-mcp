@@ -243,63 +243,6 @@ Focus on practical, actionable content that developers need. Include code exampl
   console.log(`   ✅ Generated ${chunks.length} documentation chunks\n`);
 }
 
-async function generateSdkPatterns() {
-  console.log('📚 Generating sdk-patterns.json...');
-
-  const prompt = `Extract SDK hook patterns and usage examples from these Q&A pairs.
-
-Data:
-${JSON.stringify(
-  [...tgData, ...docsData]
-    .filter(
-      (qa) =>
-        qa.question.toLowerCase().includes('hook') ||
-        qa.question.toLowerCase().includes('sdk') ||
-        qa.answer.toLowerCase().includes('useorder') ||
-        qa.answer.toLowerCase().includes('useposition')
-    )
-    .slice(0, 30),
-  null,
-  2
-)}
-
-Generate SDK patterns for:
-- useAccount, useOrderEntry, usePositionStream
-- useOrderbookStream, useMarkPrice, useCollateral
-- Wallet connection patterns
-- Order placement patterns
-- Data fetching patterns`;
-
-  const completion = await openai.beta.chat.completions.parse({
-    model: NEAR_AI_MODEL,
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Generate SDK hook patterns with complete working code examples for Orderly Network v2 SDK.',
-      },
-      { role: 'user', content: prompt },
-    ],
-    response_format: zodResponseFormat(
-      z.object({
-        categories: z.array(
-          z.object({
-            name: z.string(),
-            patterns: z.array(SdkPatternSchema),
-          })
-        ),
-      }),
-      'sdk_patterns'
-    ),
-    temperature: 0.2,
-  });
-
-  const patterns = completion.choices[0].message.parsed;
-
-  fs.writeFileSync(path.join(DATA_DIR, 'sdk-patterns.json'), JSON.stringify(patterns, null, 2));
-  console.log(`   ✅ Generated SDK patterns\n`);
-}
-
 async function generateWorkflows() {
   console.log('🔄 Generating workflows.json...');
 
@@ -450,9 +393,18 @@ Create guides for:
 async function main() {
   console.log('⏳ Starting generation (this may take a few minutes)...\n');
 
+  // Check for existing sdk-patterns.json from analyze_sdk.js
+  const sdkPatternsPath = path.join(DATA_DIR, 'sdk-patterns.json');
+  if (fs.existsSync(sdkPatternsPath)) {
+    console.log('💡 Found existing sdk-patterns.json from analyze_sdk.js - will enhance it');
+    console.log('   (Using type-accurate SDK data as base, AI will add Q&A examples)\n');
+  } else {
+    console.log('💡 No existing sdk-patterns.json - generating from scratch');
+    console.log('   (Tip: Run analyze_sdk.js first for better type-accurate results)\n');
+  }
+
   try {
     await generateDocumentation();
-    await generateSdkPatterns();
     await generateWorkflows();
     await generateApiInfo();
     await generateComponentGuides();

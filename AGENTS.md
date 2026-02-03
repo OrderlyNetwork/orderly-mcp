@@ -204,6 +204,51 @@ Processes official documentation to extract structured Q&A.
 **API:** NEAR AI Cloud with structured output (Zod schemas)  
 **Cost:** ~$2.00-4.00
 
+#### `scripts/analyze_sdk.js` ⭐ **NEW & RECOMMENDED**
+
+**Purpose:** Extract SDK patterns directly from source code  
+**Input:** Clones from `https://github.com/OrderlyNetwork/js-sdk`  
+**Output:** `src/data/sdk-patterns.json` (enhanced with real types)  
+**Cost:** **FREE** (no AI calls, pure code analysis)
+
+**What it extracts:**
+
+- Hook implementations (useOrderEntry, usePositionStream, etc.)
+- Component props and interfaces
+- Type definitions (enums, interfaces)
+- Real working code patterns
+- Return types and parameters
+
+**Why this is better:**
+
+- Always type-accurate (parses actual TypeScript)
+- No hallucination (real code, not AI guesses)
+- Always up-to-date (clones latest SDK)
+- FREE (no API costs)
+
+**Usage:**
+
+```bash
+# This enhances sdk-patterns.json with real SDK data
+node scripts/analyze_sdk.js
+```
+
+**Recommended workflow:**
+
+```bash
+# 1. Get SDK patterns (FREE and accurate)
+node scripts/analyze_sdk.js
+
+# 2. Analyze Telegram for real Q&A (paid)
+node scripts/analyze_chat_openai.js
+
+# 3. Analyze docs for API details (paid)
+node scripts/analyze_llms_full.js
+
+# 4. Generate everything
+node scripts/generate_mcp_data.js
+```
+
 #### `scripts/split_telegram_chats.js`
 
 **Purpose:** Split large Telegram export into individual chats  
@@ -216,16 +261,18 @@ Filters out non-group chats and applies blacklist.
 
 **Total cost per complete run:** ~$3.50-7.00
 
+- SDK analysis: **FREE** (parses source code directly)
 - Telegram analysis: ~$0.50-1.00
 - Docs analysis: ~$1.00-2.00
 - Data generation: ~$2.00-4.00
 
 **Money-saving tips:**
 
-1. Keep `tg_analysis.json` and `docs_analysis.json` - don't delete them
-2. Only re-run analysis if source data changes
-3. Use `MAX_FILES_TO_PROCESS` in scripts for testing
-4. Re-use existing analysis files with `generate_mcp_data.js`
+1. Use `analyze_sdk.js` first for SDK patterns - it's FREE and provides type-accurate results
+2. Keep `tg_analysis.json` and `docs_analysis.json` - don't delete them
+3. Only re-run analysis if source data changes
+4. Use `MAX_FILES_TO_PROCESS` in scripts for testing
+5. Re-use existing analysis files with `generate_mcp_data.js`
 
 ## Testing Guidelines
 
