@@ -309,6 +309,11 @@ if (USE_AI) {
   console.log(`🧩 Enriching ${rawComponents.length} components...`);
   enrichedComponents = await enrichComponentsWithAI(rawComponents);
   console.log(`   ✅ Enriched ${enrichedComponents.length} components\n`);
+
+  // Generate component guides
+  console.log(`📘 Generating component guides...`);
+  await generateComponentGuides(enrichedComponents, enrichedHooks);
+  console.log(`   ✅ Component guides generated\n`);
 } else {
   console.log('📄 Skipping AI enrichment (USE_AI not set)\n');
   enrichedHooks = rawHooks.map((h) => ({
@@ -596,6 +601,199 @@ Return JSON:
   }
 
   return enriched;
+}
+
+// ==================== PASS 6: GENERATE COMPONENT GUIDES ====================
+
+async function generateComponentGuides(components, hooks) {
+  const COMPONENT_GUIDES_FILE = path.join(projectRoot, 'src', 'data', 'component-guides.json');
+
+  console.log(`   Generating component guides for ${components.length} components...`);
+
+  // Build a map of available hooks for cross-referencing
+  const hookMap = {};
+  hooks.forEach((h) => {
+    hookMap[h.name] = {
+      name: h.name,
+      category: h.category,
+      description: h.description || `Hook for ${h.name}`,
+    };
+  });
+
+  // Get top 20 most important hooks for cross-referencing
+  const topHooks = Object.values(hookMap)
+    .slice(0, 20)
+    .map((h) => `- ${h.name} (${h.category}): ${h.description.substring(0, 80)}`)
+    .join('\n');
+
+  const batchSize = 2; // Reduced from 5 to 2 to prevent JSON truncation
+  const guides = [];
+  const failedBatches = [];
+
+  for (let i = 0; i < components.length; i += batchSize) {
+    const batch = components.slice(i, i + batchSize);
+    const endIdx = Math.min(i + batchSize, components.length);
+
+    console.log(`      Processing batch ${i + 1}-${endIdx}...`);
+
+    const prompt = `Generate component building guides for these Orderly Network UI components.
+
+Components:
+${batch
+  .map(
+    (c) => `
+Name: ${c.name}
+Package: ${c.package}
+Description: ${c.aiExample?.description || 'UI component'}
+Related: ${c.aiExample?.related?.join(', ') || 'N/A'}
+`
+  )
+  .join('\n---\n')}
+
+Available hooks:
+${topHooks}
+
+For EACH component, return:
+{
+  "name": "ComponentName",
+  "description": "What it does (1-2 sentences)",
+  "requiredPackages": ["@orderly.network/ui"],
+  "keyHooks": ["useHook1", "useHook2"],
+  "variants": [
+    {
+      "complexity": "minimal",
+      "description": "Basic usage",
+      "code": "import...\n\nfunction Component() {\n  // 30-50 lines\n}",
+      "additionalImports": [],
+      "tips": ["Tip 1", "Tip 2"]
+    },
+    {
+      "complexity": "standard", 
+      "description": "Full features",
+      "code": "import...\n\nfunction Component() {\n  // 50-80 lines\n}",
+      "additionalImports": [],
+      "tips": ["Tip 1", "Tip 2"]
+    },
+    {
+      "complexity": "advanced",
+      "description": "Complete implementation",
+      "code": "import...\n\nfunction Component() {\n  // 80-120 lines\n}",
+      "additionalImports": [],
+      "tips": ["Tip 1", "Tip 2"]
+    }
+  ],
+  "stylingNotes": "CSS tips",
+  "commonMistakes": ["Mistake 1", "Mistake 2"],
+  "relatedComponents": ["Component1", "Component2"]
+}
+
+Return: {"guides": [guide1, guide2]}`;
+
+    let retries = 0;
+    const maxRetries = 3;
+    let success = false;
+    let currentMaxTokens = 10_000;
+
+    while (retries < maxRetries && !success) {
+      try {
+        // Increase max_tokens on retry to handle larger responses
+        if (retries > 0) {
+          currentMaxTokens = 10_000 + retries * 3000;
+          console.log(`      📝 Increasing max_tokens to ${currentMaxTokens} for retry ${retries}`);
+        }
+
+        const response = await client.chat.completions.create({
+          model: MODEL,
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Expert Orderly SDK developer. Generate concise, working React component examples. Keep code examples focused and under 120 lines per variant to ensure complete JSON output.',
+            },
+            { role: 'user', content: prompt },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+          max_tokens: currentMaxTokens,
+        });
+
+        const content = response.choices[0]?.message?.content;
+        if (content) {
+          // Try to parse and validate
+          let parsed;
+          try {
+            parsed = JSON.parse(content);
+          } catch (parseError) {
+            console.error(
+              `      ⚠️ JSON parse error on attempt ${retries + 1}: ${parseError.message}`
+            );
+            throw parseError;
+          }
+
+          const batchGuides = parsed.guides || [];
+
+          // Validate guides
+          for (const guide of batchGuides) {
+            if (guide.name && guide.variants && guide.variants.length === 3) {
+              guide.variants.forEach((v) => {
+                if (!v.additionalImports) v.additionalImports = [];
+                if (!v.tips) v.tips = [];
+              });
+              guides.push(guide);
+            }
+          }
+
+          console.log(`      ✅ Generated ${batchGuides.length} guides`);
+          success = true;
+        }
+      } catch (error) {
+        retries++;
+        console.error(`      ❌ Error (attempt ${retries}/${maxRetries}): ${error.message}`);
+
+        if (retries < maxRetries) {
+          console.log(`      🔄 Retrying in ${retries * 2}s...`);
+          await new Promise((r) => setTimeout(r, retries * 2000));
+        } else {
+          console.error(`      💥 Failed after ${maxRetries} attempts, skipping batch`);
+          failedBatches.push({ start: i + 1, end: endIdx, components: batch.map((c) => c.name) });
+        }
+      }
+    }
+
+    if (i + batchSize < components.length) {
+      await new Promise((r) => setTimeout(r, 1500)); // Increased delay
+    }
+  }
+
+  // Report any failures
+  if (failedBatches.length > 0) {
+    console.log(`\n   ⚠️  Failed batches:`);
+    failedBatches.forEach((b) => {
+      console.log(`      - Components ${b.start}-${b.end}: ${b.components.join(', ')}`);
+    });
+  }
+
+  // Save component guides
+  const output = {
+    components: guides,
+    metadata: {
+      version: '3.0.0',
+      generatedAt: new Date().toISOString(),
+      totalComponents: guides.length,
+      totalFailed: failedBatches.length * batchSize,
+      source: 'Generated from SDK source code analysis',
+      mode: 'ai-enriched',
+    },
+  };
+
+  fs.writeFileSync(COMPONENT_GUIDES_FILE, JSON.stringify(output, null, 2));
+  console.log(
+    `   ✅ Saved ${guides.length}/${components.length} component guides to ${COMPONENT_GUIDES_FILE}`
+  );
+
+  if (failedBatches.length > 0) {
+    console.log(`   ⚠️  ${failedBatches.length * batchSize} components failed to generate`);
+  }
 }
 
 // ==================== EXTRACTION HELPER FUNCTIONS ====================
