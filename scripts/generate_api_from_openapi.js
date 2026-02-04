@@ -79,9 +79,9 @@ function extractEndpoints(spec) {
         auth: isPrivateEndpoint(details),
         tags: details.tags || [],
         rateLimit: extractRateLimit(details.description),
-        parameters: extractParameters(details),
-        requestBody: extractRequestBody(details),
-        responses: extractResponses(details),
+        parameters: extractParameters(details, spec),
+        requestBody: extractRequestBody(details, spec),
+        responses: extractResponses(details, spec),
         example: generateExample(path, method.toUpperCase(), details),
         errors: [],
       };
@@ -115,26 +115,91 @@ function extractRateLimit(desc) {
   return match ? match[1] : null;
 }
 
+// Resolve a $ref to its actual definition
+function resolveRef(spec, ref) {
+  if (!ref || !ref.startsWith('#/')) return ref;
+
+  const path = ref.replace('#/', '').split('/');
+  let current = spec;
+
+  for (const key of path) {
+    if (current && typeof current === 'object' && key in current) {
+      current = current[key];
+    } else {
+      return ref; // Can't resolve, return as-is
+    }
+  }
+
+  return current;
+}
+
+// Deep resolve all $refs in an object
+function deepResolveRefs(spec, obj, visited = new Set()) {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  // Handle circular references
+  if (obj.$ref) {
+    if (visited.has(obj.$ref)) {
+      return { $ref: obj.$ref }; // Already visited, keep as ref
+    }
+    visited.add(obj.$ref);
+    const resolved = resolveRef(spec, obj.$ref);
+    if (resolved !== obj.$ref) {
+      // Merge resolved properties with any additional properties in the original
+      const { $ref, ...rest } = obj;
+      return { ...deepResolveRefs(spec, resolved, visited), ...rest };
+    }
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepResolveRefs(spec, item, visited));
+  }
+
+  const result = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = deepResolveRefs(spec, value, visited);
+  }
+  return result;
+}
+
 // Extract parameters
-function extractParameters(details) {
+function extractParameters(details, spec) {
   const params = [];
+  const paramNames = new Set(); // Track parameter names to avoid duplicates
 
   // Path/query parameters
   if (details.parameters) {
     for (const param of details.parameters) {
-      if (param.$ref) continue; // Skip refs for now
+      let resolvedParam = param;
+
+      // Resolve $ref if present
+      if (param.$ref) {
+        resolvedParam = resolveRef(spec, param.$ref);
+        if (!resolvedParam || resolvedParam === param.$ref) {
+          // Couldn't resolve, skip this parameter
+          continue;
+        }
+      }
+
+      // Skip if already added
+      if (paramNames.has(resolvedParam.name)) {
+        continue;
+      }
+      paramNames.add(resolvedParam.name);
 
       params.push({
-        name: param.name,
-        in: param.in,
-        type: param.schema?.type || 'string',
-        required: param.required || false,
-        description: param.description || '',
+        name: resolvedParam.name,
+        in: resolvedParam.in,
+        type: resolvedParam.schema?.type || 'string',
+        required: resolvedParam.required || false,
+        description: resolvedParam.description || '',
+        example: resolvedParam.schema?.example || resolvedParam.example || null,
       });
     }
   }
 
-  // Add auth headers for private endpoints
+  // Add auth headers for private endpoints (only if not already present)
   if (isPrivateEndpoint(details)) {
     const authHeaders = [
       {
@@ -166,38 +231,54 @@ function extractParameters(details) {
         description: 'Ed25519 signature',
       },
     ];
-    params.push(...authHeaders);
+
+    // Only add auth headers that aren't already present
+    for (const header of authHeaders) {
+      if (!paramNames.has(header.name)) {
+        params.push(header);
+      }
+    }
   }
 
   return params;
 }
 
 // Extract request body
-function extractRequestBody(details) {
+function extractRequestBody(details, spec) {
   if (!details.requestBody) return null;
 
   const content = details.requestBody.content?.['application/json'];
   if (!content) return null;
 
+  // Resolve all $refs in the schema
+  const resolvedSchema = deepResolveRefs(spec, content.schema || {});
+
   return {
     description: details.requestBody.description || '',
     contentType: 'application/json',
-    schema: JSON.stringify(content.schema || {}, null, 2),
+    schema: JSON.stringify(resolvedSchema, null, 2),
     required: details.requestBody.required || false,
   };
 }
 
 // Extract responses
-function extractResponses(details) {
+function extractResponses(details, spec) {
   if (!details.responses) return [];
 
-  return Object.entries(details.responses).map(([code, resp]) => ({
-    code: parseInt(code),
-    description: resp.description || '',
-    schema: resp.content?.['application/json']?.schema
-      ? JSON.stringify(resp.content['application/json'].schema, null, 2)
-      : null,
-  }));
+  return Object.entries(details.responses).map(([code, resp]) => {
+    let schema = resp.content?.['application/json']?.schema;
+
+    // Resolve $refs in the schema
+    if (schema) {
+      schema = deepResolveRefs(spec, schema);
+    }
+
+    return {
+      code: parseInt(code),
+      description: resp.description || '',
+      schema: schema ? JSON.stringify(schema, null, 2) : null,
+    };
+  });
 }
 
 // Generate code example
@@ -230,22 +311,55 @@ fetch(url).then(res => res.json()).then(console.log);`;
   return example;
 }
 
-// Extract schemas from components
+// Extract schemas from components with full resolution
 function extractSchemas(spec) {
   const schemas = [];
   const components = spec.components?.schemas || {};
 
   for (const [name, schema] of Object.entries(components)) {
-    if (schema.type === 'object' && schema.properties) {
+    // Resolve any $refs within the schema
+    const resolvedSchema = deepResolveRefs(spec, schema);
+
+    if (resolvedSchema.type === 'object' && resolvedSchema.properties) {
       schemas.push({
         name,
-        description: schema.description || '',
-        properties: Object.entries(schema.properties).map(([propName, prop]) => ({
+        description: resolvedSchema.description || '',
+        type: 'object',
+        properties: Object.entries(resolvedSchema.properties).map(([propName, prop]) => ({
           name: propName,
-          type: prop.type || 'unknown',
+          type: prop.type || prop.$ref ? 'object' : 'unknown',
           description: prop.description || '',
-          required: (schema.required || []).includes(propName),
+          required: (resolvedSchema.required || []).includes(propName),
+          example: prop.example || null,
+          enum: prop.enum || null,
+          format: prop.format || null,
         })),
+        required: resolvedSchema.required || [],
+      });
+    } else if (resolvedSchema.type === 'array' && resolvedSchema.items) {
+      schemas.push({
+        name,
+        description: resolvedSchema.description || '',
+        type: 'array',
+        items: resolvedSchema.items,
+      });
+    } else {
+      // Include other schema types as well
+      schemas.push({
+        name,
+        description: resolvedSchema.description || '',
+        type: resolvedSchema.type || 'unknown',
+        properties: resolvedSchema.properties
+          ? Object.entries(resolvedSchema.properties).map(([propName, prop]) => ({
+              name: propName,
+              type: prop.type || 'unknown',
+              description: prop.description || '',
+              required: (resolvedSchema.required || []).includes(propName),
+              example: prop.example || null,
+              enum: prop.enum || null,
+              format: prop.format || null,
+            }))
+          : null,
       });
     }
   }
