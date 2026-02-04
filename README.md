@@ -298,29 +298,83 @@ orderly-mcp/
 
 ## Updating Data
 
-To update the embedded documentation or add new patterns:
+All data files in `src/data/` are auto-generated via scripts in the `scripts/` folder. **Do not edit JSON files manually** - they will be overwritten when regeneration scripts run.
 
-1. Edit the relevant JSON file in `src/data/`
-2. Rebuild: `yarn build`
-3. Restart the MCP server
+### Prerequisites
+
+1. NEAR AI API key in `.env` file: `NEAR_AI_API_KEY=your_key`
+2. Get API key at: https://cloud.near.ai/api-keys
+
+### Complete Regeneration (Recommended)
+
+Generate everything from scratch:
+
+```bash
+# 1. Download latest official docs
+curl -o llms-full.txt https://orderly.network/docs/llms-full.txt
+
+# 2. Split Telegram export (if you have one)
+node scripts/split_telegram_chats.js
+
+# 3. Analyze Telegram chats → tg_analysis.json
+node scripts/analyze_chat_openai.js
+
+# 4. Analyze docs → docs_analysis.json
+node scripts/analyze_llms_full.js
+
+# 5. Get SDK patterns from source (FREE - no AI calls)
+node scripts/analyze_sdk.js
+
+# 6. Generate documentation and workflows
+node scripts/generate_mcp_data.js
+
+# 7. Generate API docs from OpenAPI spec
+node scripts/generate_api_from_openapi.js
+
+# 8. Generate contract addresses
+node scripts/generate_contracts.js
+
+# 9. Build and test
+yarn build && yarn test:run
+```
+
+### Update Only Documentation
+
+If you just want to refresh from official docs without Telegram data:
+
+```bash
+# 1. Download latest docs
+curl -o llms-full.txt https://orderly.network/docs/llms-full.txt
+
+# 2. Analyze docs only
+node scripts/analyze_llms_full.js
+
+# 3. Generate (will use existing tg_analysis.json if present)
+node scripts/generate_mcp_data.js
+
+# 4. Build
+yarn build
+```
 
 ### Data Files
 
-- **documentation.json**: Searchable documentation chunks with keywords
-- **sdk-patterns.json**: SDK v2 hooks with examples and notes
-- **contracts.json**: Contract addresses per chain
-- **workflows.json**: Step-by-step workflow explanations
-- **api.json**: REST and WebSocket API specs
-- **component-guides.json**: Component building patterns
+| File                      | Source                         | Generation Script              |
+| ------------------------- | ------------------------------ | ------------------------------ |
+| **documentation.json**    | Official docs + Telegram chats | `generate_mcp_data.js`         |
+| **sdk-patterns.json**     | SDK source code (GitHub)       | `analyze_sdk.js`               |
+| **component-guides.json** | SDK source code (GitHub)       | `analyze_sdk.js`               |
+| **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`         |
+| **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js` |
+| **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`        |
 
 ## Contributing
 
-To add new content:
+To add new content, you need to update the source data and regenerate:
 
-1. **New Documentation**: Add chunk to `documentation.json`
-2. **New SDK Pattern**: Add pattern to `sdk-patterns.json`
-3. **New Chain**: Add contracts to `contracts.json`
-4. **New Workflow**: Add workflow to `workflows.json`
+1. **New Documentation**: Update `llms-full.txt` or Telegram exports, then run generation scripts
+2. **New SDK Pattern**: The SDK is auto-parsed from GitHub - patterns appear automatically when SDK updates
+3. **New Chain**: Update source documentation, then regenerate
+4. **New Workflow**: Add to source docs or Telegram chats, then regenerate
 
 ## License
 
