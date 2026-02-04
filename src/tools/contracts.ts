@@ -5,14 +5,14 @@ export interface ContractResult {
 }
 
 interface ContractInfo {
-  mainnet?: string;
-  testnet?: string;
+  mainnet?: string | null;
+  testnet?: string | null;
   description?: string;
 }
 
 interface ChainContracts {
-  chainId: number;
-  testnetChainId?: number;
+  chainId: number | null;
+  testnetChainId?: number | null;
   contracts: Record<string, ContractInfo>;
 }
 
@@ -37,8 +37,10 @@ export async function getContractAddresses(
     };
   }
 
-  // Find chain data
-  const chainData = (contractData as Record<string, ChainContracts>)[normalizedChain];
+  // Find chain data (filter out _metadata field)
+  const data = contractData as unknown as Record<string, ChainContracts>;
+  const { _metadata, ...chains } = data;
+  const chainData = chains[normalizedChain];
 
   if (!chainData) {
     const availableChains = Object.keys(contractData).join(', ');

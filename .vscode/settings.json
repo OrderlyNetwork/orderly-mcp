@@ -6,11 +6,8 @@
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "eslint.validate": [
-    "typescript"
-  ],
+  "eslint.validate": ["typescript"],
   "files.exclude": {
-    "dist/**": true,
     "node_modules/**": true
   }
 }
