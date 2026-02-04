@@ -1,292 +1,1474 @@
 {
   "workflows": [
     {
-      "name": "Wallet Connection",
-      "description": "Complete workflow for connecting a wallet and initializing an Orderly account",
+      "name": "Setting Up Broker Admin Wallet and Fee Configuration",
+      "description": "Complete process to register a broker ID, configure the admin wallet for fee collection, and set up default trading fees.",
       "prerequisites": [
-        "React app with OrderlyConfigProvider configured",
-        "Wallet installed (MetaMask, Phantom, etc.)",
-        "Broker ID from Orderly"
+        "Broker ID created via Orderly One graduation or approved setup",
+        "EVM or Solana wallet for admin functions"
       ],
       "steps": [
         {
-          "title": "Setup OrderlyConfigProvider",
-          "description": "Wrap your app with the OrderlyConfigProvider at the root level",
-          "code": "import { OrderlyConfigProvider } from '@orderly.network/hooks';\n\nfunction App() {\n  return (\n    <OrderlyConfigProvider\n      brokerId=\"your-broker-id\"\n      networkId=\"testnet\"\n    >\n      <YourApp />\n    </OrderlyConfigProvider>\n  );\n}"
+          "title": "Register Admin Wallet",
+          "description": "Register the wallet you want to use as the admin wallet under your broker ID. This must be done on both mainnet and testnet if you need capabilities in both environments.",
+          "important": "The wallet address must be shared with Orderly support to be enabled as the admin account in the backend."
         },
         {
-          "title": "Connect Wallet",
-          "description": "Use useWalletConnector to initiate wallet connection",
-          "code": "import { useWalletConnector } from '@orderly.network/hooks';\n\nfunction ConnectButton() {\n  const wallet = useWalletConnector();\n\n  return (\n    <button onClick={() => wallet.connect()}>\n      Connect Wallet\n    </button>\n  );\n}"
+          "title": "Access Admin Portal",
+          "description": "Once the admin wallet is set up by Orderly, log in to the admin portal using your admin credentials.",
+          "code": "https://admin.orderly.network/login"
         },
         {
-          "title": "Set Address in Orderly",
-          "description": "Use useAccount to set the connected address in Orderly",
-          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction useConnectOrderly() {\n  const { account, createOrderlyKey } = useAccount();\n  const wallet = useWalletConnector();\n\n  const connect = async () => {\n    const connected = await wallet.connect();\n    const nextState = await account.setAddress(\n      connected.accounts[0].address,\n      {\n        provider: connected.provider,\n        chain: { id: connected.connectedChain.id },\n        wallet: { name: connected.label }\n      }\n    );\n    \n    if (nextState.status === 'connected') {\n      await createOrderlyKey(true);\n    }\n  };\n}",
-          "important": [
-            "createOrderlyKey(true) creates key valid for 365 days",
-            "Status will be 'not_activated' if account doesn't exist yet"
-          ]
+          "title": "Configure Default Fees",
+          "description": "Update default builder/broker fees by calling the private 'Update Default Builder Fee' endpoint or using the admin portal UI. Requests must be signed using Orderly API authentication.",
+          "code": "POST /v1/broker/default_fee\nHeaders: orderly-key, orderly-signature, orderly-timestamp, orderly-account-id\nBody: { \"maker_fee\": 0, \"taker_fee\": 0.0006 }"
+        },
+        {
+          "title": "Verify Fee Collection",
+          "description": "Broker fees are credited daily to the admin wallet's Orderly account. Check the balance by logging into your DEX with the admin wallet or using the private Get Current Holding endpoint."
         }
       ],
       "commonIssues": [
-        "Provider not set correctly - ensure window.ethereum or wallet provider is passed",
-        "Chain ID format - use hex string (e.g., '0x1') for EVM chains",
-        "Account creation - if status is 'not_activated', call createAccount() before createOrderlyKey()"
+        {
+          "issue": "Saving fee configuration fails in the UI.",
+          "solution": "Ensure you are logged in with the correct broker admin account. A mismatch between the logged-in wallet and the actual broker admin account is a common cause."
+        },
+        {
+          "issue": "Admin portal login fails.",
+          "solution": "Ensure the wallet has been registered as an Orderly account under your broker ID and that Orderly support has enabled it as the admin wallet."
+        }
       ],
-      "relatedWorkflows": ["Account Creation", "Deposit Funds"]
+      "relatedWorkflows": [
+        "Generating Orderly API Credentials",
+        "Withdrawing Broker Fees"
+      ]
     },
     {
-      "name": "Place First Order",
-      "description": "Step-by-step workflow for placing your first trade after wallet connection",
+      "name": "Generating and Managing Orderly API Credentials",
+      "description": "How to generate an Orderly keypair (API key/secret), register it with a wallet, and access it programmatically for trading or admin operations.",
       "prerequisites": [
-        "Wallet connected and Orderly key created",
-        "Sufficient collateral deposited",
-        "Understanding of order types"
+        "Connected wallet (EVM or Solana)",
+        "Orderly SDK or custom registration UI"
       ],
       "steps": [
         {
-          "title": "Check Account Status",
-          "description": "Ensure account is properly connected and activated",
-          "code": "import { useAccount, useCollateral } from '@orderly.network/hooks';\n\nfunction TradingCheck() {\n  const { state } = useAccount();\n  const { freeCollateral } = useCollateral();\n\n  if (state.status !== 'connected') {\n    return <div>Please connect wallet</div>;\n  }\n\n  if (Number(freeCollateral) <= 0) {\n    return <div>Please deposit funds</div>;\n  }\n}"
+          "title": "Create Keypair",
+          "description": "Generate an ed25519 keypair client-side. This is typically done in the browser or via a script using the SDK's key management utilities.",
+          "important": "The Orderly key is separate from the user's wallet private key."
         },
         {
-          "title": "Setup Order Entry",
-          "description": "Initialize useOrderEntry hook for the trading pair",
-          "code": "import { useOrderEntry } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\n\nfunction TradingPanel() {\n  const {\n    submit,\n    formattedOrder,\n    setValue,\n    metaState,\n    isMutating,\n    maxQty,\n  } = useOrderEntry('PERP_ETH_USDC', {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.MARKET,\n    }\n  });\n}"
+          "title": "Register Public Key",
+          "description": "Submit the public key along with an EIP-712 signature (or Solana equivalent) to Orderly to register the key. This can be done via the broker-registration tool or your own UI.",
+          "code": "POST /v1/orderly_key\nBody: { \"orderly_key\": \"<public_key_string>\", \"timestamp\": <timestamp>, \"signature\": \"<wallet_signature>\" }"
         },
         {
-          "title": "Build Order Form",
-          "description": "Create UI for order input with validation",
-          "code": "function OrderForm() {\n  // ... hook setup\n\n  return (\n    <div>\n      <button onClick={() => setValue('side', OrderSide.BUY)}>Buy</button>\n      <button onClick={() => setValue('side', OrderSide.SELL)}>Sell</button>\n      \n      <select onChange={(e) => setValue('order_type', e.target.value)}>\n        <option value={OrderType.MARKET}>Market</option>\n        <option value={OrderType.LIMIT}>Limit</option>\n      </select>\n      \n      <input\n        type=\"number\"\n        value={formattedOrder.order_quantity || ''}\n        onChange={(e) => setValue('order_quantity', e.target.value)}\n        placeholder={`Max: ${maxQty}`}\n      />\n      \n      {metaState.submitted && metaState.errors && (\n        <div>{metaState.errors.order_quantity?.message}</div>\n      )}\n    </div>\n  );\n}"
+          "title": "Store Keys Securely",
+          "description": "The SDK typically stores the keypair in the browser's local storage (Keystore). For programmatic access, you can access it via the Account instance."
         },
         {
-          "title": "Submit Order",
-          "description": "Handle order submission with error handling",
-          "code": "const handleSubmit = async () => {\n  try {\n    const result = await submit({ resetOnSuccess: true });\n    console.log('Order placed:', result);\n  } catch (error) {\n    if (metaState.errors) {\n      console.error('Validation errors:', metaState.errors);\n    } else {\n      console.error('Submission error:', error);\n    }\n  }\n};"
+          "title": "Access Keys Programmatically",
+          "description": "Use the SDK's `useAccount` hook or `Account` instance to retrieve the stored Orderly Key and Secret for signing API requests.",
+          "code": "const { account } = useAccount();\nconst keyPair = account.keyStore.getOrderlyKey();\nconst publicKey = await keyPair.getPublicKey();"
         }
       ],
       "commonIssues": [
-        "Insufficient margin - check freeCollateral before placing order",
-        "Price not set for limit orders - ensure order_price is defined when using LIMIT",
-        "Quantity too large - maxQty shows the maximum allowed based on available collateral"
+        {
+          "issue": "Need to derive public key from a raw private key without SDK.",
+          "solution": "Use libraries like `ethers` and `@noble/ed25519`. Base58-decode the private key to bytes, take the last 32 bytes, and encode them to get the public key."
+        },
+        {
+          "issue": "Registration fails with signature error.",
+          "solution": "Ensure the signature is generated correctly for the off-chain domain and matches the timestamp sent in the request."
+        }
       ],
-      "relatedWorkflows": ["Wallet Connection", "Deposit Funds", "Set TP/SL"]
+      "relatedWorkflows": [
+        "Setting Up Broker Admin Wallet and Fee Configuration",
+        "Implementing Custom Fee Tiers"
+      ]
     },
     {
-      "name": "Deposit Funds",
-      "description": "Workflow for depositing USDC or other supported tokens into Orderly",
+      "name": "Implementing Custom Fee Tiers for Users",
+      "description": "How to set up volume-based or custom fee tiers for individual users using the provided admin tool and API.",
       "prerequisites": [
-        "Wallet connected to Orderly",
-        "USDC or supported token in wallet",
-        "Sufficient gas for the transaction"
+        "Broker Admin Wallet set up",
+        "Access to Orderly fee admin script/tool",
+        "User trading volume data"
       ],
       "steps": [
         {
-          "title": "Check Balance and Allowance",
-          "description": "Verify token balance and approve if needed",
-          "code": "import { useDeposit } from '@orderly.network/hooks';\nimport { useChains } from '@orderly.network/hooks';\n\nfunction DepositUI() {\n  const {\n    deposit,\n    balance,\n    allowance,\n    approve,\n    isApproving,\n  } = useDeposit();\n\n  const [chains] = useChains('mainnet');\n  \n  const needsApproval = Number(allowance) < amount;\n}"
+          "title": "Define Fee Tier Logic",
+          "description": "Determine the volume thresholds and corresponding fee rates (maker/taker) for your custom tiers. Orderly stores per-user fee rates, so you must calculate these yourself."
         },
         {
-          "title": "Approve Token (if needed)",
-          "description": "ERC20 tokens require approval before deposit",
-          "code": "const handleApprove = async () => {\n  await approve(chainId, tokenAddress, amount);\n};\n\n// In UI\n{needsApproval && (\n  <button onClick={handleApprove} disabled={isApproving}>\n    Approve USDC\n  </button>\n)}"
+          "title": "Run Fee Update Script",
+          "description": "Use the Orderly provided fee admin script (e.g., `set-user-fee`) to update user fee rates in batch. This script computes the new rates based on your logic and sends signed requests to the Update User Fee endpoint.",
+          "important": "This script must be run on your own infrastructure, typically on a daily schedule."
+        },
+        {
+          "title": "Verify Updates",
+          "description": "Check specific users in the admin console or via the API to confirm their fee rates have been updated to the correct tier."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Fee changes take up to 24 hours to appear.",
+          "solution": "The daily script schedule means changes are not instant. Ensure your script runs at the desired frequency."
+        },
+        {
+          "issue": "No endpoint to fetch a broker's fee tier table.",
+          "solution": "Orderly does not store the tier-to-fee mapping; you must maintain this mapping in your own backend or configuration."
+        }
+      ],
+      "relatedWorkflows": [
+        "Setting Up Broker Admin Wallet and Fee Configuration",
+        "Generating Orderly API Credentials"
+      ]
+    },
+    {
+      "name": "Withdrawing Broker Fees and Revenue",
+      "description": "Steps to access and withdraw the broker fees (revenue) accrued in the admin wallet's Orderly account.",
+      "prerequisites": [
+        "Broker Admin Wallet configured",
+        "Fees accrued in admin account"
+      ],
+      "steps": [
+        {
+          "title": "Check Fee Balance",
+          "description": "Log in to your DEX using the broker admin wallet or use the private Get Current Holding endpoint to view the accrued fees/balance.",
+          "code": "GET /v1/holding\nHeaders: orderly-key, orderly-signature, orderly-timestamp, orderly-account-id"
+        },
+        {
+          "title": "Initiate Withdrawal",
+          "description": "Use the standard withdrawal flow in your DEX UI while connected as the admin wallet. Alternatively, use the broker-registration tool to withdraw using admin credentials.",
+          "important": "Withdrawals incur a network fee. To reduce costs, consider withdrawing via cheaper chains like Arbitrum or Base instead of Ethereum mainnet."
+        },
+        {
+          "title": "Sign Withdrawal Request",
+          "description": "Confirm the withdrawal by signing the transaction (EIP-712 for EVM) in your wallet."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Withdrawal amount is significantly less than expected.",
+          "solution": "This is due to the withdrawal fee covering gas and cross-chain messaging costs. Check the 'Get Supported Collateral Info' endpoint for current fees."
+        },
+        {
+          "issue": "Fees are not visible in the external wallet.",
+          "solution": "Fees are credited to the Orderly account, not the external wallet directly. You must explicitly withdraw them."
+        }
+      ],
+      "relatedWorkflows": [
+        "Setting Up Broker Admin Wallet and Fee Configuration"
+      ]
+    },
+    {
+      "name": "Configuring Orderly One Custom Domain and SSL",
+      "description": "How to set up a custom domain for an Orderly One DEX, configure DNS, and troubleshoot SSL/HTTPS issues.",
+      "prerequisites": [
+        "Orderly One DEX created",
+        "Access to domain DNS provider"
+      ],
+      "steps": [
+        {
+          "title": "Configure DNS CNAME",
+          "description": "In your DNS provider, create a CNAME record for your subdomain (e.g., `www`) pointing to `orderlynetworkdexcreator.github.io`.",
+          "important": "Correct CNAME configuration is required for valid certificate generation."
+        },
+        {
+          "title": "Update Domain in Orderly One",
+          "description": "Go to the Orderly One DEX creator settings, enter your custom domain (lowercase), and click 'Update DEX Configuration'."
+        },
+        {
+          "title": "Wait for SSL Propagation",
+          "description": "SSL certificate issuance can take 1–2 days. Monitor the status in the DEX management page.",
+          "important": "The DEX may not fully load until the certificate is valid."
+        },
+        {
+          "title": "Enable HTTPS Redirect",
+          "description": "Enable 'enforce https' in the DEX settings to automatically redirect users from HTTP to HTTPS."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "SSL status remains insecure after DNS update.",
+          "solution": "Verify the CNAME record is correct. If correct, wait for propagation (up to 2 days). If still failing, re-check the configuration in the DEX management page."
+        },
+        {
+          "issue": "DEX fails to load with redirect loops.",
+          "solution": "Ensure the CNAME for `www` is set correctly. Incorrect CNAMEs often cause redirect loops."
+        }
+      ],
+      "relatedWorkflows": []
+    },
+    {
+      "name": "Register an Account and Generate API Keys",
+      "description": "This workflow covers the complete onboarding process for a user: registering a new Orderly account using their Web3 wallet and generating the Ed25519 keypair required for API trading.",
+      "prerequisites": [
+        "A Web3 wallet (e.g., MetaMask) with funds for gas",
+        "A Broker ID (e.g., 'woofi_dex')",
+        "The Chain ID of the network you are operating on",
+        "Basic understanding of EIP-712 typed data signing"
+      ],
+      "steps": [
+        {
+          "title": "Check if Wallet is Already Registered",
+          "description": "Before attempting registration, verify if the wallet address already has an account with the specific Broker ID to avoid errors.",
+          "code": "GET /v1/get_account?broker_id=<BROKER_ID>&user_address=<WALLET_ADDRESS>"
+        },
+        {
+          "title": "Fetch Registration Nonce",
+          "description": "Retrieve a unique nonce required for the registration signature. This nonce is valid for 2 minutes.",
+          "code": "GET https://testnet-api.orderly.org/v1/registration_nonce"
+        },
+        {
+          "title": "Sign Registration Message (EIP-712)",
+          "description": "Construct and sign the EIP-712 typed data using the user's wallet private key. The message includes the broker ID, chain ID, timestamp, and nonce.",
+          "code": "const domain = {\n  name: \"Orderly\",\n  version: \"1\",\n  chainId: 421614,\n  verifyingContract: \"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"\n};\nconst types = {\n  Registration: [\n    { name: \"brokerId\", type: \"string\" },\n    { name: \"chainId\", type: \"uint256\" },\n    { name: \"timestamp\", type: \"uint64\" },\n    { name: \"registrationNonce\", type: \"uint256\" }\n  ]\n};\nconst message = {\n  brokerId: \"woofi_dex\",\n  chainId: 421614,\n  timestamp: Date.now(),\n  registrationNonce: nonceFromStep2\n};\nconst signature = await wallet.signTypedData(domain, types, message);"
+        },
+        {
+          "title": "Submit Registration",
+          "description": "Send the signed payload to the registration endpoint to create the Orderly Account ID.",
+          "code": "POST https://testnet-api.orderly.org/v1/register_account\nBody: {\n  \"message\": { ... },\n  \"signature\": \"0x...\",\n  \"userAddress\": \"0x...\"\n}"
+        },
+        {
+          "title": "Generate Ed25519 Key Pair",
+          "description": "Generate an Ed25519 key pair locally. The public key becomes the `orderly-key`, and the private key is the `ORDERLY_SECRET`.",
+          "code": "import { getPublicKeyAsync, signAsync } from '@noble/ed25519';\nconst privateKey = crypto.getRandomValues(new Uint8Array(32));\nconst publicKey = await getPublicKeyAsync(privateKey);"
+        },
+        {
+          "title": "Sign Add Orderly Key Message (EIP-712)",
+          "description": "To associate the new Ed25519 key with the account, sign an 'AddOrderlyKey' message using the Web3 wallet.",
+          "code": "const types = {\n  AddOrderlyKey: [\n    { name: \"brokerId\", type: \"string\" },\n    { name: \"chainId\", type: \"uint256\" },\n    { name: \"orderlyKey\", type: \"string\" },\n    { name: \"scope\", type: \"string\" },\n    { name: \"timestamp\", type: \"uint64\" },\n    { name: \"expiration\", type: \"uint64\" }\n  ]\n};\nconst message = {\n  brokerId: \"woofi_dex\",\n  chainId: 421614,\n  orderlyKey: `ed25519:${encodeBase58(publicKey)}`,\n  scope: \"read,trading\",\n  timestamp: Date.now(),\n  expiration: Date.now() + 31536000000\n};\nconst signature = await wallet.signTypedData(domain, types, message);"
+        },
+        {
+          "title": "Submit Orderly Key",
+          "description": "Send the signed AddOrderlyKey payload to register the API key for trading.",
+          "code": "POST https://testnet-api.orderly.org/v1/orderly_key\nBody: {\n  \"message\": { ... },\n  \"signature\": \"0x...\",\n  \"userAddress\": \"0x...\"\n}"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Invalid Nonce",
+          "solution": "Ensure you fetch a fresh nonce immediately before signing. Nonces expire after 2 minutes and are single-use."
+        },
+        {
+          "issue": "Signature Verification Failed",
+          "solution": "Verify that the `verifyingContract` address in the EIP-712 domain matches the environment (Testnet vs Mainnet) and that the `chainId` is correct."
+        }
+      ],
+      "relatedWorkflows": [
+        "Place an Order via REST API",
+        "Deposit USDC via EVM Vault"
+      ]
+    },
+    {
+      "name": "Deposit USDC via EVM Vault",
+      "description": "This workflow details how to deposit USDC from an EVM wallet (e.g., Arbitrum) into the Orderly Vault to fund a trading account.",
+      "prerequisites": [
+        "A registered Orderly Account ID",
+        "USDC tokens in the wallet",
+        "The Vault contract address for the specific chain",
+        "Web3 library (e.g., ethers.js)"
+      ],
+      "steps": [
+        {
+          "title": "Approve USDC Spending",
+          "description": "Approve the Vault contract to spend the specific amount of USDC you intend to deposit.",
+          "code": "const usdcContract = new ethers.Contract(usdcAddress, ['function approve(address, uint256)'], wallet);\nconst tx = await usdcContract.approve(vaultAddress, depositAmount);\nawait tx.wait();"
+        },
+        {
+          "title": "Calculate Hashes",
+          "description": "Compute the `brokerHash` (keccak256 of broker ID string) and `tokenHash` (keccak256 of 'USDC' string) required for the deposit input.",
+          "code": "const encoder = new TextEncoder();\nconst brokerHash = ethers.keccak256(encoder.encode(brokerId));\nconst tokenHash = ethers.keccak256(encoder.encode(\"USDC\"));"
+        },
+        {
+          "title": "Get Deposit Fee",
+          "description": "Query the Vault contract to determine the required native gas fee for the deposit transaction.",
+          "code": "const vaultContract = new ethers.Contract(vaultAddress, vaultAbi, wallet);\nconst depositInput = {\n  accountId: orderlyAccountId,\n  brokerHash: brokerHash,\n  tokenHash: tokenHash,\n  tokenAmount: depositAmount\n};\nconst depositFee = await vaultContract.getDepositFee(wallet.address, depositInput);"
         },
         {
           "title": "Execute Deposit",
-          "description": "Call deposit function to transfer funds to vault",
-          "code": "const handleDeposit = async () => {\n  try {\n    await deposit(chainId, tokenAddress, amount);\n    // Deposit successful\n  } catch (error) {\n    console.error('Deposit failed:', error);\n  }\n};\n\n// In UI\n<button onClick={handleDeposit} disabled={needsApproval}>\n  Deposit {amount} USDC\n</button>"
+          "description": "Call the `deposit` function on the Vault contract, passing the deposit input and attaching the calculated fee as `msg.value`.",
+          "code": "const tx = await vaultContract.deposit(depositInput, { value: depositFee });\nawait tx.wait();"
         }
       ],
       "commonIssues": [
-        "Approval not complete - ensure approve() resolves before calling deposit()",
-        "Wrong chain - verify chainId matches the chain where tokens are held",
-        "Insufficient balance - check balance before attempting deposit"
+        {
+          "issue": "Transaction Reverted",
+          "solution": "Ensure you have approved the Vault contract for sufficient USDC before calling deposit. Also check that you have enough native tokens (ETH/ARB) to cover the `depositFee`."
+        },
+        {
+          "issue": "Incorrect Account ID",
+          "solution": "The `accountId` must be the bytes32 representation derived from the user address and broker ID, not just the hex string of the wallet address."
+        }
       ],
-      "relatedWorkflows": ["Wallet Connection", "Withdraw Funds"]
+      "relatedWorkflows": [
+        "Register an Account and Generate API Keys",
+        "Place an Order via REST API"
+      ]
     },
     {
-      "name": "Set TP/SL",
-      "description": "Workflow for setting Take Profit and Stop Loss on positions or orders",
+      "name": "Place an Order via REST API",
+      "description": "This workflow explains how to authenticate and place a trading order (e.g., Market or Limit) using the Orderly REST API with an Ed25519 key.",
       "prerequisites": [
-        "Active position or pending order",
-        "Understanding of trigger prices vs limit prices"
+        "Active Orderly Account ID",
+        "Registered Orderly Key (Public Key)",
+        "Orderly Secret (Private Key)",
+        "Sufficient balance in the account"
       ],
       "steps": [
         {
-          "title": "TP/SL on Order Entry",
-          "description": "Set TP/SL when creating a new order",
-          "code": "const { setValue } = useOrderEntry('PERP_ETH_USDC');\n\n// Method 1: Set trigger price directly\nsetValue('tp_trigger_price', '70000');\nsetValue('sl_trigger_price', '65000');\n\n// Method 2: Set based on PnL\nsetValue('tp_pnl', '500'); // Take profit at $500 profit\nsetValue('sl_pnl', '-200'); // Stop loss at $200 loss\n\n// Method 3: Set percentage offset\nsetValue('tp_offset_percentage', 5); // 5% above entry\nsetValue('sl_offset_percentage', -3); // 3% below entry"
+          "title": "Construct Request Body",
+          "description": "Define the order parameters such as symbol, side, order type, and quantity.",
+          "code": "const body = {\n  symbol: \"PERP_ETH_USDC\",\n  order_type: \"MARKET\",\n  order_quantity: \"0.01\",\n  side: \"BUY\"\n};"
         },
         {
-          "title": "TP/SL on Existing Position",
-          "description": "Modify TP/SL for an existing position using position actions",
-          "code": "import { usePositionStream } from '@orderly.network/hooks';\n\nfunction PositionTPSL({ symbol }: { symbol: string }) {\n  const [{ rows }] = usePositionStream(symbol);\n  const position = rows[0];\n  \n  const updateTPSL = async () => {\n    // Use position's updateTPSL method\n    await position.updateTPSL({\n      tp_trigger_price: 70000,\n      sl_trigger_price: 65000,\n    });\n  };\n}"
+          "title": "Construct Signature Message",
+          "description": "Create the canonical string to sign by concatenating the timestamp, HTTP method, request path, and JSON body.",
+          "code": "const timestamp = Date.now();\nconst method = \"POST\";\nconst path = \"/v1/order\";\nconst message = `${timestamp}${method}${path}${JSON.stringify(body)}`;"
+        },
+        {
+          "title": "Sign with Ed25519",
+          "description": "Sign the message string using the Orderly Secret (Ed25519 private key) and encode the result in Base64 URL format.",
+          "code": "import { signAsync } from '@noble/ed25519';\nconst signatureBytes = await signAsync(message, privateKey);\nconst signature = Buffer.from(signatureBytes).toString('base64url');"
+        },
+        {
+          "title": "Send Request",
+          "description": "Send the POST request with the required headers: `orderly-key`, `orderly-signature`, `orderly-timestamp`, and `orderly-account-id`.",
+          "code": "const response = await fetch('https://testnet-api.orderly.org/v1/order', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json',\n    'orderly-key': `ed25519:${publicKeyBase58}`,\n    'orderly-signature': signature,\n    'orderly-timestamp': timestamp.toString(),\n    'orderly-account-id': orderlyAccountId\n  },\n  body: JSON.stringify(body)\n});"
         }
       ],
       "commonIssues": [
-        "Price vs Trigger - TP/SL uses trigger price, not limit price",
-        "Validation - ensure trigger prices are valid relative to current price and position side",
-        "Partial TP/SL - can set multiple TP/SL levels for partial closes"
+        {
+          "issue": "401 Unauthorized / Invalid Signature",
+          "solution": "Ensure the message string for signing matches exactly: `{timestamp}{method}{path}{body}`. Do not include extra whitespace. Ensure the timestamp is in milliseconds."
+        },
+        {
+          "issue": "Timestamp Skew",
+          "solution": "The `orderly-timestamp` must be close to the server time. Ensure your system clock is synchronized."
+        }
       ],
-      "relatedWorkflows": ["Place First Order", "Position Management"]
+      "relatedWorkflows": [
+        "Register an Account and Generate API Keys",
+        "Withdraw Funds to EVM Chain"
+      ]
     },
     {
-      "name": "Subaccount Management",
-      "description": "Workflow for creating and managing subaccounts",
+      "name": "Withdraw Funds to EVM Chain",
+      "description": "This workflow guides you through requesting a withdrawal of funds from your Orderly account back to an external EVM wallet.",
       "prerequisites": [
-        "Main account already created and activated",
-        "Understanding of main/sub account relationship"
+        "Orderly Key and Secret for API authentication",
+        "Sufficient available balance",
+        "Target EVM wallet address"
       ],
       "steps": [
         {
-          "title": "Create Subaccount",
-          "description": "Create a new subaccount from the main account",
-          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction SubaccountManager() {\n  const { account, state } = useAccount();\n  \n  const createSubaccount = async () => {\n    const subAccount = await account.createSubAccount();\n    console.log('Subaccount created:', subAccount.accountId);\n  };\n}"
+          "title": "Get Withdrawal Nonce",
+          "description": "Fetch a unique nonce for the withdrawal request using your Orderly Key authentication.",
+          "code": "GET /v1/withdrawal_nonce\nHeaders: {\n  \"orderly-key\": \"...\",\n  \"orderly-signature\": \"...\",\n  \"orderly-timestamp\": \"...\",\n  \"orderly-account-id\": \"...\"\n}"
         },
         {
-          "title": "Switch Between Accounts",
-          "description": "Switch context between main and subaccounts",
-          "code": "import { useAccount } from '@orderly.network/hooks';\n\nfunction AccountSwitcher() {\n  const { state, switchAccount, subAccount } = useAccount();\n  \n  // Switch to subaccount\n  await switchAccount(subAccountId);\n  \n  // Switch back to main\n  await switchAccount(state.mainAccountId);\n  \n  return (\n    <div>\n      <span>Current: {state.isSubAccount ? 'Subaccount' : 'Main'}</span>\n      <span>ID: {state.accountId}</span>\n    </div>\n  );\n}"
+          "title": "Sign Withdrawal Message (EIP-712)",
+          "description": "Sign the withdrawal details using your Web3 wallet (EIP-712). This authorizes the movement of funds on-chain.",
+          "code": "const domain = {\n  name: \"Orderly\",\n  version: \"1\",\n  chainId: 42161,\n  verifyingContract: \"0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203\"\n};\nconst types = {\n  Withdraw: [\n    { name: \"brokerId\", type: \"string\" },\n    { name: \"chainId\", type: \"uint256\" },\n    { name: \"withdrawNonce\", type: \"uint64\" },\n    { name: \"timestamp\", type: \"uint64\" },\n    { name: \"token\", type: \"string\" },\n    { name: \"amount\", type: \"uint256\" },\n    { name: \"receiver\", type: \"address\" },\n    { name: \"fee\", type: \"uint256\" }\n  ]\n};\nconst message = {\n  brokerId: \"woofi_dex\",\n  chainId: 42161,\n  withdrawNonce: nonceFromStep1,\n  timestamp: Date.now(),\n  token: \"USDC\",\n  amount: \"1000000\",\n  receiver: \"0xTargetAddress\",\n  fee: \"0\"\n};\nconst signature = await wallet.signTypedData(domain, types, message);"
         },
         {
-          "title": "Internal Transfer",
-          "description": "Transfer funds between main and subaccounts",
-          "code": "import { useTransfer } from '@orderly.network/hooks';\n\nfunction TransferForm() {\n  const { transfer, isLoading } = useTransfer();\n  \n  const handleTransfer = async () => {\n    await transfer({\n      amount: 1000,\n      fromAccountId: mainAccountId,\n      toAccountId: subAccountId,\n    });\n  };\n}"
+          "title": "Submit Withdrawal Request",
+          "description": "Send the signed payload to the private API endpoint to initiate the withdrawal process.",
+          "code": "POST /v1/withdrawal\nBody: {\n  \"message\": { ... },\n  \"signature\": \"0x...\"\n}\nHeaders: { Standard Orderly Auth Headers }"
         }
       ],
       "commonIssues": [
-        "Subaccount permissions - main account controls subaccount creation",
-        "Key management - each account needs its own Orderly key",
-        "Cross-account visibility - positions and orders are isolated per account"
+        {
+          "issue": "Withdrawal Failed",
+          "solution": "Ensure the `chainId` in the EIP-712 domain matches the chain you are withdrawing *to*, and that the `verifyingContract` address is correct for the environment (Mainnet vs Testnet)."
+        },
+        {
+          "issue": "Insufficient Liquidity",
+          "solution": "If the target chain lacks liquidity, an additional cross-chain fee may be deducted, or the withdrawal might fail until liquidity is available."
+        }
       ],
-      "relatedWorkflows": ["Wallet Connection", "Deposit Funds"]
+      "relatedWorkflows": [
+        "Deposit USDC via EVM Vault",
+        "Place an Order via REST API"
+      ]
     },
     {
-      "name": "Troubleshoot Wallet Connection Issues",
-      "description": "Step-by-step troubleshooting for common wallet connection problems based on real developer issues",
+      "name": "Placing and Managing Orders via REST API",
+      "description": "A comprehensive workflow for validating order constraints, placing standard and algo orders, editing pending orders, and managing order lifecycle (cancellation and history retrieval) using the Orderly REST API.",
       "prerequisites": [
-        "React app with Orderly SDK installed",
-        "Browser DevTools open to check console logs and localStorage"
+        "Orderly Key with 'trading' scope",
+        "Valid API Access",
+        "Target Symbol (e.g., PERP_ETH_USDC)"
       ],
       "steps": [
         {
-          "title": "Clear Cache and localStorage",
-          "description": "Most connection issues are resolved by clearing cached state. This fixes stuck pending states and stale connection data.",
-          "code": "// Clear localStorage for Orderly\nlocalStorage.removeItem('orderly:account');\nlocalStorage.removeItem('orderly:key');\n\n// Revoke wallet access\n// In your wallet (MetaMask, etc.), revoke access to asset-manager\n\n// Clear browser cache and reload",
-          "important": [
-            "Check localStorage keys by running: Object.keys(localStorage).filter(k => k.includes('orderly')) in console"
-          ]
+          "title": "Validate Order Constraints",
+          "description": "Before placing an order, fetch the symbol's trading rules to ensure price and quantity comply with tick sizes and notional values.",
+          "code": "GET /v1/public/info/{symbol}\n\n// Enforce filters on response:\n// Price: price >= quote_min, price <= quote_max, (price - quote_min) % quote_tick == 0\n// Size: base_min <= quantity <= base_max, (quantity - base_min) % base_tick == 0\n// Notional: price * quantity > min_notional"
         },
         {
-          "title": "Verify SDK Build",
-          "description": "Many issues occur when SDK wasn't rebuilt after pulling updates. Modal styles especially fail to load without proper build.",
-          "code": "# In SDK directory\ngit pull\nnpm run build\n\n# In your frontend\nrm -rf node_modules\nrm -rf package-lock.json\nnpm i\nnpm run start",
-          "important": ["Always rebuild SDK after pulling changes, even for small updates"]
+          "title": "Place a New Order",
+          "description": "Submit a POST request to create an order. You can specify order types like LIMIT, MARKET, IOC, FOK, or POST_ONLY. Use `client_order_id` for client-side tracking.",
+          "code": "POST /v1/order\n\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"order_type\": \"LIMIT\",\n  \"side\": \"BUY\",\n  \"order_price\": \"1800.00\",\n  \"order_quantity\": \"0.1\",\n  \"client_order_id\": \"my-custom-id-123\"\n}",
+          "important": "Rate limit: 10 requests per second. `client_order_id` must be unique among open orders."
         },
         {
-          "title": "Check for useEffect Connection Loops",
-          "description": "Putting connection logic in useEffect without guards causes infinite loops and page jumping. Check your component code.",
-          "code": "// BAD - causes infinite connection attempts\nuseEffect(() => {\n  connectWallet(); // Don't do this!\n}, []);\n\n// GOOD - check isSignedIn first\nuseEffect(() => {\n  const isSignedIn = localStorage.getItem('orderly:signed_in');\n  if (isSignedIn === 'true') {\n    connectWallet();\n  }\n}, []);",
-          "important": [
-            "Auto-connection should be handled on frontend, not forced in SDK for flexibility"
-          ]
+          "title": "Edit a Pending Order",
+          "description": "Modify the price or quantity of an existing pending order using the `order_id`.",
+          "code": "PUT /v1/order\n\nBody: {\n  \"order_id\": 123456,\n  \"order_price\": \"1850.00\", // Optional\n  \"order_quantity\": \"0.2\"   // Optional\n}",
+          "important": "Only `order_price` or `order_quantity` can be amended. Requires 'trading' scope."
         },
         {
-          "title": "Create Fresh Test Wallet",
-          "description": "Some issues only appear with specific wallet states. Creating a new wallet helps isolate if it's a wallet-specific issue.",
-          "code": "// Create new wallet in MetaMask/Phantom\n// Get testnet funds from faucet\n// Try connecting with new wallet\n\n// If new wallet works but old doesn't:\n// - Old wallet may have stuck transaction state\n// - Try revoking all dApp connections in wallet settings",
-          "important": [
-            "Some bugs only reproduce with specific wallet states that are hard to track"
-          ]
+          "title": "Cancel Orders",
+          "description": "Cancel a single order by ID or cancel multiple orders in a batch.",
+          "code": "// Cancel Single\nDELETE /v1/order?order_id={order_id}&symbol={symbol}\n\n// Batch Cancel (up to 10 orders)\nDELETE /v1/batch-order?order_ids={id1},{id2}",
+          "important": "Batch cancel rate limit: 10 requests/second. If 0 IDs are provided, an error is returned."
+        },
+        {
+          "title": "Fetch Order History",
+          "description": "Retrieve a list of orders, filtering by status (e.g., INCOMPLETE or COMPLETED).",
+          "code": "GET /v1/orders?status=INCOMPLETE\n\n// INCOMPLETE = NEW + PARTIAL_FILLED\n// COMPLETED = CANCELLED + FILLED"
         }
       ],
       "commonIssues": [
-        "Klines loading but trading locked - wallet status stuck in pending",
-        "Page jumping to wallet repeatedly - connection in useEffect without guards",
-        "Modal not appearing - SDK not rebuilt after pull",
-        "API/contract/ft undefined on first load - normal before wallet connection, not an error"
-      ],
-      "relatedWorkflows": ["Wallet Connection", "SDK Update"]
-    },
-    {
-      "name": "SDK Update After Pulling Changes",
-      "description": "Complete workflow for updating SDK dependencies after pulling new versions or switching branches",
-      "prerequisites": ["Git access to SDK repository", "Node.js and npm/yarn installed"],
-      "steps": [
         {
-          "title": "Update SDK Repository",
-          "description": "Pull latest changes or switch to specific branch for bug fixes",
-          "code": "# Pull latest\ngit pull origin main\n\n# Or switch to bugfix branch\ngit checkout bugfix/OR-1027\ngit pull origin bugfix/OR-1027"
+          "issue": "Invalid order_id or client_order_id error",
+          "solution": "Ensure the IDs provided in the cancel/edit endpoints exist and are still pending. For `client_order_id`, ensure it is unique among currently open orders."
         },
         {
-          "title": "Rebuild SDK",
-          "description": "Always rebuild SDK after pulling changes to compile TypeScript and update exports",
-          "code": "cd /path/to/orderly-sdk\nnpm install --force  # Use force if dependency issues\nnpm run build",
-          "important": [
-            "Skipping this step causes 'modal styles not imported' and other cryptic errors"
-          ]
+          "issue": "Order rejected due to price/size constraints",
+          "solution": "Check the `/v1/public/info/{symbol}` endpoint. Ensure your price aligns with `quote_tick` and quantity aligns with `base_tick`."
         },
         {
-          "title": "Update Frontend Dependencies",
-          "description": "Clean reinstall frontend dependencies to pick up SDK changes",
-          "code": "cd /path/to/your-frontend\nrm -rf node_modules\nrm -rf package-lock.json\nnpm i\nnpm run start",
-          "important": ["The rm -rf steps are crucial - don't skip them"]
-        },
-        {
-          "title": "Verify Installation",
-          "description": "Check that new SDK version is being used and connection works",
-          "code": "# Check package.json for SDK version\n# Try connecting wallet\n# Check console for any import errors\n\n# If issues persist:\nnpm ls @orderly.network/hooks  # Verify version\nnpm install --force @orderly.network/hooks@latest"
+          "issue": "POST_ONLY order filled immediately",
+          "solution": "A POST_ONLY order is cancelled if it would execute as a taker. Ensure your `order_price` is deep enough in the orderbook (e.g., lower bid for Buy, higher ask for Sell)."
         }
       ],
-      "commonIssues": [
-        "Build fails - run npm install --force to resolve dependency conflicts",
-        "Styles not loading - SDK wasn't rebuilt, run npm run build in SDK directory",
-        "Changes not appearing - node_modules cache needs clearing with rm -rf",
-        "Type errors after update - TypeScript needs rebuild to pick up new types"
-      ],
-      "relatedWorkflows": ["Wallet Connection", "Troubleshoot Wallet Connection Issues"]
+      "relatedWorkflows": [
+        "Real-time Data Streaming via WebSocket",
+        "Account Management and Asset Operations"
+      ]
     },
     {
-      "name": "Debug API Signature Errors",
-      "description": "Troubleshooting API authentication and signature errors that commonly occur with getOrders and private endpoints",
+      "name": "Setting up the Orderly React SDK with Wallet Connection",
+      "description": "Initialize the Orderly Hooks SDK in a React application, configure wallet adapters for EVM and Solana, and handle account creation and Orderly Key generation.",
       "prerequisites": [
-        "Wallet connected and Orderly key created",
-        "Browser DevTools Network tab open"
+        "React application (Create React App, Next.js, etc.)",
+        "Broker ID",
+        "Node.js environment"
       ],
       "steps": [
         {
-          "title": "Verify Headers Are Set",
-          "description": "Check that all required authentication headers are present in API requests",
-          "code": "// In Network tab, check request headers:\norderly-account-id: your-account-id\norderly-key: ed25519:your-public-key\norderly-signature: base64-signature\norderly-timestamp: 1679563337707\n\n// If any are missing, wallet connection is incomplete"
+          "title": "Install Dependencies",
+          "description": "Install the core SDK packages, types, and wallet adapters.",
+          "code": "npm install @orderly.network/hooks @orderly.network/types @orderly.network/default-evm-adapter @orderly.network/default-solana-adapter @orderly.network/web3-provider-ethers"
         },
         {
-          "title": "Check Timestamp Validity",
-          "description": "Signatures are only valid for 5 minutes. Check that your system clock is correct.",
-          "code": "// Check timestamp in header vs current time\nconst headerTime = 1679563337707;\nconst now = Date.now();\nconst diff = now - headerTime;\n\nif (diff > 300000) {\n  console.error('Timestamp too old - check system clock');\n}\n\n// Fix: Ensure your computer's clock is synced",
-          "important": ["Server rejects requests with timestamps > 5 minutes old"]
+          "title": "Configure the Provider",
+          "description": "Wrap your application root with `OrderlyConfigProvider` and set the network ID.",
+          "code": "import { OrderlyConfigProvider } from \"@orderly.network/hooks\";\n\nexport const App = ({ children }) => {\n  return (\n    <OrderlyConfigProvider brokerId=\"<your_broker_id>\" networkId=\"mainnet\">\n      {children}\n    </OrderlyConfigProvider>\n  );\n};"
         },
         {
-          "title": "Test Without Arguments First",
-          "description": "getOrders works without arguments but fails with arguments - this indicates a specific signature issue",
-          "code": "// Test 1: No arguments (should work)\nconst result1 = await getOrders();\n\n// Test 2: With symbol filter (may fail)\nconst result2 = await getOrders({ symbol: 'PERP_ETH_USDC' });\n\n// If Test 1 works but Test 2 fails:\n// - Orderly key might be expired\n// - Try creating new key with createOrderlyKey(true)"
+          "title": "Configure Wallet Adapters",
+          "description": "Pass wallet adapters for both EVM and Solana to support multi-chain connectivity.",
+          "code": "import { DefaultEVMWalletAdapter } from \"@orderly.network/default-evm-adapter\";\nimport { DefaultSolanaWalletAdapter } from \"@orderly.network/default-solana-adapter\";\nimport { EthersProvider } from \"@orderly.network/web3-provider-ethers\";\n\n<OrderlyConfigProvider\n  brokerId=\"<your_broker_id>\"\n  networkId=\"testnet\"\n  walletAdapters={[\n    new DefaultEVMWalletAdapter(new EthersProvider()),\n    new DefaultSolanaWalletAdapter(),\n  ]}\n>\n  {children}\n</OrderlyConfigProvider>"
         },
         {
-          "title": "Regenerate Orderly Key",
-          "description": "If signature errors persist, regenerate the Orderly key",
-          "code": "import { useAccount } from '@orderly.network/hooks';\n\nconst { createOrderlyKey } = useAccount();\n\n// Create new key valid for 365 days\nawait createOrderlyKey(true);\n\n// Note: Old key will be invalidated",
-          "important": [
-            "Each account can have multiple keys - old ones remain valid unless explicitly removed"
-          ]
+          "title": "Connect Wallet and Create Account",
+          "description": "Use the `useAccount` hook to trigger wallet connection and register the user on Orderly.",
+          "code": "import { useAccount } from \"@orderly.network/hooks\";\n\nexport const ConnectButton = () => {\n  const { account, state } = useAccount();\n\n  const handleConnect = async () => {\n    // Assuming you have wallet address and provider from your wallet UI\n    await account.setAddress(\"<user_wallet_address>\", {\n      provider: window.ethereum, // or Solana provider\n      chain: { id: \"0x1\", namespace: \"EVM\" },\n      wallet: { name: \"MetaMask\" }\n    });\n    \n    // If account does not exist, create it\n    if (state.status !== 'EnableTrading') {\n       await account.createAccount();\n    }\n  };\n\n  return <button onClick={handleConnect}>Connect Wallet</button>;\n};"
+        },
+        {
+          "title": "Generate Orderly Key",
+          "description": "Create an Orderly Key required for signing trading requests.",
+          "code": "const { createOrderlyKey } = useAccount();\n\n// Create a key valid for 30 days\nawait createOrderlyKey(30);"
         }
       ],
       "commonIssues": [
-        "getOrders fails with arguments but works without - signature scope issue, regenerate key",
-        "getOrderbook returns 500 - backend issue, try different trading pairs",
-        "Position endpoint errors - verify wallet has funds on correct network (testnet vs mainnet)",
-        "Rate limit 429 - reduce API calls, use WebSocket for real-time data"
+        {
+          "issue": "Dynamic require of 'react' is not supported",
+          "solution": "Ensure imported packages are in `package.json` and imports point to the package name, not a local path like `../../dist`."
+        },
+        {
+          "issue": "Wallet connection fails silently",
+          "solution": "Ensure the `chain.namespace` is set correctly (\"EVM\" or \"SOL\") and the provider passed to `setAddress` matches the selected chain."
+        },
+        {
+          "issue": "Error: 'startWith' is not exported from 'rxjs'",
+          "solution": "This is a version conflict. Ensure `rxjs` version is compatible (7.x) or update `@orderly.network/wallet-connector` to resolve dependencies."
+        }
       ],
-      "relatedWorkflows": ["Wallet Connection", "Place First Order"]
+      "relatedWorkflows": [
+        "Building a Trading Interface with Pre-built Components",
+        "Real-time Data Streaming via WebSocket"
+      ]
+    },
+    {
+      "name": "Real-time Data Streaming via WebSocket",
+      "description": "Establish a secure WebSocket connection to Orderly, authenticate, and subscribe to public market data (orderbook) and private account data (execution reports).",
+      "prerequisites": [
+        "Orderly Key (Private Key)",
+        "Account ID",
+        "WebSocket Client Library"
+      ],
+      "steps": [
+        {
+          "title": "Authenticate Connection",
+          "description": "Connect to the private WebSocket endpoint and send an authentication payload. The signature is generated using the timestamp.",
+          "code": "// Connect to: wss://ws-private-evm.orderly.org/v2/ws/private/stream/{account_id}\n\n// Auth Payload\n{\n  \"id\": \"auth_1\",\n  \"event\": \"auth\",\n  \"params\": {\n    \"orderly_key\": \"<ed25519_public_key>\",\n    \"sign\": \"<signature_of_timestamp>\",\n    \"timestamp\": 1621910107900\n  }\n}\n\n// Note: Sign the timestamp string using your Orderly Private Key."
+        },
+        {
+          "title": "Subscribe to Orderbook Updates",
+          "description": "Subscribe to incremental orderbook updates for a specific symbol to maintain a local state of the market.",
+          "code": "{\n  \"id\": \"sub_ob_1\",\n  \"topic\": \"PERP_ETH_USDC@orderbookupdate\",\n  \"event\": \"subscribe\"\n}\n\n// Response includes asks, bids, and prevTs for sequencing."
+        },
+        {
+          "title": "Subscribe to Execution Reports",
+          "description": "Subscribe to private trade execution updates to track order fills in real-time.",
+          "code": "{\n  \"id\": \"sub_exec_1\",\n  \"topic\": \"executionreport\",\n  \"event\": \"subscribe\",\n  \"params\": {\n    \"symbol\": \"PERP_ETH_USDC\" // Optional: filter by symbol\n  }\n}"
+        },
+        {
+          "title": "Handle Errors and Correlation",
+          "description": "Use the `id` field from the response to map errors back to your specific requests.",
+          "code": "// Example Error Response\n{\n  \"id\": \"sub_ob_1\",\n  \"event\": \"subscribe\",\n  \"success\": false,\n  \"errorMsg\": \"invalid symbol\"\n}"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Authentication fails",
+          "solution": "Ensure the `timestamp` is current and the `sign` is the signature of the timestamp string (not the whole body). Verify the Orderly Key matches the account."
+        },
+        {
+          "issue": "Missing orderbook updates",
+          "solution": "Check the `prevTs` in the payload. If there is a gap in timestamps, you should request a fresh snapshot via the REST API or a WebSocket `request` event to resync."
+        },
+        {
+          "issue": "Connection drops frequently",
+          "solution": "Implement a reconnection logic that re-authenticates automatically upon disconnection."
+        }
+      ],
+      "relatedWorkflows": [
+        "Placing and Managing Orders via REST API",
+        "Building a Trading Interface with Pre-built Components"
+      ]
+    },
+    {
+      "name": "Building a Trading Interface with Pre-built Components",
+      "description": "Utilize the high-level React components (`TradingPage`, `OrderBook`) from `@orderly.network/react` to quickly assemble a functional trading UI.",
+      "prerequisites": [
+        "React Application",
+        "Orderly App Provider configured",
+        "Wallet Connector configured"
+      ],
+      "steps": [
+        {
+          "title": "Install UI and React Packages",
+          "description": "Install the component libraries and styles.",
+          "code": "npm install @orderly.network/react @orderly.network/ui\n\n// Import styles in your root file\nimport \"@orderly.network/ui/dist/styles.css\";"
+        },
+        {
+          "title": "Setup Providers",
+          "description": "Wrap your app with `OrderlyAppProvider` and a Wallet Connector provider.",
+          "code": "import { OrderlyAppProvider } from \"@orderly.network/react\";\nimport { ConnectorProvider } from \"@orderly.network/web3-onboard\";\n\n<ConnectorProvider apiKey=\"<web3_onboard_key>\">\n  <OrderlyAppProvider\n    networkId=\"testnet\"\n    brokerId=\"<broker_id>\"\n    brokerName=\"My Exchange\"\n  >\n    <App />\n  </OrderlyAppProvider>\n</ConnectorProvider>"
+        },
+        {
+          "title": "Render the Trading Page",
+          "description": "Use the `TradingPage` component which includes the chart, orderbook, order entry, and positions.",
+          "code": "import { TradingPage } from \"@orderly.network/react\";\n\nexport const TradingView = () => {\n  const [symbol, setSymbol] = useState(\"PERP_ETH_USDC\");\n\n  return (\n    <TradingPage\n      symbol={symbol}\n      onSymbolChange={(s) => setSymbol(s.symbol)}\n      tradingViewConfig={{\n        scriptSRC: \"/assets/chart/charting_library/charting_library.js\",\n        library_path: \"/assets/chart/charting_library/\"\n      }}\n    />\n  );\n};"
+        },
+        {
+          "title": "Integrate Custom OrderBook (Optional)",
+          "description": "If building a custom layout, use the `OrderBook` component with the `useOrderbookStream` hook.",
+          "code": "import { OrderBook } from \"@orderly.network/react\";\nimport { useOrderbookStream } from \"@orderly.network/hooks\";\n\nexport const CustomOrderBook = () => {\n  const [data, { onDepthChange, isLoading, depth }] = useOrderbookStream(\"PERP_ETH_USDC\", undefined, { level: 7 });\n\n  return (\n    <OrderBook\n      asks={data.asks}\n      bids={data.bids}\n      markPrice={data.markPrice}\n      isLoading={isLoading}\n      onDepthChange={onDepthChange}\n    />\n  );\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "TradingView chart does not load",
+          "solution": "Ensure you provide the `tradingViewConfig` prop with valid paths to the `charting_library.js` and `library_path`. The SDK does not bundle the library files."
+        },
+        {
+          "issue": "Styles look broken",
+          "solution": "Ensure `@orderly.network/ui/dist/styles.css` is imported in your application. You can override CSS variables like `--oui-color-primary` for theming."
+        },
+        {
+          "issue": "User cannot change symbol",
+          "solution": "You must provide the `onSymbolChange` callback prop to `TradingPage`. Without it, the symbol selector is disabled."
+        }
+      ],
+      "relatedWorkflows": [
+        "Setting up the Orderly React SDK with Wallet Connection",
+        "Real-time Data Streaming via WebSocket"
+      ]
+    },
+    {
+      "name": "Wallet Connection and Account Setup",
+      "description": "Connect a user's wallet, switch networks, and retrieve account collateral information to prepare for trading.",
+      "prerequisites": [
+        "React application environment",
+        "@orderly.network/hooks package installed",
+        "OrderlyConfigProvider set up in the app root"
+      ],
+      "steps": [
+        {
+          "title": "Connect Wallet",
+          "description": "Use the useWalletConnector hook to trigger the wallet connection modal and handle connection state.",
+          "code": "const wallet = useWalletConnector();\n\nreturn (\n  <button onClick={() => wallet.connect()} disabled={wallet.connecting}>\n    {wallet.connectedChain ? 'Connected' : 'Connect Wallet'}\n  </button>\n);"
+        },
+        {
+          "title": "Switch Network Chain",
+          "description": "If the connected chain is incorrect, use setChain to prompt the user to switch to the desired network.",
+          "code": "const handleSwitchChain = async () => {\n  await wallet.setChain({ chainId: 421613 }); // Example: Arbitrum Goerli\n};"
+        },
+        {
+          "title": "Fetch Supported Chains",
+          "description": "Retrieve the list of supported chains and find specific chain configurations using useChains.",
+          "code": "const [chains, { findByChainId }] = useChains();\n\nconst chainConfig = findByChainId(421613);\nconsole.log(chainConfig);"
+        },
+        {
+          "title": "Check Account Collateral",
+          "description": "Retrieve the user's collateral details, including free collateral and total balance, to determine buying power.",
+          "code": "import { useCollateral } from \"@orderly.network/hooks\";\n\nconst {\n  totalCollateral,\n  freeCollateral,\n  availableBalance\n} = useCollateral({ dp: 2 });"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Wallet connection fails or hangs.",
+          "solution": "Ensure the wallet provider (e.g., MetaMask) is installed and unlocked. Check the browser console for provider errors."
+        },
+        {
+          "issue": "Chain ID mismatch errors.",
+          "solution": "Verify that the chainId passed to `setChain` exists in the `chains` list returned by `useChains`."
+        }
+      ],
+      "relatedWorkflows": [
+        "Depositing Funds",
+        "Placing and Managing Orders"
+      ]
+    },
+    {
+      "name": "Depositing Funds",
+      "description": "Guide users through the process of approving token allowances and depositing funds from their wallet to their Orderly account.",
+      "prerequisites": [
+        "Wallet connected",
+        "Target token and chain selected"
+      ],
+      "steps": [
+        {
+          "title": "Initialize Deposit Hook",
+          "description": "Set up the useDeposit hook with the token address, decimals, symbol, and source chain ID.",
+          "code": "const { connectedChain } = useWalletConnector();\nconst [token, setToken] = useState({ address: \"0x...\", decimals: 6, symbol: \"USDC\" });\n\nconst {\n  balance,\n  allowance,\n  approve,\n  deposit,\n  depositFee,\n  setQuantity,\n  fetchBalance\n} = useDeposit({\n  address: token.address,\n  decimals: token.decimals,\n  srcToken: token.symbol,\n  srcChainId: Number(connectedChain?.id)\n});"
+        },
+        {
+          "title": "Fetch Wallet Balance",
+          "description": "Explicitly fetch the user's wallet balance for the selected token.",
+          "code": "useEffect(() => {\n  if (token) {\n    fetchBalance(token.address, token.decimals);\n  }\n}, [token]);"
+        },
+        {
+          "title": "Approve Token Allowance",
+          "description": "Check the current allowance. If it is less than the deposit amount, call approve() to authorize the Orderly smart contract.",
+          "code": "const handleApprove = async () => {\n  // Approve MaxUint256 by default\n  await approve();\n};\n\n// Render button if allowance is insufficient\n{allowance === \"0\" && <button onClick={handleApprove}>Approve</button>}"
+        },
+        {
+          "title": "Set Deposit Amount and Calculate Fee",
+          "description": "Update the deposit quantity using setQuantity. This automatically triggers a recalculation of the deposit fee.",
+          "code": "const handleAmountChange = (val) => {\n  setQuantity(val);\n};\n\nconsole.log('Fee:', depositFee);"
+        },
+        {
+          "title": "Execute Deposit",
+          "description": "Call the deposit() function to initiate the blockchain transaction.",
+          "code": "const handleDeposit = async () => {\n  try {\n    const res = await deposit();\n    console.log('Deposit successful', res);\n  } catch (e) {\n    console.error('Deposit failed', e);\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Deposit transaction fails due to insufficient allowance.",
+          "solution": "Ensure the `approve()` transaction is confirmed and the `allowance` variable reflects the updated value before calling `deposit()`."
+        },
+        {
+          "issue": "Deposit fee is zero or not updating.",
+          "solution": "Ensure `setQuantity` is called successfully. The fee calculation depends on the quantity being set in the state."
+        }
+      ],
+      "relatedWorkflows": [
+        "Wallet Connection and Account Setup",
+        "Withdrawing Funds"
+      ]
+    },
+    {
+      "name": "Placing and Managing Orders",
+      "description": "Create a trading interface to place orders, validate inputs, and manage the lifecycle of orders (view, cancel).",
+      "prerequisites": [
+        "Wallet connected",
+        "Sufficient collateral/free balance"
+      ],
+      "steps": [
+        {
+          "title": "Initialize Order Entry",
+          "description": "Use useOrderEntry to manage the state of the order form (price, quantity, side, type).",
+          "code": "const { submit, setValue, helper, reset } = useOrderEntry(\"PERP_ETH_USDC\", {\n  initialOrder: {\n    side: OrderSide.BUY,\n    order_type: OrderType.LIMIT,\n    price: \"\",\n    order_quantity: \"\",\n  },\n});"
+        },
+        {
+          "title": "Update Order Fields",
+          "description": "Bind input fields to the order state using setValue.",
+          "code": "<input\n  placeholder=\"Price\"\n  onChange={(e) => setValue(\"price\", e.target.value)}\n/>\n<input\n  placeholder=\"Quantity\"\n  onChange={(e) => setValue(\"order_quantity\", e.target.value)}\n/>"
+        },
+        {
+          "title": "Validate Order",
+          "description": "Before submission, validate the order parameters (e.g., minimum notional value).",
+          "code": "const handleSubmit = async (e) => {\n  e.preventDefault();\n  const validationResult = await helper.validate();\n  if (validationResult) {\n    console.log('Validation passed', validationResult);\n    await submit();\n    reset();\n  } else {\n    console.log('Validation failed');\n  }\n};"
+        },
+        {
+          "title": "Stream and Monitor Orders",
+          "description": "Use useOrderStream to get a real-time list of the user's orders.",
+          "code": "const [orders, { cancelOrder }] = useOrderStream({ status: OrderStatus.INCOMPLETE });\n\norders.map(order => (\n  <div key={order.order_id}>\n    {order.symbol} - {order.order_qty}\n    <button onClick={() => cancelOrder(order.order_id)}>Cancel</button>\n  </div>\n));"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Order submission rejected with 'Notional too low'.",
+          "solution": "Ensure the product of `price` and `order_quantity` meets the exchange's minimum notional requirement. Use `checkNotional` utility for pre-check."
+        },
+        {
+          "issue": "Order list not updating after submission.",
+          "solution": "Ensure you are using the `useOrderStream` hook which automatically updates via WebSocket. Check your network connection."
+        }
+      ],
+      "relatedWorkflows": [
+        "Wallet Connection and Account Setup",
+        "Managing Positions and TP/SL"
+      ]
+    },
+    {
+      "name": "Managing Positions and TP/SL",
+      "description": "View current positions and configure Take-Profit (TP) and Stop-Loss (SL) orders to manage risk.",
+      "prerequisites": [
+        "Existing open positions",
+        "Wallet connected"
+      ],
+      "steps": [
+        {
+          "title": "Stream Positions",
+          "description": "Retrieve real-time position data including unrealized PnL and margin ratios.",
+          "code": "const { rows, aggregated, totalUnrealizedROI } = usePositionStream();\n\nrows.map(position => (\n  <div key={position.symbol}>\n    <h3>{position.symbol}</h3>\n    <p>PnL: {position.unrealized_pnl}</p>\n  </div>\n));"
+        },
+        {
+          "title": "Initialize TP/SL Hook",
+          "description": "Set up the useTPSLOrder hook for a specific position to manage TP/SL parameters.",
+          "code": "const position = { symbol: \"PERP_BTC_USDC\", average_open_price: 60000, position_qty: 0.1 };\n\nconst [computed, { setValue, submit, validate }] = useTPSLOrder(position);"
+        },
+        {
+          "title": "Configure Trigger Prices",
+          "description": "Set the Take-Profit or Stop-Loss trigger prices. You can set them by price, offset, or percentage.",
+          "code": "// Set TP by price\nsetValue(\"tp_trigger_price\", 65000);\n\n// Set SL by percentage offset from entry\nsetValue(\"sl_offset_percentage\", -5);"
+        },
+        {
+          "title": "Submit TP/SL Order",
+          "description": "Validate the parameters and submit the algo order to the exchange.",
+          "code": "const handleTPSLSubmit = async () => {\n  try {\n    await validate();\n    await submit();\n  } catch (error) {\n    console.error('TP/SL Validation failed', error);\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "TP/SL order submission fails.",
+          "solution": "Ensure the `position_qty` provided to the hook is accurate and the position is still open. Check that trigger prices are valid relative to the current mark price."
+        },
+        {
+          "issue": "Calculated PnL displays incorrectly.",
+          "solution": "Ensure `average_open_price` is correctly passed to the `useTPSLOrder` hook, as it is required for PnL calculations."
+        }
+      ],
+      "relatedWorkflows": [
+        "Placing and Managing Orders",
+        "Wallet Connection and Account Setup"
+      ]
+    },
+    {
+      "name": "Initialize Orderly App and Account",
+      "description": "Set up the Orderly provider in your React application and manage the creation of Orderly accounts and keys.",
+      "prerequisites": [
+        "React application environment",
+        "@orderly.network/hooks and @orderly.network/react installed",
+        "Wallet connector configured"
+      ],
+      "steps": [
+        {
+          "title": "Configure and Wrap with OrderlyAppProvider",
+          "description": "Define your broker configuration and wrap your application root with the provider to enable context access for all Orderly components.",
+          "code": "import { OrderlyAppProvider } from \"@orderly.network/react\";\n\nconst config = {\n  app: {\n    brokerId: \"your_broker_id\",\n    brokerName: \"Your Broker Name\",\n    appIcons: { /* your logos */ }\n  },\n  wallet: {\n    apiKey: \"YOUR_WALLET_API_KEY\"\n  }\n};\n\nfunction App() {\n  return (\n    <OrderlyAppProvider {...config}>\n      <YourMainComponent />\n    </OrderlyAppProvider>\n  );\n}"
+        },
+        {
+          "title": "Access Account State",
+          "description": "Use the useAccount hook to access the current account object, state, and helper functions within your components.",
+          "code": "import { useAccount } from \"@orderly.network/hooks\";\n\nfunction AccountComponent() {\n  const { account, state, createAccount, createOrderlyKey } = useAccount();\n  // account: Account instance\n  // state: AccountState\n}"
+        },
+        {
+          "title": "Create Orderly Account",
+          "description": "If the account state indicates no account exists, call createAccount to initialize one on-chain.",
+          "code": "const handleCreateAccount = async () => {\n  try {\n    await createAccount();\n  } catch (e) {\n    console.error(\"Account creation failed\", e);\n  }\n};"
+        },
+        {
+          "title": "Create and Store Orderly Key",
+          "description": "Generate an Orderly Key for signing transactions. Pass true to remember the key in storage.",
+          "code": "const handleCreateKey = async () => {\n  try {\n    // Pass true to remember the key\n    await createOrderlyKey(true);\n  } catch (e) {\n    console.error(\"Key creation failed\", e);\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Components cannot access Orderly context.",
+          "solution": "Ensure your component tree is wrapped inside OrderlyAppProvider."
+        },
+        {
+          "issue": "User has to re-approve keys every session.",
+          "solution": "Ensure you pass true to the remember parameter in createOrderlyKey(remember)."
+        }
+      ],
+      "relatedWorkflows": [
+        "Execute and Monitor Orders",
+        "Process Token Deposits"
+      ]
+    },
+    {
+      "name": "Execute and Monitor Orders",
+      "description": "Implement a complete trading workflow including fetching market data, calculating order limits, submitting orders, and monitoring their status via streams.",
+      "prerequisites": [
+        "Orderly account initialized",
+        "Wallet connected",
+        "Market symbol selected (e.g., PERP_ETH_USDC)"
+      ],
+      "steps": [
+        {
+          "title": "Fetch Market Data",
+          "description": "Subscribe to the orderbook and mark price streams to get real-time market data for the selected symbol.",
+          "code": "import { useOrderbookStream, useMarkPrice } from \"@orderly.network/hooks\";\n\nconst symbol = \"PERP_ETH_USDC\";\nconst [orderbook] = useOrderbookStream(symbol);\nconst { data: markPrice } = useMarkPrice(symbol);"
+        },
+        {
+          "title": "Calculate Maximum Order Quantity",
+          "description": "Determine the maximum quantity the user can afford for a specific side (BUY or SELL) to prevent insufficient balance errors.",
+          "code": "import { useMaxQty } from \"@orderly.network/hooks\";\nimport { OrderSide } from \"@orderly.network/types\";\n\nconst maxQty = useMaxQty(symbol, OrderSide.BUY);"
+        },
+        {
+          "title": "Initialize Order Entry",
+          "description": "Use useOrderEntry to handle order validation, formatting, and submission logic.",
+          "code": "import { useOrderEntry } from \"@orderly.network/hooks\";\nimport { OrderSide, OrderType } from \"@orderly.network/types\";\n\nconst { formattedOrder, onSubmit, helper } = useOrderEntry(\n  {\n    symbol: \"PERP_ETH_USDC\",\n    side: OrderSide.BUY,\n    order_type: OrderType.LIMIT,\n    order_price: 1000,\n    order_quantity: 0.1,\n  },\n  {\n    watchOrderbook: true,\n  }\n);"
+        },
+        {
+          "title": "Submit the Order",
+          "description": "Trigger the order submission using the onSubmit handler provided by the hook.",
+          "code": "const handleSubmit = async () => {\n  try {\n    await onSubmit();\n  } catch (error) {\n    console.error(\"Order submission failed\", error);\n  }\n};"
+        },
+        {
+          "title": "Monitor Order Status",
+          "description": "Use useOrderStream to subscribe to real-time updates for the user's orders, including status changes and fills.",
+          "code": "import { useOrderStream } from \"@orderly.network/hooks\";\n\nconst [orders, { isLoading, cancelOrder }] = useOrderStream({\n  symbol: \"PERP_ETH_USDC\"\n});\n\n// 'orders' contains the list of active orders\n// 'cancelOrder' can be used to cancel a specific order"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Order submission fails due to price range.",
+          "solution": "Use useSymbolPriceRange to ensure your order_price falls within the allowed band for the market."
+        },
+        {
+          "issue": "Order quantity rejected.",
+          "solution": "Always validate the input quantity against the result of useMaxQty before submission."
+        }
+      ],
+      "relatedWorkflows": [
+        "Manage Positions and TP/SL",
+        "Initialize Orderly App and Account"
+      ]
+    },
+    {
+      "name": "Manage Positions and TP/SL",
+      "description": "Stream user positions, calculate risk metrics, and implement Take-Profit/Stop-Loss (TP/SL) strategies for existing positions.",
+      "prerequisites": [
+        "Active open position",
+        "Orderly account connected"
+      ],
+      "steps": [
+        {
+          "title": "Stream Position Data",
+          "description": "Subscribe to the position stream to get real-time updates on position size, unrealized PnL, and margin usage.",
+          "code": "import { usePositionStream } from \"@orderly.network/hooks\";\n\nconst [{ rows, totalUnrealizedROI }, metrics, { refresh }] = usePositionStream();\n// 'rows' contains the list of positions\n// 'metrics' provides access to margin_ratio, free_collateral, etc."
+        },
+        {
+          "title": "Calculate Risk Metrics",
+          "description": "Use the metrics object from the position stream to read specific margin ratios or collateral values.",
+          "code": "const currentMarginRatio = metrics.margin_ratio(\"margin_ratio\", 0);\nconst freeCollateral = metrics.free_collateral(\"free_collateral\", 0);"
+        },
+        {
+          "title": "Setup TP/SL Order Logic",
+          "description": "Initialize the useTPSLOrder hook for a specific position to handle TP/SL calculations and submission.",
+          "code": "import { useTPSLOrder } from \"@orderly.network/hooks\";\n\n// Assuming 'position' is an object from the 'rows' array\nconst [values, { validate, submit, errors }] = useTPSLOrder(position);\n\n// values contain tp_offset, sl_offset, tp_pnl, etc."
+        },
+        {
+          "title": "Configure and Submit TP/SL",
+          "description": "Set the trigger prices or offsets for TP/SL, validate the configuration, and submit the algo order.",
+          "code": "const setTPSL = async () => {\n  // Example: Setting values programmatically\n  // values.setValue('tp_trigger_price', 2000);\n  // values.setValue('sl_trigger_price', 900);\n\n  const validation = await validate();\n  if (validation) {\n    await submit();\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "TP/SL submission fails with validation error.",
+          "solution": "Check the errors object returned by useTPSLOrder. Ensure trigger prices are valid relative to the current mark price and position side."
+        },
+        {
+          "issue": "Position data is stale.",
+          "solution": "Call the refresh() function returned by usePositionStream to force a revalidation of the data."
+        }
+      ],
+      "relatedWorkflows": [
+        "Execute and Monitor Orders"
+      ]
+    },
+    {
+      "name": "Process Token Deposits",
+      "description": "Guide users through the deposit workflow, including selecting chains, approving token allowances, and executing the deposit transaction.",
+      "prerequisites": [
+        "Wallet connected",
+        "Orderly account created"
+      ],
+      "steps": [
+        {
+          "title": "Fetch Chain Information",
+          "description": "Retrieve supported chains to allow the user to select the source network for the deposit.",
+          "code": "import { useChain } from \"@orderly.network/hooks\";\n\nconst { chains, isLoading } = useChain(\"USDC\");"
+        },
+        {
+          "title": "Initialize Deposit Hook",
+          "description": "Use the useDeposit hook to access deposit state, balance fetching, and transaction functions.",
+          "code": "import { useDeposit } from \"@orderly.network/hooks\";\n\nconst {\n  quantity,\n  setQuantity,\n  allowance,\n  approve,\n  deposit,\n  dst,\n  isNativeToken\n} = useDeposit();"
+        },
+        {
+          "title": "Handle Token Approval",
+          "description": "If the token is not native (e.g., not ETH on Ethereum chain), check the allowance and trigger an approval transaction if necessary.",
+          "code": "const handleApproval = async () => {\n  // Check if approval is needed (allowance < quantity)\n  if (!isNativeToken && Number(allowance) < Number(quantity)) {\n    await approve(quantity);\n  }\n};"
+        },
+        {
+          "title": "Execute Deposit",
+          "description": "Call the deposit function to transfer funds from the user's wallet to their Orderly account.",
+          "code": "const handleDeposit = async () => {\n  try {\n    await deposit();\n  } catch (error) {\n    console.error(\"Deposit failed\", error);\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Deposit transaction fails.",
+          "solution": "Ensure the user has sufficient balance in their wallet for the deposit amount plus gas fees. Check if isNativeToken is true to skip approval logic."
+        },
+        {
+          "issue": "Approval amount is insufficient.",
+          "solution": "Always compare the current allowance string with the deposit quantity string before attempting the deposit."
+        }
+      ],
+      "relatedWorkflows": [
+        "Initialize Orderly App and Account"
+      ]
+    },
+    {
+      "name": "Initialize Orderly Account and Key Management",
+      "description": "This workflow guides you through setting up the Orderly SDK core, initializing a KeyStore for local storage, creating an Account instance, and generating Orderly Keys for signing transactions.",
+      "prerequisites": [
+        "Node.js environment",
+        "@orderly.network/core package installed",
+        "A valid wallet address"
+      ],
+      "steps": [
+        {
+          "title": "Initialize LocalStorage KeyStore",
+          "description": "Create an instance of LocalStorageStore to persist keys and account data locally. By default, it connects to 'testnet'.",
+          "code": "import { LocalStorageStore } from \"@orderly.network/core\";\n\nconst keyStore = new LocalStorageStore(\"mainnet\"); // Defaults to \"testnet\" if omitted"
+        },
+        {
+          "title": "Create an Account Instance",
+          "description": "Instantiate the Account class, passing the KeyStore and a function to retrieve the wallet adapter.",
+          "code": "import { Account } from \"@orderly.network/core\";\n\nconst account = new Account({\n  keyStore: keyStore,\n  getWalletAdapter: async () => {\n    // Return your wallet adapter implementation here\n    return walletAdapter;\n  }\n});"
+        },
+        {
+          "title": "Set Address and Login",
+          "description": "Set the user's wallet address and optional wallet context. This triggers the login process.",
+          "code": "await account.setAddress(\"0x1234567890abcdef1234567890abcdef12345678\", {\n  chain: { id: 42161 },\n  provider: window.ethereum\n});"
+        },
+        {
+          "title": "Generate an Orderly Key",
+          "description": "Create an Orderly Key required for API authentication. You can optionally set an expiration time.",
+          "code": "const keyResult = await account.createOrderlyKey();\n// Or with expiration (in seconds)\n// const keyResult = await account.createOrderlyKey(3600);"
+        },
+        {
+          "title": "Access Account State",
+          "description": "Retrieve account details such as Account ID, Address, and Chain ID using the account accessors.",
+          "code": "console.log(\"Account ID:\", account.accountId);\nconsole.log(\"Address:\", account.address);\nconsole.log(\"Chain ID:\", account.chainId);"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Account ID is undefined after login",
+          "solution": "Ensure the wallet address provided in `setAddress` has previously created an Orderly account via `account.createAccount()`. If not, call `createAccount()` first."
+        },
+        {
+          "issue": "KeyStore returns null for keys",
+          "solution": "Verify that the `networkId` passed to `LocalStorageStore` matches the network the account was created on (e.g., 'testnet' vs 'mainnet')."
+        }
+      ],
+      "relatedWorkflows": [
+        "Implementing Real-time Data with WebSockets",
+        "Building a React Trading Interface"
+      ]
+    },
+    {
+      "name": "Building a React Trading Interface",
+      "description": "A comprehensive workflow for constructing a trading UI using Orderly's React components, including wallet connection, data tables, and interactive sheets.",
+      "prerequisites": [
+        "React application setup",
+        "@orderly.network/react package installed",
+        "Orderly Account initialized"
+      ],
+      "steps": [
+        {
+          "title": "Wrap Application with Providers",
+          "description": "Use `TradingPageProvider` and `SymbolProvider` to supply context to child components.",
+          "code": "import { TradingPageProvider, SymbolProvider } from \"@orderly.network/react\";\n\nexport default function App() {\n  return (\n    <SymbolProvider>\n      <TradingPageProvider>\n        <TradingPage />\n      </TradingPageProvider>\n    </SymbolProvider>\n  );\n}"
+        },
+        {
+          "title": "Implement Wallet Connection",
+          "description": "Render the `WalletConnect` component to allow users to link their wallets.",
+          "code": "import { WalletConnect } from \"@orderly.network/react\";\n\nexport function Header() {\n  return <WalletConnect />;\n}"
+        },
+        {
+          "title": "Render a Data Table",
+          "description": "Use the generic `Table` component to display typed data, such as trade history or order books.",
+          "code": "import { Table } from \"@orderly.network/react\";\n\ntype TradeRow = { id: string; price: number; size: number };\n\nexport function TradesTable({ data }: { data: TradeRow[] }) {\n  return (\n    <Table<TradeRow>\n      dataSource={data}\n      columns={[\n        { title: \"Price\", dataIndex: \"price\" },\n        { title: \"Size\", dataIndex: \"size\" }\n      ]}\n    />\n  );\n}"
+        },
+        {
+          "title": "Add Interactive Sheet (Drawer)",
+          "description": "Compose a `Sheet` component with `SheetTrigger`, `SheetContent`, and `SheetHeader` to create a modal overlay.",
+          "code": "import { Sheet, SheetTrigger, SheetContent, SheetHeader } from \"@orderly.network/react\";\n\nexport function OrderDetailsSheet() {\n  return (\n    <Sheet>\n      <SheetTrigger>View Details</SheetTrigger>\n      <SheetContent>\n        <SheetHeader>Order Info</SheetHeader>\n        {/* Details content */}\n      </SheetContent>\n    </Sheet>\n  );\n}"
+        },
+        {
+          "title": "Handle Empty States",
+          "description": "Use the `NoData` SVG component to display an illustration when lists or tables are empty.",
+          "code": "import { NoData } from \"@orderly.network/react\";\n\nexport function EmptyState() {\n  return <NoData width={200} height={200} className=\"text-gray-500\" />;\n}"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Components like Picker or Tabs throw errors when called as functions",
+          "solution": "These are 'exotic' components. Ensure you render them as JSX elements (e.g., `<Picker />`) rather than calling them as functions."
+        },
+        {
+          "issue": "Table columns do not display data",
+          "solution": "Ensure the `dataIndex` in the column configuration matches the keys in your generic RecordType exactly."
+        }
+      ],
+      "relatedWorkflows": [
+        "Initialize Orderly Account and Key Management",
+        "Implementing Real-time Data with WebSockets"
+      ]
+    },
+    {
+      "name": "Implementing Real-time Data with WebSockets",
+      "description": "This workflow explains how to establish a WebSocket connection using the Orderly Net package, authenticate for private channels, and subscribe to real-time data feeds.",
+      "prerequisites": [
+        "@orderly.network/net package installed",
+        "Valid Orderly Account ID",
+        "Authenticated Orderly Key"
+      ],
+      "steps": [
+        {
+          "title": "Instantiate the WebSocket Client",
+          "description": "Create a new `WS` instance with the necessary configuration options.",
+          "code": "import { WS } from \"@orderly.network/net\";\n\nconst ws = new WS({\n  baseUrl: \"wss://ws.orderly.network\",\n  // other WSOptions\n});"
+        },
+        {
+          "title": "Open Private Connection",
+          "description": "Call `openPrivate` with your Account ID to establish a secure, authenticated connection.",
+          "code": "ws.accountId = \"your_account_id_here\";\nws.openPrivate(\"your_account_id_here\");"
+        },
+        {
+          "title": "Subscribe to Private Topics",
+          "description": "Use `privateSubscribe` to listen to account-specific events (e.g., orders, positions). The method returns an unsubscribe function.",
+          "code": "const unsubscribe = ws.privateSubscribe(\n  { topic: \"order\" },\n  {\n    onMessage: (msg) => console.log(\"Order update:\", msg),\n    onUnsubscribe: (event) => console.log(\"Unsubscribed\", event)\n  }\n);\n\n// Call unsubscribe() when done"
+        },
+        {
+          "title": "Subscribe to Public Topics",
+          "description": "Use `subscribe` for public market data (e.g., tickers, orderbooks). You can pass `once: true` for a single update.",
+          "code": "ws.subscribe(\n  { topic: \"tickers\", symbol: \"PERP_ETH_USDC\" },\n  {\n    onMessage: (msg) => console.log(\"Ticker:\", msg)\n  }\n);"
+        },
+        {
+          "title": "Handle Connection Events",
+          "description": "Listen to SDK-level events such as connection status changes or errors using `on` and `off`.",
+          "code": "const statusHandler = (msg) => console.log(\"Status:\", msg);\nws.on(\"status\", statusHandler);\n\n// Cleanup\n// ws.off(\"status\", statusHandler);"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Private subscriptions fail",
+          "solution": "Ensure `ws.accountId` is set correctly and `openPrivate` has successfully resolved before calling `privateSubscribe`. Check that the Orderly Key is valid."
+        },
+        {
+          "issue": "Messages not received",
+          "solution": "The WS client queues subscriptions if the socket isn't ready. Ensure the network connection is stable and the socket has opened."
+        }
+      ],
+      "relatedWorkflows": [
+        "Initialize Orderly Account and Key Management",
+        "Building a React Trading Interface"
+      ]
+    },
+    {
+      "name": "Configuring a Custom Blockchain Network",
+      "description": "A technical workflow for defining a custom chain configuration within the Orderly SDK, including RPC endpoints, block explorer settings, and native currency metadata.",
+      "prerequisites": [
+        "@orderly.network/types package installed",
+        "RPC Endpoint URL",
+        "Block Explorer URL"
+      ],
+      "steps": [
+        {
+          "title": "Define Basic Chain Info",
+          "description": "Start by defining the chain ID, name, and logo. Use the `ChainConfig` type structure.",
+          "code": "import type { ChainConfig } from \"@orderly.network/types\";\n\nconst customChain: ChainConfig = {\n  id: 12345,\n  chainName: \"My Custom Chain\",\n  chainNameShort: \"Custom\",\n  chainLogo: \"/path/to/logo.png\"\n};"
+        },
+        {
+          "title": "Configure RPC and Explorer",
+          "description": "Set the `chainInfo` object with `rpcUrls` and `blockExplorerUrls`. Also define the `blockExplorerName`.",
+          "code": "customChain.chainInfo = {\n  chainId: \"12345\",\n  chainName: \"My Custom Chain\",\n  rpcUrls: [\"https://rpc.customchain.com\"],\n  blockExplorerUrls: [\"https://explorer.customchain.com\"]\n};\n\ncustomChain.blockExplorerName = \"CustomExplorer\";"
+        },
+        {
+          "title": "Define Native Currency",
+          "description": "Specify the native token details including decimals, display precision (`fix`), name, and symbol.",
+          "code": "customChain.chainInfo.nativeCurrency = {\n  decimals: 18,\n  fix: 4,\n  name: \"Custom Token\",\n  symbol: \"CTK\"\n};"
+        },
+        {
+          "title": "Set Gas Thresholds",
+          "description": "Configure gas balance requirements and cross-chain gas limits.",
+          "code": "customChain.minGasBalance = 0.01;\ncustomChain.minCrossGasBalance = 0.05;\ncustomChain.maxPrepayCrossGas = 0.1;"
+        },
+        {
+          "title": "Register the Chain",
+          "description": "If using the SDK's default chain management, you would typically add this configuration to your app's chain registry or pass it to the Account configuration.",
+          "code": "// Example: Adding to a map if managing manually\nconst chainsMap = new Map<number, ChainConfig>();\nchainsMap.set(customChain.id, customChain);"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Transactions fail to broadcast",
+          "solution": "Verify that `chainInfo.rpcUrls` contains valid, HTTPS-accessible RPC endpoints. Check browser console for CORS errors if running in a web environment."
+        },
+        {
+          "issue": "Token amounts display incorrectly",
+          "solution": "Ensure the `decimals` and `fix` properties in `nativeCurrency` match the actual token specification on the chain."
+        }
+      ],
+      "relatedWorkflows": [
+        "Initialize Orderly Account and Key Management"
+      ]
+    },
+    {
+      "name": "Integrate Orderly TradingView Datafeed",
+      "description": "A comprehensive guide to setting up the Orderly Network TradingView datafeed adapter, handling symbol resolution, subscribing to real-time data, and ensuring proper cleanup.",
+      "prerequisites": [
+        "@orderly.network/trading-view package installed",
+        "Basic understanding of TradingView Charting Library",
+        "Access to Orderly Network public data endpoints"
+      ],
+      "steps": [
+        {
+          "title": "Initialize and Resolve Symbols",
+          "description": "Create the datafeed instance and implement symbol resolution to map TradingView symbols to Orderly market data.",
+          "code": "const datafeed = new Datafeed();\n\ndatafeed.resolveSymbol(\n  'PERP_BTC_USDC',\n  (symbolInfo) => {\n    console.log('Symbol resolved:', symbolInfo);\n  },\n  (error) => {\n    console.error('Resolution error:', error);\n  }\n);"
+        },
+        {
+          "title": "Subscribe to Real-time Bars",
+          "description": "Implement real-time candle updates by calling subscribeBars with the appropriate symbol info, resolution, and callback.",
+          "code": "const listenerGuid = 'unique_listener_id';\n\ndatafeed.subscribeBars(\n  symbolInfo,\n  '1D',\n  (bar) => {\n    console.log('New bar:', bar);\n    // Update chart with new bar data\n  },\n  listenerGuid\n);"
+        },
+        {
+          "title": "Unsubscribe from Data Updates",
+          "description": "Stop receiving updates for a specific listener when the user changes symbols or intervals to prevent memory leaks.",
+          "code": "datafeed.unsubscribeBars(listenerGuid);"
+        },
+        {
+          "title": "Cleanup Datafeed on Destroy",
+          "description": "Ensure all resources and subscriptions are released when the chart component is unmounted or destroyed.",
+          "code": "function onChartDestroy() {\n  datafeed.remove();\n}"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Memory leaks in the browser",
+          "solution": "Ensure you call `unsubscribeBars(listenerGuid)` for every active subscription and `datafeed.remove()` when the component unmounts."
+        },
+        {
+          "issue": "Symbol resolution fails",
+          "solution": "Verify that the `symbolName` passed to `resolveSymbol` matches the format expected by the Orderly API (e.g., 'PERP_BTC_USDC')."
+        }
+      ],
+      "relatedWorkflows": [
+        "Building a Custom Order Entry Interface"
+      ]
+    },
+    {
+      "name": "Building a Custom Order Entry Interface",
+      "description": "Implement a robust order entry form using Orderly React components, including state management, validation, submission handling, and error display.",
+      "prerequisites": [
+        "@orderly.network/react and @orderly.network/types installed",
+        "Authenticated user session",
+        "Active market symbol selected"
+      ],
+      "steps": [
+        {
+          "title": "Configure Order Entry Props",
+          "description": "Set up the `OrderEntryProps` with necessary market data like free collateral, estimated liquidation price, and leverage.",
+          "code": "const orderEntryProps = {\n  freeCollateral: 1000.0,\n  estLiqPrice: 25000.50,\n  estLeverage: 5,\n  disabled: false,\n  maxQty: 10\n};"
+        },
+        {
+          "title": "Handle Input Changes",
+          "description": "Use `onFieldChange` to sync user inputs with your application state, ensuring data flows correctly between the UI and your store.",
+          "code": "const handleFieldChange = (field, value) => {\n  // field is a key of OrderEntity (e.g., 'price', 'quantity')\n  updateOrderState({ [field]: value });\n};"
+        },
+        {
+          "title": "Prefill Form Values",
+          "description": "Utilize `setValues` to batch-update form fields, useful when a user clicks on the order book to set a price.",
+          "code": "const onOrderBookClick = (price) => {\n  // Assuming access to the setValues method from the component context\n  setValues({ price: price });\n};"
+        },
+        {
+          "title": "Implement Order Submission",
+          "description": "Handle the submission logic using `onSubmit` to intercept the order data, send it to the API, and handle success or failure states.",
+          "code": "const handleSubmit = async (orderData) => {\n  try {\n    const result = await api.submitOrder(orderData);\n    console.log('Order submitted:', result);\n  } catch (error) {\n    if (error instanceof ApiError) {\n      console.error(`API Error ${error.code}: ${error.message}`);\n    }\n  }\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Order submission fails with 'Insufficient Balance'",
+          "solution": "Check the `freeCollateral` prop passed to OrderEntry. Ensure the user has enough margin for the requested order size and leverage."
+        },
+        {
+          "issue": "Price/Quantity precision errors",
+          "solution": "Validate inputs against the symbol's `base_tick` and `quote_tick` from `API.Symbol` before submission."
+        }
+      ],
+      "relatedWorkflows": [
+        "Integrate Orderly TradingView Datafeed",
+        "Managing Positions and Orders"
+      ]
+    },
+    {
+      "name": "Managing Positions and Orders",
+      "description": "Implement functionality to display, cancel, edit, and close positions and orders using Orderly's React component props and callbacks.",
+      "prerequisites": [
+        "@orderly.network/react installed",
+        "Fetched lists of current orders and positions",
+        "Access to Orderly REST API for order modifications"
+      ],
+      "steps": [
+        {
+          "title": "Setup Orders View",
+          "description": "Configure `OrdersViewProps` to display the list of active orders and handle loading states.",
+          "code": "const ordersViewProps = {\n  dataSource: orders,\n  isLoading: isOrdersLoading,\n  loadMore: fetchMoreOrders\n};"
+        },
+        {
+          "title": "Implement Order Cancellation",
+          "description": "Provide the `cancelOrder` callback to handle requests to cancel standard orders.",
+          "code": "const cancelOrder = async (orderId, symbol) => {\n  await api.cancelOrder(orderId);\n  refreshOrders();\n};"
+        },
+        {
+          "title": "Setup Positions View",
+          "description": "Configure `PositionsViewProps` with position data and callbacks for closing positions.",
+          "code": "const positionsViewProps = {\n  dataSource: positions,\n  isLoading: false,\n  onMarketClose: async (position) => {\n    await api.closePosition(position.symbol, 'MARKET');\n  },\n  onLimitClose: async (position) => {\n    // Trigger UI to open limit close order form\n    openLimitCloseModal(position);\n  }\n};"
+        },
+        {
+          "title": "Handle TP/SL Actions",
+          "description": "Implement `onTPSLOrder` to allow users to attach or modify Take Profit/Stop Loss orders for a position.",
+          "code": "const handleTPSL = async (position, existingAlgoOrder) => {\n  if (existingAlgoOrder) {\n    await api.cancelAlgoOrder(existingAlgoOrder.algo_order_id, position.symbol);\n  }\n  await api.createTPSLOrder(position, tpPrice, slPrice);\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Canceling an order returns an error",
+          "solution": "Ensure the `orderId` passed to `cancelOrder` is the numeric server-side ID, not the `client_order_id` string, unless the endpoint specifically supports client IDs."
+        },
+        {
+          "issue": "Position close action does not update UI",
+          "solution": "Ensure your `onMarketClose` or `onLimitClose` callbacks trigger a refetch of the positions data (`dataSource`) upon successful completion."
+        }
+      ],
+      "relatedWorkflows": [
+        "Building a Custom Order Entry Interface"
+      ]
+    },
+    {
+      "name": "Implementing Advanced TP/SL Orders",
+      "description": "A workflow to implement Take Profit/Stop Loss logic supporting both partial and full position closures, with configurable execution types (Market or Limit).",
+      "prerequisites": [
+        "@orderly.network/hook v1.4.0 or higher",
+        "Understanding of Orderly OrderEntity structure",
+        "Basic React knowledge"
+      ],
+      "steps": [
+        {
+          "title": "Determine TP/SL Strategy Type",
+          "description": "Decide whether the user wants to close a Partial position or the Full position. Note that this choice affects available execution types.",
+          "important": "Full Position TP/SL only supports Market Orders. Partial TP/SL supports both Market and Limit Orders."
+        },
+        {
+          "title": "Select Execution Type",
+          "description": "Based on the strategy type, allow the user to select 'Market' or 'Limit' execution. If 'Full Position' is selected, disable or hide the 'Limit' option."
+        },
+        {
+          "title": "Configure Trigger Price",
+          "description": "Set the trigger price based on the Mark Price. Ensure your UI communicates that the trigger uses Mark Price, not Last Price.",
+          "important": "UI messaging must explicitly state that TP/SL triggers based on Mark price to avoid user confusion."
+        },
+        {
+          "title": "Implement using SDK Hooks",
+          "description": "Utilize the TP/SL hooks from @orderly.network/hook to create and manage the orders.",
+          "code": "import { useTpSl } from \"@orderly.network/hook\";\n\n// Inside your component\nconst { createTpSl } = useTpSl();\n\n// Example usage logic\nconst handleTpSlSubmit = (params) => {\n  // params should contain symbol, side, triggerPrice, etc.\n  createTpSl(params);\n};"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "User attempts to place a Limit order for Full Position TP/SL.",
+          "solution": "Add validation in your UI to prevent selecting 'Limit' when 'Full Position' closure is chosen, as the API only supports Market orders for full closures."
+        },
+        {
+          "issue": "Order triggers at unexpected price.",
+          "solution": "Verify that the user understands the trigger price is the Mark Price, not the Last Price or Index Price. Update UI labels to be explicit."
+        }
+      ],
+      "relatedWorkflows": [
+        "Troubleshooting Order Execution Issues"
+      ]
+    },
+    {
+      "name": "Configuring Multi-Chain Wallet Authentication",
+      "description": "A workflow to set up the Wallet Connect modal supporting dual connections (EVM and Solana), email/social logins via Privy, and broker-level wallet restrictions.",
+      "prerequisites": [
+        "Broker admin access",
+        "Privy integration set up",
+        "Updated Wallet Connect Modal component"
+      ],
+      "steps": [
+        {
+          "title": "Configure Broker Wallet Settings",
+          "description": "Access your broker configuration to define which wallet types are permitted. You can enable EVM, Solana, or both.",
+          "important": "This configuration controls what options appear in the wallet connect modal."
+        },
+        {
+          "title": "Enable Privy for Email/Social Login",
+          "description": "Integrate Privy to allow users to authenticate via email or social accounts alongside traditional wallet connections.",
+          "code": "// Ensure your provider configuration includes Privy\n// This is typically handled in the authentication provider setup\n// specific to your broker implementation."
+        },
+        {
+          "title": "Implement Dual Wallet Connection Modal",
+          "description": "Use the updated wallet connect modal. Ensure it dynamically displays the connection options based on the broker configuration defined in Step 1."
+        },
+        {
+          "title": "Enforce Country and IP Restrictions",
+          "description": "If required for compliance, utilize the broker controls to restrict access based on user country or IP address."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Solana wallet option does not appear in the modal.",
+          "solution": "Check your broker configuration settings to ensure Solana is listed as a supported wallet type."
+        },
+        {
+          "issue": "Email login option is missing.",
+          "solution": "Verify that the Privy integration is correctly enabled and initialized in your authentication flow."
+        }
+      ],
+      "relatedWorkflows": [
+        "Troubleshooting Transaction Delays"
+      ]
+    },
+    {
+      "name": "Generating and Customizing PnL Posters",
+      "description": "A workflow to generate shareable PnL poster cards from user positions using the `usePoster` hook, including custom layout configuration.",
+      "prerequisites": [
+        "@orderly.network/hook package",
+        "React environment",
+        "Position data (symbol, PnL, ROI, etc.)"
+      ],
+      "steps": [
+        {
+          "title": "Import and Initialize usePoster Hook",
+          "description": "Import the hook and initialize it with the position data and styling preferences.",
+          "code": "import { usePoster } from \"@orderly.network/hook\";\n\nconst { ref, copy, download, toDataURL, toBlob } = usePoster({\n  backgroundImg: \"/path/image.png\",\n  color: \"rgba(255, 255, 255, 0.98)\",\n  profitColor: \"rgb(0,181,159)\",\n  lossColor: \"rgb(255,103,194)\",\n  brandColor: \"rgb(0,181,159)\",\n  data: {\n    message: \"I am the best trader.\",\n    domain: \"broker.com\",\n    updateTime: \"2022-JAN-01 23:23\",\n    position: {\n      symbol: \"BTC-PERP\",\n      currency: \"USDC\",\n      side: \"LONG\",\n      leverage: 20,\n      pnl: -1032.23,\n      ROI: -10.25,\n      informations: [\n        { title: \"Open Price\", value: \"59,129.12313\" },\n        { title: \"Opened at\", value: \"Jan-01 23:23\" },\n        { title: \"Mark price\", value: \"59,129.12313\" },\n        { title: \"Quantity\", value: \"2\" }\n      ]\n    }\n  }\n});"
+        },
+        {
+          "title": "Define Custom Layout (Optional)",
+          "description": "Create a layout configuration object to customize font sizes, colors, and positioning of elements on the poster.",
+          "code": "const customLayout = {\n  domain: { fontSize: 13, position: { left: 20, bottom: 17 } },\n  message: { fontSize: 20, color: \"white\", textBaseline: \"top\", position: { left: 20, top: 16 } },\n  // ... other layout configurations\n};\n\n// Pass layout to usePoster options: layout: customLayout"
+        },
+        {
+          "title": "Render Canvas and Export",
+          "description": "Attach the ref returned by the hook to a canvas element. Use the returned functions (download, toDataURL) to export the image.",
+          "code": "return (\n  <div>\n    <canvas ref={ref} width={550} height={300} />\n    <button onClick={download}>Download Poster</button>\n  </div>\n);"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Poster renders with incorrect dimensions or cut-off text.",
+          "solution": "Ensure the canvas `width` and `height` attributes match the expected layout dimensions. Adjust `position` coordinates in the layout config if elements overlap."
+        },
+        {
+          "issue": "Background image does not load.",
+          "solution": "Verify that the path provided in `backgroundImg` is correct and accessible by the application. Ensure CORS policies allow the image to be drawn on the canvas."
+        }
+      ],
+      "relatedWorkflows": []
+    },
+    {
+      "name": "Troubleshooting Transaction Delays",
+      "description": "A systematic workflow for developers and support to investigate stuck or delayed deposits and withdrawals using Orderly's monitoring tools.",
+      "prerequisites": [
+        "Access to Orderly Dune Support Dashboard",
+        "Access to LayerZero Explorer",
+        "User's wallet address and transaction details"
+      ],
+      "steps": [
+        {
+          "title": "Verify Transaction on Dune Dashboard",
+          "description": "Check the Orderly Dune support dashboard. Refresh the page and search for the user's address to confirm if funds arrived at any broker.",
+          "important": "Users often deposit to the wrong broker. If found here, the funds are safe, and it may be a UI display issue."
+        },
+        {
+          "title": "Check Cross-Chain Status on LayerZero",
+          "description": "If not found on Dune, search the user's address on LayerZero Explorer. Look for a message with Orderly as the destination chain.",
+          "code": "LayerZero Explorer: https://layerzeroscan.com/"
+        },
+        {
+          "title": "Analyze LayerZero Message Status",
+          "description": "Interpret the status: 'In-flight' means processing (check timestamp), 'Delivered' means processed by Orderly, and no message means Orderly hasn't received it."
+        },
+        {
+          "title": "Account for Chain Finality",
+          "description": "Consider specific chain delays. For example, Polygon deposits require 500 block confirmations (approx. 20 minutes)."
+        },
+        {
+          "title": "Escalate to Support",
+          "description": "If unresolved after 10+ minutes in 'In-flight' or if status is unclear, escalate to Orderly support with the user's address, amount, and time."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "User claims deposit is missing, but Dune shows it.",
+          "solution": "This is likely a front-end synchronization issue. Check the broker's local state or API fetching logic for the user's balance."
+        },
+        {
+          "issue": "Withdrawal is stuck on 'In-flight' for over 10 minutes.",
+          "solution": "This indicates a delay in the LayerZero cross-chain messaging infrastructure. Inform the user of the cross-chain delay and monitor the LayerZero explorer."
+        }
+      ],
+      "relatedWorkflows": [
+        "Configuring Multi-Chain Wallet Authentication"
+      ]
     }
-  ]
+  ],
+  "metadata": {
+    "totalWorkflows": 32,
+    "generatedFrom": 1430,
+    "lastUpdated": "2026-02-04"
+  }
 }
