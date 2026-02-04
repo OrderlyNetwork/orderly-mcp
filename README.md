@@ -180,15 +180,29 @@ Get guidance on building React UI components using Orderly SDK.
 
 ## Available Resources
 
-Access comprehensive documentation via resource URIs:
+Access comprehensive documentation via resource URIs. All resources support fuzzy search with pagination:
 
-- `orderly://overview` - High-level protocol architecture
-- `orderly://sdk/hooks` - Complete hooks reference
-- `orderly://sdk/components` - Component building guides
-- `orderly://contracts` - Contract addresses (JSON)
-- `orderly://workflows` - Common workflows
-- `orderly://api/rest` - REST API documentation
-- `orderly://api/websocket` - WebSocket documentation
+**Query Parameters:**
+
+- `search` (required) - Fuzzy search query
+- `page` (optional) - Page number (default: 1)
+- `limit` (optional) - Results per page, max 10 (default: 10)
+
+**Resources:**
+
+- `orderly://overview` - High-level protocol architecture (no search required)
+- `orderly://sdk/hooks?search=orderEntry` - Search SDK hooks by name, description, or category
+- `orderly://sdk/components?search=Checkbox` - Search components by name or description
+- `orderly://contracts?search=arbitrum` - Search contracts by chain or name
+- `orderly://workflows?search=wallet` - Search workflows by name or steps
+- `orderly://api/rest?search=position` - Search REST API endpoints
+- `orderly://api/websocket?search=orderbook` - Search WebSocket streams
+
+**Example:**
+
+```
+orderly://sdk/hooks?search=useOrderEntry&page=1&limit=5
+```
 
 ## Example Usage
 
