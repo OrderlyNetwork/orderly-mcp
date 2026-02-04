@@ -144,7 +144,9 @@
         },
         {
           "title": "Sign Withdrawal Request",
-          "description": "Confirm the withdrawal by signing the transaction (EIP-712 for EVM) in your wallet."
+          "description": "Sign withdrawal request with wallet using EIP-712",
+          "code": "// Withdraw message type\nconst withdrawMessage = {\n  brokerId: 'your_broker_id',\n  chainId: 421614,\n  receiver: '0x...',        // Destination address\n  token: 'USDC',\n  amount: 1000000,          // 1 USDC (6 decimals)\n  withdrawNonce: nonce,     // From /v1/withdraw_nonce\n  timestamp: Date.now()\n};\n\n// Sign with wallet (on-chain domain)\nconst signature = await wallet.signTypedData(\n  ON_CHAIN_DOMAIN,         // Different from off-chain domain!\n  { Withdraw: MESSAGE_TYPES.Withdraw },\n  withdrawMessage\n);",
+          "implementation": "See code example above"
         }
       ],
       "commonIssues": [
@@ -159,7 +161,9 @@
       ],
       "relatedWorkflows": [
         "Setting Up Broker Admin Wallet and Fee Configuration"
-      ]
+      ],
+      "implementationCode": "export async function withdraw(\n  wallet: WalletState,\n  chainId: SupportedChainIds,\n  brokerId: string,\n  accountId: string,\n  orderlyKey: Uint8Array,\n  amount: string,\n  receiver: string\n): Promise<void> {\n  const nonceRes = await signAndSendRequest(\n    accountId,\n    orderlyKey,\n    `${getBaseUrl(chainId)}/v1/withdraw_nonce`\n  );\n  const nonceJson = await nonceRes.json();\n  const withdrawNonce = nonceJson.data.withdraw_nonce as string;\n\n  let vaultBalance: bigint;\n  try {\n    vaultBalance = await getVaultUSDCBalance(wallet, chainId);\n  } catch (error) {\n    console.warn('Failed to fetch Vault USDC balance, falling back to zero:', error);\n    vaultBalance = 0n;\n  }\n  const amountBN = BigInt(amount);\n  const allowCrossChainWithdraw = vaultBalance < amountBN;\n\n  const withdrawMessageForSigning = {\n    brokerId,\n    chainId: Number(chainId),\n    receiver,\n    token: 'USDC',\n    amount: Number(amount),\n    timestamp: Date.now(),\n    withdrawNonce\n  };\n\n  const provider = new BrowserProvider(wallet.provider);\n  const signer = await provider.getSigner();\n  const signature = await signer.signTypedData(\n    getOnChainDomain(chainId),\n    { Withdraw: MESSAGE_TYPES.Withdraw },\n    withdrawMessageForSigning\n  );\n\n  const withdrawMessageForApi = {\n    ...withdrawMessageForSigning,\n    allowCrossChainWithdraw\n  };\n\n  const res = await signAndSendRequest(\n    accountId,\n    orderlyKey,\n    `${getBaseUrl(chainId)}/v1/withdraw_request`,\n    {\n      method: 'POST',\n      body: JSON.stringify({\n        message: withdrawMessageForApi,\n        signature,\n        userAddress: wallet.accounts[0].address,\n        verifyingContract: getVerifyingAddress(chainId)\n      })\n    }\n  );\n  const withdrawJson = await res.json();\n  if (!withdrawJson.success) {\n    throw new Error(withdrawJson.message);\n  }\n}",
+      "crossChainNote": "If the vault doesn't have enough USDC on your chain, Orderly will route the withdrawal through a cross-chain bridge. Set allowCrossChainWithdraw: true to enable this."
     },
     {
       "name": "Configuring Orderly One Custom Domain and SSL",
@@ -222,8 +226,9 @@
         },
         {
           "title": "Sign Registration Message (EIP-712)",
-          "description": "Construct and sign the EIP-712 typed data using the user's wallet private key. The message includes the broker ID, chain ID, timestamp, and nonce.",
-          "code": "const domain = {\n  name: \"Orderly\",\n  version: \"1\",\n  chainId: 421614,\n  verifyingContract: \"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"\n};\nconst types = {\n  Registration: [\n    { name: \"brokerId\", type: \"string\" },\n    { name: \"chainId\", type: \"uint256\" },\n    { name: \"timestamp\", type: \"uint64\" },\n    { name: \"registrationNonce\", type: \"uint256\" }\n  ]\n};\nconst message = {\n  brokerId: \"woofi_dex\",\n  chainId: 421614,\n  timestamp: Date.now(),\n  registrationNonce: nonceFromStep2\n};\nconst signature = await wallet.signTypedData(domain, types, message);"
+          "description": "Create EIP-712 Registration message and sign with your wallet",
+          "code": "// EIP-712 Domain Configuration\nconst OFF_CHAIN_DOMAIN = {\n  name: 'Orderly',\n  version: '1',\n  chainId: 421614, // Arbitrum Sepolia testnet\n  verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'\n};\n\n// Registration Message Type\nconst MESSAGE_TYPES = {\n  Registration: [\n    { name: 'brokerId', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'timestamp', type: 'uint64' },\n    { name: 'registrationNonce', type: 'uint256' }\n  ]\n};\n\n// Create and sign message\nconst registerMessage = {\n  brokerId: 'your_broker_id',\n  chainId: 421614,\n  timestamp: Date.now(),\n  registrationNonce: nonceFromStep2\n};\n\nconst signature = await wallet.signTypedData(\n  OFF_CHAIN_DOMAIN,\n  { Registration: MESSAGE_TYPES.Registration },\n  registerMessage\n);",
+          "implementation": "See code example above"
         },
         {
           "title": "Submit Registration",
@@ -259,6 +264,12 @@
       "relatedWorkflows": [
         "Place an Order via REST API",
         "Deposit USDC via EVM Vault"
+      ],
+      "completeExample": "import { config } from 'dotenv';\nimport { ethers } from 'ethers';\n\nconst MESSAGE_TYPES = {\n  EIP712Domain: [\n    { name: 'name', type: 'string' },\n    { name: 'version', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'verifyingContract', type: 'address' }\n  ],\n  Registration: [\n    { name: 'brokerId', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'timestamp', type: 'uint64' },\n    { name: 'registrationNonce', type: 'uint256' }\n  ]\n};\n\nconst OFF_CHAIN_DOMAIN = {\n  name: 'Orderly',\n  version: '1',\n  chainId: 421614,\n  verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'\n};\n\nconst BASE_URL = 'https://testnet-api-evm.orderly.org';\nconst BROKER_ID = 'woofi_pro';\nconst CHAIN_ID = 421614;\n\nconfig();\n\nasync function registerAccount(): Promise<void> {\n  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!);\n\n  const nonceRes = await fetch(`${BASE_URL}/v1/registration_nonce`);\n  const nonceJson = await nonceRes.json();\n  const registrationNonce = nonceJson.data.registration_nonce as string;\n\n  const registerMessage = {\n    brokerId: BROKER_ID,\n    chainId: CHAIN_ID,\n    timestamp: Date.now(),\n    registrationNonce\n  };\n\n  const signature = await wallet.signTypedData(\n    OFF_CHAIN_DOMAIN,\n    {\n      Registration: MESSAGE_TYPES.Registration\n    },\n    registerMessage\n  );\n\n  const registerRes = await fetch(`${BASE_URL}/v1/register_account`, {\n    method: 'POST',\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify({\n      message: registerMessage,\n      signature,\n      userAddress: await wallet.getAddress()\n    })\n  });\n  const registerJson = await registerRes.json();\n  if (!registerJson.success) {\n    throw new Error(registerJson.message);\n  }\n  const orderlyAccountId = registerJson.data.account_id;\n  console.log('orderlyAccountId', orderlyAccountId);\n}\n\nregisterAccount();\n",
+      "implementationNotes": [
+        "Nonces expire after 2 minutes - fetch immediately before signing",
+        "Use the exact domain configuration shown in the code",
+        "Registration creates your Orderly Account ID which is needed for all subsequent operations"
       ]
     },
     {
@@ -515,8 +526,9 @@
       "steps": [
         {
           "title": "Authenticate Connection",
-          "description": "Connect to the private WebSocket endpoint and send an authentication payload. The signature is generated using the timestamp.",
-          "code": "// Connect to: wss://ws-private-evm.orderly.org/v2/ws/private/stream/{account_id}\n\n// Auth Payload\n{\n  \"id\": \"auth_1\",\n  \"event\": \"auth\",\n  \"params\": {\n    \"orderly_key\": \"<ed25519_public_key>\",\n    \"sign\": \"<signature_of_timestamp>\",\n    \"timestamp\": 1621910107900\n  }\n}\n\n// Note: Sign the timestamp string using your Orderly Private Key."
+          "description": "Authenticate WebSocket connection using Orderly key",
+          "code": "// Connect to private WebSocket\nconst ws = new WebSocket(\n  'wss://ws-private-evm.orderly.org/v2/ws/private/stream/{account_id}'\n);\n\n// Authenticate\nconst timestamp = Date.now();\nconst message = timestamp.toString();\nconst signatureBytes = await signAsync(\n  new TextEncoder().encode(message),\n  privateKey\n);\nconst signature = Buffer.from(signatureBytes).toString('base64url');\n\nws.send(JSON.stringify({\n  id: 'auth_1',\n  event: 'auth',\n  params: {\n    orderly_key: 'ed25519:xxx...',\n    sign: signature,\n    timestamp: timestamp\n  }\n}));",
+          "implementation": "See code example above"
         },
         {
           "title": "Subscribe to Orderbook Updates",
@@ -551,7 +563,8 @@
       "relatedWorkflows": [
         "Placing and Managing Orders via REST API",
         "Building a Trading Interface with Pre-built Components"
-      ]
+      ],
+      "subscriptionExample": "// Subscribe to orderbook\nws.send(JSON.stringify({\n  id: 'sub_1',\n  event: 'subscribe',\n  topic: 'PERP_ETH_USDC@orderbook'\n}));\n\n// Subscribe to private execution reports\nws.send(JSON.stringify({\n  id: 'sub_2',\n  event: 'subscribe',\n  topic: 'executionreport'\n}));"
     },
     {
       "name": "Building a Trading Interface with Pre-built Components",
@@ -1464,11 +1477,60 @@
       "relatedWorkflows": [
         "Configuring Multi-Chain Wallet Authentication"
       ]
+    },
+    {
+      "name": "Delegate Signer Setup (Safe/Multisig)",
+      "description": "Set up a delegate signer for Orderly operations using a Safe multisig or other smart contract wallet",
+      "prerequisites": [
+        "Safe multisig or smart contract wallet deployed",
+        "Orderly account registered",
+        "Understanding of delegate signer pattern"
+      ],
+      "steps": [
+        {
+          "title": "Deploy Delegate Contract",
+          "description": "Deploy the Orderly delegate signer contract (or use existing Safe)",
+          "important": [
+            "Contract must support EIP-712 signing"
+          ]
+        },
+        {
+          "title": "Announce Delegate Signer",
+          "description": "Register the delegate contract with Orderly",
+          "code": "export async function announceDelegateSigner(\n  wallet: WalletState,\n  chainId: SupportedChainIds,\n  brokerId: string,\n  delegateContract: string,\n  txHash: ethers.BytesLike\n): Promise<DelegateSignerResponse> {\n  const nonceRes = await fetch(`${getBaseUrl(chainId)}/v1/registration_nonce`);\n  const nonceJson = await nonceRes.json();\n  const registrationNonce = nonceJson.data.registration_nonce as string;\n\n  const delegateSignerMessage = {\n    delegateContract,\n    brokerId,\n    chainId: Number(chainId),\n    timestamp: Date.now(),\n    registrationNonce: Number(registrationNonce),\n    txHash\n  };\n\n  const provider = new BrowserProvider(wallet.provider);\n  const signer = await provider.getSigner();\n  const signature = await signer.signTypedData(\n    getOffChainDomain(chainId),\n    { DelegateSigner: MESSAGE_TYPES.DelegateSigner },\n    delegateSignerMessage\n  );\n\n  const delegateSignerRes = await fetch(`${getBaseUrl(chainId)}/v1/delegate_signer`, {\n    method: 'POST',\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify({\n      message: delegateSignerMessage,\n      signature,\n      userAddress: wallet.accounts[0].address\n    })\n  });\n  const registerJson = await delegateSignerRes.json();\n  if (!registerJson.success) {\n    throw new Error(registerJson.message);\n  }\n  return registerJson.data;\n}"
+        },
+        {
+          "title": "Create Orderly Key via Delegate",
+          "description": "Add an Orderly key using the delegate signer",
+          "code": "export async function delegateAddOrderlyKey(\n  wallet: WalletState,\n  chainId: SupportedChainIds,\n  brokerId: string,\n  delegateContract: string,\n  accountId: string,\n  scope: Scope\n): Promise<Uint8Array> {\n  const privateKey = utils.randomPrivateKey();\n  const orderlyKey = `ed25519:${encodeBase58(await getPublicKeyAsync(privateKey))}`;\n  const timestamp = Date.now();\n  const addKeyMessage = {\n    delegateContract,\n    brokerId,\n    chainId: Number(chainId),\n    orderlyKey,\n    scope,\n    timestamp,\n    expiration: timestamp + 1_000 * 60 * 60 * 24 * 365 // 1 year\n  };\n\n  const provider = new BrowserProvider(wallet.provider);\n  const signer = await provider.getSigner();\n  const signature = await signer.signTypedData(\n    getOffChainDomain(chainId),\n    { DelegateAddOrderlyKey: MESSAGE_TYPES.DelegateAddOrderlyKey },\n    addKeyMessage\n  );\n\n  const keyRes = await fetch(`${getBaseUrl(chainId)}/v1/delegate_orderly_key`, {\n    method: 'POST',\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify({\n      message: addKeyMessage,\n      signature,\n      userAddress: wallet.accounts[0].address\n    })\n  });\n  const keyJson = await keyRes.json();\n  if (!keyJson.success) {\n    throw new Error(keyJson.message);\n  }\n  window.localStorage.setItem(\n    `${ORDERLY_KEY_LOCAL_STORAGE}:${accountId}:${isTestnet(chainId) ? 'testnet' : 'mainnet'}`,\n    base64EncodeURL(privateKey)\n  );\n  return privateKey;\n}"
+        },
+        {
+          "title": "Perform Operations",
+          "description": "Use delegate functions for deposits, withdrawals, and settlements",
+          "code": "// All operations follow similar pattern:\n// 1. Get nonce\n// 2. Create message\n// 3. Sign with delegate\n// 4. Send to /v1/delegate_* endpoint"
+        }
+      ],
+      "commonIssues": [
+        "Delegate contract must be properly configured with the right signers",
+        "All operations require multisig approval before execution"
+      ],
+      "relatedWorkflows": [
+        "Register New Account",
+        "Generate and Access Orderly Key"
+      ],
+      "source": "Generated from broker-registration repo",
+      "isNew": true
     }
   ],
   "metadata": {
-    "totalWorkflows": 32,
+    "totalWorkflows": 33,
     "generatedFrom": 1430,
-    "lastUpdated": "2026-02-04"
+    "lastUpdated": "2026-02-04",
+    "enrichedAt": "2026-02-04T19:17:31.312Z",
+    "enrichedFrom": "OrderlyNetwork/examples and OrderlyNetwork/broker-registration repos",
+    "enrichmentStats": {
+      "enhancedWorkflows": 5,
+      "newWorkflows": 1
+    }
   }
 }
