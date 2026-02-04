@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js';
 import componentGuides from '../data/component-guides.json' with { type: 'json' };
 
 export interface ComponentGuideResult {
@@ -23,26 +24,58 @@ interface ComponentGuide {
   relatedComponents?: string[];
 }
 
+// Initialize Fuse instance lazily
+let fuseInstance: Fuse<ComponentGuide> | null = null;
+
+function getFuseInstance(): Fuse<ComponentGuide> {
+  if (!fuseInstance) {
+    const guides = (componentGuides as { components: ComponentGuide[] }).components;
+
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'description', weight: 0.35 },
+        { name: 'keyHooks', weight: 0.15 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      shouldSort: true,
+    };
+
+    fuseInstance = new Fuse(guides, fuseOptions);
+  }
+
+  return fuseInstance;
+}
+
 export async function getComponentGuide(
   component: string,
   complexity: string = 'standard'
 ): Promise<ComponentGuideResult> {
-  const normalizedComponent = component.toLowerCase().replace(/[-_]/g, '');
+  const normalizedComponent = component.toLowerCase().trim();
   const normalizedComplexity = complexity.toLowerCase().trim();
 
-  const guides = (componentGuides as { components: ComponentGuide[] }).components;
+  if (!normalizedComponent) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Please provide a component name to search for.',
+        },
+      ],
+    };
+  }
 
-  // Find matching component
-  const match = guides.find((g) => {
-    const normalizedName = g.name.toLowerCase().replace(/[-_]/g, '');
-    return (
-      normalizedName === normalizedComponent ||
-      normalizedName.includes(normalizedComponent) ||
-      normalizedComponent.includes(normalizedName)
-    );
-  });
+  const fuse = getFuseInstance();
+  const searchResults = fuse.search(normalizedComponent, { limit: 5 });
 
-  if (!match) {
+  // Filter out poor matches
+  const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
+
+  if (qualityResults.length === 0) {
+    const guides = (componentGuides as { components: ComponentGuide[] }).components;
     const availableComponents = guides.map((g) => g.name).join(', ');
     return {
       content: [
@@ -53,6 +86,15 @@ export async function getComponentGuide(
       ],
     };
   }
+
+  // Check for exact match
+  const exactMatch = qualityResults.find(
+    (r) =>
+      r.item.name.toLowerCase().replace(/[-_]/g, '') === normalizedComponent.replace(/[-_]/g, '')
+  );
+
+  // Use exact match or best match
+  const match = exactMatch?.item || qualityResults[0].item;
 
   let text = `# Building a ${match.name}\n\n${match.description}\n\n`;
 
@@ -98,4 +140,9 @@ export async function getComponentGuide(
   return {
     content: [{ type: 'text', text }],
   };
+}
+
+// Export function to clear cache (useful for testing)
+export function clearComponentGuideCache(): void {
+  fuseInstance = null;
 }

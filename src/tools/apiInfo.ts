@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js';
 import apiData from '../data/api.json' with { type: 'json' };
 
 export interface ApiInfoResult {
@@ -56,6 +57,50 @@ interface ApiData {
   };
 }
 
+// Initialize Fuse instances lazily
+let restFuseInstance: Fuse<ApiEndpoint> | null = null;
+let wsFuseInstance: Fuse<WebSocketStream> | null = null;
+
+function getRestFuseInstance(): Fuse<ApiEndpoint> {
+  if (!restFuseInstance) {
+    const data = apiData as ApiData;
+    const fuseOptions = {
+      keys: [
+        { name: 'path', weight: 0.5 },
+        { name: 'description', weight: 0.4 },
+        { name: 'method', weight: 0.1 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      shouldSort: true,
+    };
+    restFuseInstance = new Fuse(data.rest.endpoints, fuseOptions);
+  }
+  return restFuseInstance;
+}
+
+function getWsFuseInstance(): Fuse<WebSocketStream> {
+  if (!wsFuseInstance) {
+    const data = apiData as ApiData;
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'topic', weight: 0.3 },
+        { name: 'description', weight: 0.2 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      shouldSort: true,
+    };
+    wsFuseInstance = new Fuse(data.websocket.streams, fuseOptions);
+  }
+  return wsFuseInstance;
+}
+
 export async function getApiInfo(type: string, endpoint?: string): Promise<ApiInfoResult> {
   const normalizedType = type.toLowerCase().trim();
   const data = apiData as ApiData;
@@ -80,7 +125,7 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       text += `${index + 1}. ${step}\n`;
     });
 
-    text += `\n## Example\n\n\`\`\`typescript\n${data.auth.example}\n\`\`\`\n`;
+    text += `\n## Example\n\n\`\`\`typescript\n${data.auth.example}\n\`\`\``;
 
     return {
       content: [{ type: 'text', text }],
@@ -111,15 +156,13 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       };
     }
 
-    // Find specific endpoint
+    // Find specific endpoint using Fuse.js
     const normalizedEndpoint = endpoint.toLowerCase().trim();
-    const match = data.rest.endpoints.find(
-      (ep) =>
-        ep.path.toLowerCase().includes(normalizedEndpoint) ||
-        normalizedEndpoint.includes(ep.path.toLowerCase().replace('/v1/', ''))
-    );
+    const fuse = getRestFuseInstance();
+    const searchResults = fuse.search(normalizedEndpoint, { limit: 5 });
+    const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
 
-    if (!match) {
+    if (qualityResults.length === 0) {
       return {
         content: [
           {
@@ -130,13 +173,16 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       };
     }
 
+    // Use best match
+    const match = qualityResults[0].item;
+
     let text = `# ${match.method} ${match.path}\n\n`;
     text += `${match.description}\n\n`;
-    text += `**Authentication:** ${match.auth ? 'Required 🔒' : 'Not required'}\n`;
+    text += `**Authentication:** ${match.auth ? 'Required 🔒' : 'Not required'}`;
     if (match.rateLimit) {
-      text += `**Rate Limit:** ${match.rateLimit}\n`;
+      text += `\n**Rate Limit:** ${match.rateLimit}`;
     }
-    text += `\n`;
+    text += `\n\n`;
 
     if (match.parameters && match.parameters.length > 0) {
       text += `## Parameters\n\n`;
@@ -151,7 +197,7 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
     }
 
     if (match.example) {
-      text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\`\n`;
+      text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\``;
     }
 
     return {
@@ -178,15 +224,13 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       };
     }
 
-    // Find specific stream
+    // Find specific stream using Fuse.js
     const normalizedStream = endpoint.toLowerCase().trim();
-    const match = data.websocket.streams.find(
-      (s) =>
-        s.name.toLowerCase().includes(normalizedStream) ||
-        s.topic.toLowerCase().includes(normalizedStream)
-    );
+    const fuse = getWsFuseInstance();
+    const searchResults = fuse.search(normalizedStream, { limit: 5 });
+    const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
 
-    if (!match) {
+    if (qualityResults.length === 0) {
       return {
         content: [
           {
@@ -196,6 +240,9 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
         ],
       };
     }
+
+    // Use best match
+    const match = qualityResults[0].item;
 
     let text = `# ${match.name}\n\n`;
     text += `**Topic:** ${match.topic}\n\n`;
@@ -211,7 +258,7 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
     }
 
     if (match.example) {
-      text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\`\n`;
+      text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\``;
     }
 
     return {
@@ -228,4 +275,10 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       },
     ],
   };
+}
+
+// Export functions to clear cache (useful for testing)
+export function clearApiInfoCache(): void {
+  restFuseInstance = null;
+  wsFuseInstance = null;
 }

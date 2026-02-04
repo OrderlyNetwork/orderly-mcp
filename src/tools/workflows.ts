@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js';
 import workflowsData from '../data/workflows.json' with { type: 'json' };
 
 export interface WorkflowResult {
@@ -20,22 +21,54 @@ interface Workflow {
   relatedWorkflows?: string[];
 }
 
+// Initialize Fuse instance lazily
+let fuseInstance: Fuse<Workflow> | null = null;
+
+function getFuseInstance(): Fuse<Workflow> {
+  if (!fuseInstance) {
+    const workflows = (workflowsData as { workflows: Workflow[] }).workflows;
+
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'description', weight: 0.35 },
+        { name: 'steps.title', weight: 0.15 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      shouldSort: true,
+    };
+
+    fuseInstance = new Fuse(workflows, fuseOptions);
+  }
+
+  return fuseInstance;
+}
+
 export async function explainWorkflow(workflow: string): Promise<WorkflowResult> {
-  const normalizedWorkflow = workflow.toLowerCase().replace(/[-_]/g, '');
+  const normalizedWorkflow = workflow.toLowerCase().trim();
 
-  const workflows = (workflowsData as { workflows: Workflow[] }).workflows;
+  if (!normalizedWorkflow) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Please provide a workflow name to search for.',
+        },
+      ],
+    };
+  }
 
-  // Find matching workflow
-  const match = workflows.find((w) => {
-    const normalizedName = w.name.toLowerCase().replace(/[-_]/g, '');
-    return (
-      normalizedName === normalizedWorkflow ||
-      normalizedName.includes(normalizedWorkflow) ||
-      normalizedWorkflow.includes(normalizedName)
-    );
-  });
+  const fuse = getFuseInstance();
+  const searchResults = fuse.search(normalizedWorkflow, { limit: 5 });
 
-  if (!match) {
+  // Filter out poor matches
+  const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
+
+  if (qualityResults.length === 0) {
+    const workflows = (workflowsData as { workflows: Workflow[] }).workflows;
     const availableWorkflows = workflows.map((w) => w.name).join(', ');
     return {
       content: [
@@ -46,6 +79,15 @@ export async function explainWorkflow(workflow: string): Promise<WorkflowResult>
       ],
     };
   }
+
+  // Check for exact match
+  const exactMatch = qualityResults.find(
+    (r) =>
+      r.item.name.toLowerCase().replace(/[-_]/g, '') === normalizedWorkflow.replace(/[-_]/g, '')
+  );
+
+  // Return exact match or best match
+  const match = exactMatch?.item || qualityResults[0].item;
 
   let text = `# ${match.name}\n\n${match.description}\n\n`;
 
@@ -79,4 +121,9 @@ export async function explainWorkflow(workflow: string): Promise<WorkflowResult>
   return {
     content: [{ type: 'text', text }],
   };
+}
+
+// Export function to clear cache (useful for testing)
+export function clearWorkflowCache(): void {
+  fuseInstance = null;
 }

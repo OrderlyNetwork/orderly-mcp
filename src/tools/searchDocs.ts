@@ -1,3 +1,4 @@
+import Fuse from 'fuse.js';
 import documentationData from '../data/documentation.json' with { type: 'json' };
 
 export interface SearchResult {
@@ -21,6 +22,44 @@ interface DocumentationData {
   };
 }
 
+// Initialize Fuse.js with configuration
+// We create the Fuse instance lazily to avoid doing heavy work at module load time
+let fuseInstance: Fuse<DocChunk> | null = null;
+
+function getFuseInstance(): Fuse<DocChunk> {
+  if (!fuseInstance) {
+    const data = documentationData as DocumentationData;
+
+    const fuseOptions = {
+      // Search in these fields with different weights
+      keys: [
+        { name: 'title', weight: 0.4 },
+        { name: 'content', weight: 0.3 },
+        { name: 'keywords', weight: 0.2 },
+        { name: 'category', weight: 0.1 },
+      ],
+      // Fuzzy matching options
+      threshold: 0.4, // Lower = more strict, higher = more fuzzy
+      distance: 100, // Maximum search distance
+      includeScore: true, // Include match scores
+      includeMatches: false, // Don't include match details (saves memory)
+      minMatchCharLength: 2, // Minimum characters to match
+      shouldSort: true, // Sort by score
+      // Tokenization for better partial matches
+      tokenize: true,
+      matchAllTokens: false,
+      findAllMatches: true,
+      // Location options
+      location: 0,
+      useExtendedSearch: true, // Enable extended search syntax
+    };
+
+    fuseInstance = new Fuse(data.chunks, fuseOptions);
+  }
+
+  return fuseInstance;
+}
+
 export async function searchOrderlyDocs(query: string, limit: number = 5): Promise<SearchResult> {
   const normalizedQuery = query.toLowerCase().trim();
   const data = documentationData as DocumentationData;
@@ -36,48 +75,18 @@ export async function searchOrderlyDocs(query: string, limit: number = 5): Promi
     };
   }
 
-  // Score each chunk based on relevance
-  const scoredChunks = data.chunks.map((chunk) => {
-    let score = 0;
+  const fuse = getFuseInstance();
 
-    // Check title match
-    if (chunk.title.toLowerCase().includes(normalizedQuery)) {
-      score += 10;
-    }
-
-    // Check content match
-    if (chunk.content.toLowerCase().includes(normalizedQuery)) {
-      score += 5;
-    }
-
-    // Check keywords match
-    for (const keyword of chunk.keywords) {
-      if (
-        keyword.toLowerCase().includes(normalizedQuery) ||
-        normalizedQuery.includes(keyword.toLowerCase())
-      ) {
-        score += 3;
-      }
-    }
-
-    // Check individual words in query
-    const queryWords = normalizedQuery.split(/\s+/);
-    for (const word of queryWords) {
-      if (word.length > 2) {
-        if (chunk.content.toLowerCase().includes(word)) {
-          score += 1;
-        }
-      }
-    }
-
-    return { chunk, score };
+  // Perform fuzzy search
+  const searchResults = fuse.search(normalizedQuery, {
+    limit: limit * 2, // Get more results initially to filter by quality
   });
 
-  // Sort by score and get top results
-  const topResults = scoredChunks
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+  // Filter out very low-quality matches (score > 0.7 is pretty poor)
+  const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.7);
+
+  // Take top results up to the limit
+  const topResults = qualityResults.slice(0, limit);
 
   if (topResults.length === 0) {
     // Try to suggest related content
@@ -93,8 +102,8 @@ export async function searchOrderlyDocs(query: string, limit: number = 5): Promi
             `- Protocol concepts (e.g., "vault", "leverage", "funding rate")\n` +
             `- Available categories: ${categories.join(', ')}\n\n` +
             `Or use specific tools like:\n` +
-            `- \\"get_sdk_pattern\\" for hook examples\n` +
-            `- \\"explain_workflow\\" for step-by-step guides`,
+            `- "get_sdk_pattern" for hook examples\n` +
+            `- "explain_workflow" for step-by-step guides`,
         },
       ],
     };
@@ -105,9 +114,13 @@ export async function searchOrderlyDocs(query: string, limit: number = 5): Promi
   text += `Found ${topResults.length} relevant section${topResults.length !== 1 ? 's' : ''}:\n\n`;
 
   for (let i = 0; i < topResults.length; i++) {
-    const { chunk, score } = topResults[i];
+    const result = topResults[i];
+    const chunk = result.item;
+    const score = result.score ?? 1;
+    const relevancePercent = Math.round((1 - score) * 100);
+
     text += `## ${i + 1}. ${chunk.title}\n\n`;
-    text += `**Category:** ${chunk.category} | **Relevance:** ${score}\n\n`;
+    text += `**Category:** ${chunk.category} | **Relevance:** ${relevancePercent}%\n\n`;
     text += `${chunk.content}\n\n`;
 
     if (chunk.keywords.length > 0) {
@@ -118,7 +131,7 @@ export async function searchOrderlyDocs(query: string, limit: number = 5): Promi
   }
 
   // Add note about SDK patterns
-  const hasSdkContent = topResults.some((r) => r.chunk.category === 'SDK');
+  const hasSdkContent = topResults.some((r) => r.item.category === 'SDK');
   if (!hasSdkContent && (normalizedQuery.includes('hook') || normalizedQuery.includes('use'))) {
     text += `\n**Tip:** For specific SDK hook examples, try using the "get_sdk_pattern" tool with the hook name.\n`;
   }
@@ -126,4 +139,9 @@ export async function searchOrderlyDocs(query: string, limit: number = 5): Promi
   return {
     content: [{ type: 'text', text }],
   };
+}
+
+// Export a function to clear the Fuse cache (useful for testing or hot reloading)
+export function clearSearchCache(): void {
+  fuseInstance = null;
 }

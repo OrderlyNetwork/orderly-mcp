@@ -38,10 +38,7 @@
           "solution": "Ensure the wallet has been registered as an Orderly account under your broker ID and that Orderly support has enabled it as the admin wallet."
         }
       ],
-      "relatedWorkflows": [
-        "Generating Orderly API Credentials",
-        "Withdrawing Broker Fees"
-      ]
+      "relatedWorkflows": ["Generating Orderly API Credentials", "Withdrawing Broker Fees"]
     },
     {
       "name": "Generating and Managing Orderly API Credentials",
@@ -127,10 +124,7 @@
     {
       "name": "Withdrawing Broker Fees and Revenue",
       "description": "Steps to access and withdraw the broker fees (revenue) accrued in the admin wallet's Orderly account.",
-      "prerequisites": [
-        "Broker Admin Wallet configured",
-        "Fees accrued in admin account"
-      ],
+      "prerequisites": ["Broker Admin Wallet configured", "Fees accrued in admin account"],
       "steps": [
         {
           "title": "Check Fee Balance",
@@ -159,19 +153,14 @@
           "solution": "Fees are credited to the Orderly account, not the external wallet directly. You must explicitly withdraw them."
         }
       ],
-      "relatedWorkflows": [
-        "Setting Up Broker Admin Wallet and Fee Configuration"
-      ],
+      "relatedWorkflows": ["Setting Up Broker Admin Wallet and Fee Configuration"],
       "implementationCode": "export async function withdraw(\n  wallet: WalletState,\n  chainId: SupportedChainIds,\n  brokerId: string,\n  accountId: string,\n  orderlyKey: Uint8Array,\n  amount: string,\n  receiver: string\n): Promise<void> {\n  const nonceRes = await signAndSendRequest(\n    accountId,\n    orderlyKey,\n    `${getBaseUrl(chainId)}/v1/withdraw_nonce`\n  );\n  const nonceJson = await nonceRes.json();\n  const withdrawNonce = nonceJson.data.withdraw_nonce as string;\n\n  let vaultBalance: bigint;\n  try {\n    vaultBalance = await getVaultUSDCBalance(wallet, chainId);\n  } catch (error) {\n    console.warn('Failed to fetch Vault USDC balance, falling back to zero:', error);\n    vaultBalance = 0n;\n  }\n  const amountBN = BigInt(amount);\n  const allowCrossChainWithdraw = vaultBalance < amountBN;\n\n  const withdrawMessageForSigning = {\n    brokerId,\n    chainId: Number(chainId),\n    receiver,\n    token: 'USDC',\n    amount: Number(amount),\n    timestamp: Date.now(),\n    withdrawNonce\n  };\n\n  const provider = new BrowserProvider(wallet.provider);\n  const signer = await provider.getSigner();\n  const signature = await signer.signTypedData(\n    getOnChainDomain(chainId),\n    { Withdraw: MESSAGE_TYPES.Withdraw },\n    withdrawMessageForSigning\n  );\n\n  const withdrawMessageForApi = {\n    ...withdrawMessageForSigning,\n    allowCrossChainWithdraw\n  };\n\n  const res = await signAndSendRequest(\n    accountId,\n    orderlyKey,\n    `${getBaseUrl(chainId)}/v1/withdraw_request`,\n    {\n      method: 'POST',\n      body: JSON.stringify({\n        message: withdrawMessageForApi,\n        signature,\n        userAddress: wallet.accounts[0].address,\n        verifyingContract: getVerifyingAddress(chainId)\n      })\n    }\n  );\n  const withdrawJson = await res.json();\n  if (!withdrawJson.success) {\n    throw new Error(withdrawJson.message);\n  }\n}",
       "crossChainNote": "If the vault doesn't have enough USDC on your chain, Orderly will route the withdrawal through a cross-chain bridge. Set allowCrossChainWithdraw: true to enable this."
     },
     {
       "name": "Configuring Orderly One Custom Domain and SSL",
       "description": "How to set up a custom domain for an Orderly One DEX, configure DNS, and troubleshoot SSL/HTTPS issues.",
-      "prerequisites": [
-        "Orderly One DEX created",
-        "Access to domain DNS provider"
-      ],
+      "prerequisites": ["Orderly One DEX created", "Access to domain DNS provider"],
       "steps": [
         {
           "title": "Configure DNS CNAME",
@@ -261,10 +250,7 @@
           "solution": "Verify that the `verifyingContract` address in the EIP-712 domain matches the environment (Testnet vs Mainnet) and that the `chainId` is correct."
         }
       ],
-      "relatedWorkflows": [
-        "Place an Order via REST API",
-        "Deposit USDC via EVM Vault"
-      ],
+      "relatedWorkflows": ["Place an Order via REST API", "Deposit USDC via EVM Vault"],
       "completeExample": "import { config } from 'dotenv';\nimport { ethers } from 'ethers';\n\nconst MESSAGE_TYPES = {\n  EIP712Domain: [\n    { name: 'name', type: 'string' },\n    { name: 'version', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'verifyingContract', type: 'address' }\n  ],\n  Registration: [\n    { name: 'brokerId', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'timestamp', type: 'uint64' },\n    { name: 'registrationNonce', type: 'uint256' }\n  ]\n};\n\nconst OFF_CHAIN_DOMAIN = {\n  name: 'Orderly',\n  version: '1',\n  chainId: 421614,\n  verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'\n};\n\nconst BASE_URL = 'https://testnet-api-evm.orderly.org';\nconst BROKER_ID = 'woofi_pro';\nconst CHAIN_ID = 421614;\n\nconfig();\n\nasync function registerAccount(): Promise<void> {\n  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!);\n\n  const nonceRes = await fetch(`${BASE_URL}/v1/registration_nonce`);\n  const nonceJson = await nonceRes.json();\n  const registrationNonce = nonceJson.data.registration_nonce as string;\n\n  const registerMessage = {\n    brokerId: BROKER_ID,\n    chainId: CHAIN_ID,\n    timestamp: Date.now(),\n    registrationNonce\n  };\n\n  const signature = await wallet.signTypedData(\n    OFF_CHAIN_DOMAIN,\n    {\n      Registration: MESSAGE_TYPES.Registration\n    },\n    registerMessage\n  );\n\n  const registerRes = await fetch(`${BASE_URL}/v1/register_account`, {\n    method: 'POST',\n    headers: {\n      'Content-Type': 'application/json'\n    },\n    body: JSON.stringify({\n      message: registerMessage,\n      signature,\n      userAddress: await wallet.getAddress()\n    })\n  });\n  const registerJson = await registerRes.json();\n  if (!registerJson.success) {\n    throw new Error(registerJson.message);\n  }\n  const orderlyAccountId = registerJson.data.account_id;\n  console.log('orderlyAccountId', orderlyAccountId);\n}\n\nregisterAccount();\n",
       "implementationNotes": [
         "Nonces expire after 2 minutes - fetch immediately before signing",
@@ -399,10 +385,7 @@
           "solution": "If the target chain lacks liquidity, an additional cross-chain fee may be deducted, or the withdrawal might fail until liquidity is available."
         }
       ],
-      "relatedWorkflows": [
-        "Deposit USDC via EVM Vault",
-        "Place an Order via REST API"
-      ]
+      "relatedWorkflows": ["Deposit USDC via EVM Vault", "Place an Order via REST API"]
     },
     {
       "name": "Placing and Managing Orders via REST API",
@@ -518,11 +501,7 @@
     {
       "name": "Real-time Data Streaming via WebSocket",
       "description": "Establish a secure WebSocket connection to Orderly, authenticate, and subscribe to public market data (orderbook) and private account data (execution reports).",
-      "prerequisites": [
-        "Orderly Key (Private Key)",
-        "Account ID",
-        "WebSocket Client Library"
-      ],
+      "prerequisites": ["Orderly Key (Private Key)", "Account ID", "WebSocket Client Library"],
       "steps": [
         {
           "title": "Authenticate Connection",
@@ -655,18 +634,12 @@
           "solution": "Verify that the chainId passed to `setChain` exists in the `chains` list returned by `useChains`."
         }
       ],
-      "relatedWorkflows": [
-        "Depositing Funds",
-        "Placing and Managing Orders"
-      ]
+      "relatedWorkflows": ["Depositing Funds", "Placing and Managing Orders"]
     },
     {
       "name": "Depositing Funds",
       "description": "Guide users through the process of approving token allowances and depositing funds from their wallet to their Orderly account.",
-      "prerequisites": [
-        "Wallet connected",
-        "Target token and chain selected"
-      ],
+      "prerequisites": ["Wallet connected", "Target token and chain selected"],
       "steps": [
         {
           "title": "Initialize Deposit Hook",
@@ -704,18 +677,12 @@
           "solution": "Ensure `setQuantity` is called successfully. The fee calculation depends on the quantity being set in the state."
         }
       ],
-      "relatedWorkflows": [
-        "Wallet Connection and Account Setup",
-        "Withdrawing Funds"
-      ]
+      "relatedWorkflows": ["Wallet Connection and Account Setup", "Withdrawing Funds"]
     },
     {
       "name": "Placing and Managing Orders",
       "description": "Create a trading interface to place orders, validate inputs, and manage the lifecycle of orders (view, cancel).",
-      "prerequisites": [
-        "Wallet connected",
-        "Sufficient collateral/free balance"
-      ],
+      "prerequisites": ["Wallet connected", "Sufficient collateral/free balance"],
       "steps": [
         {
           "title": "Initialize Order Entry",
@@ -748,18 +715,12 @@
           "solution": "Ensure you are using the `useOrderStream` hook which automatically updates via WebSocket. Check your network connection."
         }
       ],
-      "relatedWorkflows": [
-        "Wallet Connection and Account Setup",
-        "Managing Positions and TP/SL"
-      ]
+      "relatedWorkflows": ["Wallet Connection and Account Setup", "Managing Positions and TP/SL"]
     },
     {
       "name": "Managing Positions and TP/SL",
       "description": "View current positions and configure Take-Profit (TP) and Stop-Loss (SL) orders to manage risk.",
-      "prerequisites": [
-        "Existing open positions",
-        "Wallet connected"
-      ],
+      "prerequisites": ["Existing open positions", "Wallet connected"],
       "steps": [
         {
           "title": "Stream Positions",
@@ -792,10 +753,7 @@
           "solution": "Ensure `average_open_price` is correctly passed to the `useTPSLOrder` hook, as it is required for PnL calculations."
         }
       ],
-      "relatedWorkflows": [
-        "Placing and Managing Orders",
-        "Wallet Connection and Account Setup"
-      ]
+      "relatedWorkflows": ["Placing and Managing Orders", "Wallet Connection and Account Setup"]
     },
     {
       "name": "Initialize Orderly App and Account",
@@ -837,10 +795,7 @@
           "solution": "Ensure you pass true to the remember parameter in createOrderlyKey(remember)."
         }
       ],
-      "relatedWorkflows": [
-        "Execute and Monitor Orders",
-        "Process Token Deposits"
-      ]
+      "relatedWorkflows": ["Execute and Monitor Orders", "Process Token Deposits"]
     },
     {
       "name": "Execute and Monitor Orders",
@@ -887,18 +842,12 @@
           "solution": "Always validate the input quantity against the result of useMaxQty before submission."
         }
       ],
-      "relatedWorkflows": [
-        "Manage Positions and TP/SL",
-        "Initialize Orderly App and Account"
-      ]
+      "relatedWorkflows": ["Manage Positions and TP/SL", "Initialize Orderly App and Account"]
     },
     {
       "name": "Manage Positions and TP/SL",
       "description": "Stream user positions, calculate risk metrics, and implement Take-Profit/Stop-Loss (TP/SL) strategies for existing positions.",
-      "prerequisites": [
-        "Active open position",
-        "Orderly account connected"
-      ],
+      "prerequisites": ["Active open position", "Orderly account connected"],
       "steps": [
         {
           "title": "Stream Position Data",
@@ -931,17 +880,12 @@
           "solution": "Call the refresh() function returned by usePositionStream to force a revalidation of the data."
         }
       ],
-      "relatedWorkflows": [
-        "Execute and Monitor Orders"
-      ]
+      "relatedWorkflows": ["Execute and Monitor Orders"]
     },
     {
       "name": "Process Token Deposits",
       "description": "Guide users through the deposit workflow, including selecting chains, approving token allowances, and executing the deposit transaction.",
-      "prerequisites": [
-        "Wallet connected",
-        "Orderly account created"
-      ],
+      "prerequisites": ["Wallet connected", "Orderly account created"],
       "steps": [
         {
           "title": "Fetch Chain Information",
@@ -974,9 +918,7 @@
           "solution": "Always compare the current allowance string with the deposit quantity string before attempting the deposit."
         }
       ],
-      "relatedWorkflows": [
-        "Initialize Orderly App and Account"
-      ]
+      "relatedWorkflows": ["Initialize Orderly App and Account"]
     },
     {
       "name": "Initialize Orderly Account and Key Management",
@@ -1173,9 +1115,7 @@
           "solution": "Ensure the `decimals` and `fix` properties in `nativeCurrency` match the actual token specification on the chain."
         }
       ],
-      "relatedWorkflows": [
-        "Initialize Orderly Account and Key Management"
-      ]
+      "relatedWorkflows": ["Initialize Orderly Account and Key Management"]
     },
     {
       "name": "Integrate Orderly TradingView Datafeed",
@@ -1217,9 +1157,7 @@
           "solution": "Verify that the `symbolName` passed to `resolveSymbol` matches the format expected by the Orderly API (e.g., 'PERP_BTC_USDC')."
         }
       ],
-      "relatedWorkflows": [
-        "Building a Custom Order Entry Interface"
-      ]
+      "relatedWorkflows": ["Building a Custom Order Entry Interface"]
     },
     {
       "name": "Building a Custom Order Entry Interface",
@@ -1306,9 +1244,7 @@
           "solution": "Ensure your `onMarketClose` or `onLimitClose` callbacks trigger a refetch of the positions data (`dataSource`) upon successful completion."
         }
       ],
-      "relatedWorkflows": [
-        "Building a Custom Order Entry Interface"
-      ]
+      "relatedWorkflows": ["Building a Custom Order Entry Interface"]
     },
     {
       "name": "Implementing Advanced TP/SL Orders",
@@ -1349,9 +1285,7 @@
           "solution": "Verify that the user understands the trigger price is the Mark Price, not the Last Price or Index Price. Update UI labels to be explicit."
         }
       ],
-      "relatedWorkflows": [
-        "Troubleshooting Order Execution Issues"
-      ]
+      "relatedWorkflows": ["Troubleshooting Order Execution Issues"]
     },
     {
       "name": "Configuring Multi-Chain Wallet Authentication",
@@ -1391,9 +1325,7 @@
           "solution": "Verify that the Privy integration is correctly enabled and initialized in your authentication flow."
         }
       ],
-      "relatedWorkflows": [
-        "Troubleshooting Transaction Delays"
-      ]
+      "relatedWorkflows": ["Troubleshooting Transaction Delays"]
     },
     {
       "name": "Generating and Customizing PnL Posters",
@@ -1474,9 +1406,7 @@
           "solution": "This indicates a delay in the LayerZero cross-chain messaging infrastructure. Inform the user of the cross-chain delay and monitor the LayerZero explorer."
         }
       ],
-      "relatedWorkflows": [
-        "Configuring Multi-Chain Wallet Authentication"
-      ]
+      "relatedWorkflows": ["Configuring Multi-Chain Wallet Authentication"]
     },
     {
       "name": "Delegate Signer Setup (Safe/Multisig)",
@@ -1490,9 +1420,7 @@
         {
           "title": "Deploy Delegate Contract",
           "description": "Deploy the Orderly delegate signer contract (or use existing Safe)",
-          "important": [
-            "Contract must support EIP-712 signing"
-          ]
+          "important": ["Contract must support EIP-712 signing"]
         },
         {
           "title": "Announce Delegate Signer",
@@ -1514,10 +1442,7 @@
         "Delegate contract must be properly configured with the right signers",
         "All operations require multisig approval before execution"
       ],
-      "relatedWorkflows": [
-        "Register New Account",
-        "Generate and Access Orderly Key"
-      ],
+      "relatedWorkflows": ["Register New Account", "Generate and Access Orderly Key"],
       "source": "Generated from broker-registration repo",
       "isNew": true
     }

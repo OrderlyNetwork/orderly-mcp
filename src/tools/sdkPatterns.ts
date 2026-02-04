@@ -1,41 +1,94 @@
+import Fuse from 'fuse.js';
 import sdkPatterns from '../data/sdk-patterns.json' with { type: 'json' };
 
 export interface SdkPatternResult {
   content: Array<{ type: 'text'; text: string }>;
 }
 
+interface Pattern {
+  name: string;
+  description: string;
+  installation?: string;
+  usage: string;
+  example?: string;
+  notes?: (string | null)[];
+  related?: (string | null)[];
+}
+
+interface Category {
+  name: string;
+  patterns: Pattern[];
+}
+
+// Flatten patterns for Fuse.js search
+function getAllPatterns(): Array<Pattern & { category: string }> {
+  const patterns: Array<Pattern & { category: string }> = [];
+  for (const category of (sdkPatterns as { categories: Category[] }).categories) {
+    for (const p of category.patterns) {
+      patterns.push({
+        ...p,
+        category: category.name,
+        notes:
+          p.notes?.map((n) => (n === null ? '' : n)).filter((n): n is string => n !== '') ?? [],
+        related:
+          p.related?.map((r) => (r === null ? '' : r)).filter((r): r is string => r !== '') ?? [],
+      });
+    }
+  }
+  return patterns;
+}
+
+// Initialize Fuse instance lazily
+let fuseInstance: Fuse<Pattern & { category: string }> | null = null;
+
+function getFuseInstance(): Fuse<Pattern & { category: string }> {
+  if (!fuseInstance) {
+    const patterns = getAllPatterns();
+
+    const fuseOptions = {
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'description', weight: 0.3 },
+        { name: 'usage', weight: 0.15 },
+        { name: 'category', weight: 0.05 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      shouldSort: true,
+    };
+
+    fuseInstance = new Fuse(patterns, fuseOptions);
+  }
+
+  return fuseInstance;
+}
+
 export async function getSdkPattern(
   pattern: string,
   includeExample: boolean = true
 ): Promise<SdkPatternResult> {
-  const normalizedPattern = pattern.toLowerCase().replace(/[-_]/g, '');
+  const normalizedPattern = pattern.toLowerCase().trim();
 
-  // Search through all patterns for a match
-  const matches: Array<{
-    name: string;
-    category: string;
-    description: string;
-    installation?: string;
-    usage: string;
-    example?: string;
-    notes?: string[];
-    related?: string[];
-  }> = [];
-
-  for (const category of sdkPatterns.categories) {
-    for (const p of category.patterns) {
-      const normalizedName = p.name.toLowerCase().replace(/[-_]/g, '');
-      if (
-        normalizedName.includes(normalizedPattern) ||
-        normalizedPattern.includes(normalizedName) ||
-        p.description.toLowerCase().includes(normalizedPattern)
-      ) {
-        matches.push({ ...p, category: category.name });
-      }
-    }
+  if (!normalizedPattern) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: 'Please provide a pattern name to search for.',
+        },
+      ],
+    };
   }
 
-  if (matches.length === 0) {
+  const fuse = getFuseInstance();
+  const searchResults = fuse.search(normalizedPattern, { limit: 10 });
+
+  // Filter out poor matches
+  const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
+
+  if (qualityResults.length === 0) {
     return {
       content: [
         {
@@ -46,42 +99,58 @@ export async function getSdkPattern(
     };
   }
 
-  // If multiple matches, list them
-  if (matches.length > 1 && !matches.some((m) => m.name.toLowerCase() === pattern.toLowerCase())) {
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Multiple patterns found for "${pattern}":\n\n${matches
-            .map((m) => `- **${m.name}** (${m.category}): ${m.description}`)
-            .join('\n')}\n\nPlease specify a specific pattern name.`,
-        },
-      ],
-    };
+  // Check for exact match first
+  const exactMatch = qualityResults.find(
+    (r) => r.item.name.toLowerCase() === normalizedPattern.replace(/[-_]/g, '')
+  );
+
+  // If we have an exact match or only one result, return it
+  if (exactMatch || qualityResults.length === 1) {
+    const bestMatch = exactMatch?.item || qualityResults[0].item;
+    return formatPatternResult(bestMatch, includeExample);
   }
 
-  // Return the best match
-  const bestMatch =
-    matches.find((m) => m.name.toLowerCase() === pattern.toLowerCase()) || matches[0];
+  // If multiple good matches, list them with relevance scores
+  return {
+    content: [
+      {
+        type: 'text',
+        text: `Multiple patterns found for "${pattern}":\n\n${qualityResults
+          .slice(0, 5)
+          .map(
+            (r) =>
+              `- **${r.item.name}** (${r.item.category}) - ${Math.round(
+                (1 - (r.score ?? 0)) * 100
+              )}% match: ${r.item.description.slice(0, 100)}...`
+          )
+          .join('\n')}\n\nPlease specify a specific pattern name.`,
+      },
+    ],
+  };
+}
 
-  let text = `# ${bestMatch.name}\n\n**Category:** ${bestMatch.category}\n\n${bestMatch.description}\n\n`;
+function formatPatternResult(
+  pattern: Pattern & { category: string },
+  includeExample: boolean
+): SdkPatternResult {
+  let text = `# ${pattern.name}\n\n**Category:** ${pattern.category}\n\n${pattern.description}\n\n`;
 
-  if (bestMatch.installation) {
-    text += `## Installation\n\n${bestMatch.installation}\n\n`;
+  if (pattern.installation) {
+    text += `## Installation\n\n${pattern.installation}\n\n`;
   }
 
-  text += `## Usage\n\n${bestMatch.usage}\n\n`;
+  text += `## Usage\n\n${pattern.usage}\n\n`;
 
-  if (includeExample && bestMatch.example) {
-    text += `## Example\n\n${bestMatch.example}\n\n`;
+  if (includeExample && pattern.example) {
+    text += `## Example\n\n${pattern.example}\n\n`;
   }
 
-  if (bestMatch.notes && bestMatch.notes.length > 0) {
-    text += `## Important Notes\n\n${bestMatch.notes.map((n) => `- ${n}`).join('\n')}\n\n`;
+  if (pattern.notes && pattern.notes.length > 0) {
+    text += `## Important Notes\n\n${pattern.notes.map((n) => `- ${n}`).join('\n')}\n\n`;
   }
 
-  if (bestMatch.related && bestMatch.related.length > 0) {
-    text += `## Related Patterns\n\n${bestMatch.related.map((r) => `- ${r}`).join('\n')}\n`;
+  if (pattern.related && pattern.related.length > 0) {
+    text += `## Related Patterns\n\n${pattern.related.map((r) => `- ${r}`).join('\n')}\n`;
   }
 
   return {
@@ -91,10 +160,15 @@ export async function getSdkPattern(
 
 function getAvailablePatterns(): string {
   const patterns: string[] = [];
-  for (const category of sdkPatterns.categories) {
+  for (const category of (sdkPatterns as { categories: Category[] }).categories) {
     for (const p of category.patterns) {
       patterns.push(`${p.name} (${category.name})`);
     }
   }
   return patterns.join('\n');
+}
+
+// Export function to clear cache (useful for testing)
+export function clearSdkPatternCache(): void {
+  fuseInstance = null;
 }
