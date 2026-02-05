@@ -14,11 +14,17 @@ This is a Model Context Protocol (MCP) server that provides Orderly Network docu
 
 ## Architecture
 
-**Entry Point:** `src/index.ts`
+**Entry Points:**
 
-- Defines all tools and resources
-- Handles tool execution via switch statement
-- Uses stdio transport for MCP communication
+- `src/index.ts` - Stdio transport (for local MCP clients like Claude Desktop)
+- `src/http-server.ts` - HTTP transport (for hosted deployments, Docker)
+- `src/server.ts` - Shared MCP server logic (tools, resources, handlers)
+
+**Transports:**
+
+- **Stdio**: Default for local AI assistants, communicates via stdin/stdout
+- **HTTP**: Stateless Streamable HTTP transport for remote access, runs on port 3000
+- **Docker**: Runs HTTP mode by default with health checks
 
 **Tools** (`src/tools/*.ts`):
 
@@ -70,14 +76,27 @@ yarn typecheck         # TypeScript check
 
 ```bash
 yarn dev               # Watch mode build
-yarn start             # Run built server
+yarn start             # Run built server (stdio mode)
+yarn start:http        # Run HTTP server (port 3000)
+```
+
+### Docker
+
+```bash
+# Build Docker image
+docker build -t orderly-mcp .
+
+# Run container
+docker run -p 3000:3000 orderly-mcp
 ```
 
 ## Project Structure
 
 ```
 src/
-├── index.ts                    # MCP server entry
+├── index.ts                    # Stdio transport (for local MCP clients)
+├── http-server.ts              # HTTP transport (for hosted deployments)
+├── server.ts                   # Shared MCP server logic (tools, resources, handlers)
 ├── tools/                      # Tool implementations
 │   ├── searchDocs.ts          # Doc search
 │   ├── sdkPatterns.ts         # SDK patterns

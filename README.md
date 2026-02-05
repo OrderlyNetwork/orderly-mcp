@@ -42,9 +42,19 @@ yarn install
 yarn build
 ```
 
-4. **Configure your MCP client** (e.g., Claude Desktop):
+### Running the Server
 
-Add to your MCP client configuration:
+The MCP server supports two modes:
+
+#### 1. Stdio Mode (Default - for local MCP clients)
+
+Use this for local AI assistants:
+
+```bash
+yarn start
+```
+
+Configure your MCP client:
 
 ```json
 {
@@ -56,6 +66,31 @@ Add to your MCP client configuration:
   }
 }
 ```
+
+#### 2. HTTP Mode (for hosted deployments)
+
+Run as an HTTP server for remote access:
+
+```bash
+yarn start:http
+```
+
+The server will start on port 3000 (or `PORT` env var):
+
+- MCP endpoint: `http://localhost:3000/mcp`
+- Health check: `http://localhost:3000/health`
+
+**Docker Deployment:**
+
+```bash
+# Build the image
+docker build -t orderly-mcp .
+
+# Run the container
+docker run -p 3000:3000 orderly-mcp
+```
+
+The Docker image runs in stateless HTTP mode by default.
 
 ### Development
 
@@ -266,7 +301,9 @@ This MCP server includes embedded data from:
 ```
 orderly-mcp/
 ├── src/
-│   ├── index.ts                 # Main server entry
+│   ├── index.ts                 # Main server entry (stdio mode)
+│   ├── http-server.ts           # HTTP server entry (stateless mode)
+│   ├── server.ts                # Shared MCP server logic
 │   ├── tools/
 │   │   ├── searchDocs.ts        # Documentation search
 │   │   ├── sdkPatterns.ts       # SDK pattern lookup
@@ -293,6 +330,8 @@ orderly-mcp/
 ├── eslint.config.mjs            # ESLint configuration
 ├── .prettierrc                  # Prettier configuration
 ├── .gitignore
+├── .dockerignore                # Docker ignore rules
+├── Dockerfile                   # Docker build configuration
 └── README.md
 ```
 

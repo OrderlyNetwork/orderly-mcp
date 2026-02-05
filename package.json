@@ -9,6 +9,7 @@
     "build:types": "tsc --declaration --emitDeclarationOnly",
     "dev": "node scripts/build.js --watch",
     "start": "node dist/index.js",
+    "start:http": "node dist/http-server.js",
     "prepare": "yarn build",
     "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
@@ -31,10 +32,12 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.3",
+    "express": "^4.18.2",
     "fuse.js": "^7.1.0",
     "yaml": "^2.8.2"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^24.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
