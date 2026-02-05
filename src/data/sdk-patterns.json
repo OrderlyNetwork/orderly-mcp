@@ -2585,6 +2585,1074 @@
           "related": ["WithdrawForm", "useWithdraw", "Alert"]
         }
       ]
+    },
+    {
+      "name": "Charts & Visualization",
+      "patterns": [
+        {
+          "name": "OrderlyCandlestickChart",
+          "description": "A comprehensive pattern for integrating TradingView's lightweight-charts library with the Orderly Network API. This pattern enables the visualization of historical market data (OHLCV) as interactive candlestick charts, handling data transformation from Orderly's specific kline format to the charting library's requirements, while ensuring responsive resizing and efficient updates.",
+          "installation": "npm install lightweight-charts use-resize-observer axios",
+          "usage": {
+            "whenToUse": "Use this pattern when building a trading interface, market analysis dashboard, or any component requiring visual representation of price action over time for Orderly Network assets.",
+            "prerequisites": "A React environment, an Orderly Network API endpoint (public or private), and a container element with defined dimensions.",
+            "integrationSteps": [
+              "Create a container ref to hold the chart DOM element.",
+              "Initialize the chart instance using createChart within a useEffect hook.",
+              "Use useResizeObserver to monitor the container dimensions and apply them to the chart.",
+              "Fetch historical data from the Orderly /v1/public/tv/history endpoint.",
+              "Transform the response data mapping 't', 'o', 'h', 'l', 'c' to 'time', 'open', 'high', 'low', 'close'.",
+              "Set the data to the candlestick series using setData()."
+            ],
+            "configurationOptions": {
+              "layout": "Configure background color and text color for theme consistency.",
+              "timeScale": "Enable timeVisible and secondsVisible for granular axis control.",
+              "rightPriceScale": "Adjust border color and scale margins.",
+              "crosshair": "Configure mode and visual styles for price tracking."
+            }
+          },
+          "example": "import React, { useEffect, useRef, useState } from 'react';\nimport { createChart, ColorType, UTCTimestamp } from 'lightweight-charts';\nimport { useResizeObserver } from 'use-resize-observer';\nimport axios from 'axios';\n\ninterface OrderlyKline {\n  t: number; // Timestamp\n  o: number; // Open\n  h: number; // High\n  l: number; // Low\n  c: number; // Close\n  v: number; // Volume\n}\n\ninterface OrderlyChartProps {\n  symbol: string;\n  apiKey?: string;\n}\n\nexport const OrderlyChart: React.FC<OrderlyChartProps> = ({ symbol, apiKey }) => {\n  const containerRef = useRef<HTMLDivElement>(null);\n  const chartInstanceRef = useRef<any>(null);\n  const [error, setError] = useState<string | null>(null);\n\n  // Handle responsive resizing\n  const { ref: resizeRef, width, height } = useResizeObserver<HTMLDivElement>();\n  // Combine refs to observe the container\n  useEffect(() => {\n    if (containerRef.current) {\n      resizeRef(containerRef.current);\n    }\n  }, [resizeRef]);\n\n  useEffect(() => {\n    if (!containerRef.current) return;\n\n    // 1. Initialize Chart\n    const chart = createChart(containerRef.current, {\n      layout: {\n        background: { type: ColorType.Solid, color: '#131722' },\n        textColor: '#d1d4dc',\n      },\n      grid: {\n        vertLines: { color: 'rgba(42, 46, 57, 0)' },\n        horzLines: { color: 'rgba(42, 46, 57, 0.6)' },\n      },\n      width: width || containerRef.current.clientWidth,\n      height: height || containerRef.current.clientHeight,\n      timeScale: {\n        timeVisible: true,\n        secondsVisible: false,\n      },\n      rightPriceScale: {\n        borderColor: 'rgba(197, 203, 206, 0.8)',\n      },\n    });\n\n    const candleSeries = chart.addCandlestickSeries({\n      upColor: '#26a69a',\n      downColor: '#ef5350',\n      borderVisible: false,\n      wickUpColor: '#26a69a',\n      wickDownColor: '#ef5350',\n    });\n\n    chartInstanceRef.current = { chart, series: candleSeries };\n\n    // 2. Fetch and Transform Data\n    const fetchData = async () => {\n      try {\n        setError(null);\n        // Orderly Public TV History Endpoint\n        const endpoint = `https://api.orderly.network/v1/public/tv/history?symbol=${symbol}&interval=1`;\n        const headers = apiKey ? { 'Orderly-Access-Key': apiKey } : {};\n        \n        const response = await axios.get(endpoint, { headers });\n        \n        if (response.data && response.data.success) {\n          const klines: OrderlyKline[] = response.data.data;\n          \n          // Transform Orderly format to Lightweight Charts format\n          const candleData = klines.map((k) => ({\n            time: (k.t / 1000) as UTCTimestamp, // Convert ms to seconds if necessary\n            open: Number(k.o),\n            high: Number(k.h),\n            low: Number(k.l),\n            close: Number(k.c),\n          }));\n\n          candleSeries.setData(candleData);\n        }\n      } catch (err) {\n        console.error('Failed to fetch chart data:', err);\n        setError('Failed to load market data.');\n      }\n    };\n\n    fetchData();\n\n    // 3. Cleanup\n    return () => {\n      chart.remove();\n      chartInstanceRef.current = null;\n    };\n  }, [symbol, apiKey]); // Re-run if symbol changes\n\n  // 4. Handle Resize Effect\n  useEffect(() => {\n    if (chartInstanceRef.current && width && height) {\n      chartInstanceRef.current.chart.applyOptions({ width, height });\n    }\n  }, [width, height]);\n\n  return (\n    <div className=\"chart-container\">\n      {error && <div className=\"error-message\">{error}</div>}\n      <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '400px' }} />\n    </div>\n  );\n};",
+          "notes": [
+            "Timestamp Handling: Orderly timestamps are often in milliseconds. Lightweight-charts expects seconds for UTCTimestamp. Ensure you divide by 1000 if the API returns ms.",
+            "Memory Leaks: Always call chart.remove() in the useEffect cleanup function to prevent memory leaks when the component unmounts.",
+            "Performance: For large datasets, avoid fetching the entire history on every render. Implement pagination or limit the initial fetch range.",
+            "Real-time Updates: This pattern handles historical data. For real-time updates, subscribe to Orderly WebSocket trades and use candleSeries.update() to append new ticks.",
+            "Resize Observer: Using use-resize-observer is more performant than window.addEventListener('resize') as it handles CSS layout changes (like flexbox resizing) correctly."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Hooks (useEffect, useRef)",
+            "TypeScript basics",
+            "Understanding of OHLCV (Open, High, Low, Close, Volume) data structures",
+            "REST API consumption"
+          ],
+          "related": ["OrderlyWebSocketStream", "OrderlyOrderBook", "ReactResponsiveLayout"]
+        },
+        {
+          "name": "TradingViewWidgetIntegration",
+          "description": "Integrates the professional TradingView Advanced Charting Library into an Orderly Network DEX using the @orderly.network/ui-tradingview wrapper. This pattern enables high-performance technical analysis, custom theming to match the application's design system, and dynamic symbol switching synchronized with the Orderly state.",
+          "installation": "npm install @orderly.network/ui-tradingview",
+          "usage": {
+            "whenToUse": "Use this pattern when building the primary trading interface of your DEX where users need to perform technical analysis, view historical price data, and draw indicators on charts.",
+            "prerequisites": [
+              "A React application environment",
+              "Access to the TradingView Charting Library files (usually requires a license or download from TradingView)",
+              "An active Orderly Network symbol context or state"
+            ],
+            "integrationSteps": [
+              "Download the TradingView charting_library folder and place it in your project's public directory (e.g., /public/tradingview).",
+              "Import the TradingviewWidget component from @orderly.network/ui-tradingview.",
+              "Create a container component with defined height (TradingView requires explicit height).",
+              "Pass the current trading pair symbol to the 'symbol' prop.",
+              "Configure the 'libraryPath' to point to your hosted charting_library bundle.",
+              "Apply 'overrides' to customize colors (candles, background, grid) to match your dark/light mode."
+            ],
+            "configurationOptions": {
+              "symbol": "The trading pair string (e.g., 'BTC-USD' or 'PERP_BTC_USDC'). Must match the format expected by your datafeed.",
+              "libraryPath": "String path to the charting_library/bundles folder on your server or CDN.",
+              "overrides": "Object containing TradingView charting properties to customize appearance (colors, fonts, styles).",
+              "interval": "Default timeframe for the chart (e.g., '15', '60', 'D').",
+              "theme": "Base theme ('Light' or 'Dark'), though specific overrides usually take precedence.",
+              "locale": "Language setting for the widget interface."
+            }
+          },
+          "example": "import React, { useMemo } from 'react';\nimport { TradingviewWidget } from '@orderly.network/ui-tradingview';\n\n// Define overrides outside the component to prevent unnecessary re-renders\nconst CHART_OVERRIDES = {\n  'mainSeriesProperties.candleStyle.upColor': '#1F8040',\n  'mainSeriesProperties.candleStyle.downColor': '#DC2140',\n  'mainSeriesProperties.candleStyle.borderUpColor': '#1F8040',\n  'mainSeriesProperties.candleStyle.borderDownColor': '#DC2140',\n  'mainSeriesProperties.candleStyle.wickUpColor': '#1F8040',\n  'mainSeriesProperties.candleStyle.wickDownColor': '#DC2140',\n  'paneProperties.background': '#101418',\n  'paneProperties.vertGridProperties.color': '#1E2329',\n  'paneProperties.horzGridProperties.color': '#1E2329',\n  'scalesProperties.textColor': '#848E9C',\n};\n\ninterface TradingChartProps {\n  symbol: string;\n}\n\n/**\n * TradingChart Component\n * Wraps the Orderly TradingView widget with error boundaries and responsive sizing.\n */\nexport const TradingChart: React.FC<TradingChartProps> = ({ symbol }) => {\n  // Ensure symbol is valid to prevent widget crash\n  const safeSymbol = useMemo(() => {\n    return symbol && symbol.length > 0 ? symbol : 'BTC-USD';\n  }, [symbol]);\n\n  // Configuration for the widget\n  const widgetConfig = {\n    symbol: safeSymbol,\n    interval: '15' as const,\n    libraryPath: '/tradingview/charting_library/bundles', // Ensure this folder exists in 'public'\n    overrides: CHART_OVERRIDES,\n    // Custom settings to improve UX\n    autosize: true,\n    studies_overrides: {},\n    toolbar_bg: '#101418',\n    enabled_features: ['study_templates'],\n  };\n\n  return (\n    <div className=\"tradingview-container\" style={{ height: '100%', width: '100%', minHeight: '500px' }}>\n      <TradingviewWidget {...widgetConfig} />\n    </div>\n  );\n};\n\n// Usage in a parent component:\n// <TradingChart symbol={orderlyState.symbol} />",
+          "notes": [
+            "Common Issue: 'Charting Library not found'. Ensure the 'libraryPath' prop correctly points to the 'bundles' directory within your hosted 'charting_library' folder. The SDK does not bundle the library itself due to licensing.",
+            "Performance: The TradingView library is heavy. Avoid unmounting and remounting this component frequently (e.g., during tab switches) to prevent memory leaks and reload delays. Use CSS 'display: none' instead of conditional rendering if hiding the chart.",
+            "Security: Do not expose sensitive API keys in the client-side overrides or datafeed configuration if using custom datafeeds.",
+            "Testing: Mock the @orderly.network/ui-tradingview module in unit tests, as the actual widget attempts to load external scripts and manipulate the DOM heavily.",
+            "Alternative: For lighter weight needs, consider using the Lightweight Charts library directly, though it offers fewer built-in indicators than the full TradingView widget."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React Functional Components",
+            "Orderly Symbol State Management",
+            "Static Asset Hosting (public folder)"
+          ],
+          "related": ["OrderlySymbolProvider", "OrderlyMarketData", "useOrderlyContext"]
+        },
+        {
+          "name": "RealTimeKlineWebSocketSubscription",
+          "description": "This pattern establishes a robust mechanism for consuming real-time candlestick (Kline) data from the Orderly Network via WebSocket. It is designed to integrate seamlessly with financial charting libraries (like TradingView Lightweight Charts) by handling connection management, topic subscription, data normalization, and automatic cleanup to prevent memory leaks and duplicate subscriptions.",
+          "installation": "npm install @orderly.network/net @orderly.network/types",
+          "usage": {
+            "when_to_use": "Use this pattern when building a trading interface that requires live-updating price charts, technical analysis tools, or real-time market depth visualization.",
+            "prerequisites": "A running Orderly Network WebSocket client instance, a React (or similar) frontend framework, and a charting library capable of handling data updates.",
+            "integration_steps": [
+              "Initialize the Orderly WebSocket client using a singleton pattern to ensure a single connection per application.",
+              "Create a mapping utility to convert standard charting resolutions (e.g., '1', '5', '60') into Orderly-specific timeframe strings (e.g., '1m', '5m', '1h').",
+              "Implement a subscription hook or service that accepts a symbol and timeframe.",
+              "In the subscription handler, parse the incoming payload and transform it into the format expected by your charting library.",
+              "Ensure the unsubscribe function returned by the SDK is called in the cleanup phase of your component lifecycle."
+            ],
+            "configuration_options": {
+              "symbol": "The trading pair symbol (e.g., 'PERP_BTC_USDC').",
+              "timeframe": "The granularity of the candlestick (e.g., '1m', '5m', '1h', '1d').",
+              "onMessage": "Callback function to handle incoming data updates.",
+              "onError": "Callback function to handle connection or subscription errors."
+            }
+          },
+          "example": "import { useEffect, useRef, useCallback } from 'react';\nimport { OrderlyWS } from '@orderly.network/net';\n\n// Singleton instance for WebSocket connection\nlet wsInstance: OrderlyWS | null = null;\n\nconst getWSInstance = () => {\n  if (!wsInstance) {\n    wsInstance = new OrderlyWS();\n  }\n  return wsInstance;\n};\n\n/**\n * Maps TradingView resolutions to Orderly timeframes\n */\nconst mapResolutionToTimeframe = (resolution: string): string => {\n  if (['1', '3', '5', '15', '30', '60', '120', '240', '360', '720'].includes(resolution)) {\n    return `${resolution}m`;\n  }\n  if (['D', '1D'].includes(resolution)) return '1d';\n  if (['W', '1W'].includes(resolution)) return '1w';\n  return '1m'; // Default fallback\n};\n\ninterface UseKlineSubscriptionProps {\n  symbol: string;\n  resolution: string;\n  onData: (data: KlineData) => void;\n}\n\ninterface KlineData {\n  time: number;\n  open: number;\n  high: number;\n  low: number;\n  close: number;\n  volume: number;\n}\n\n/**\n * Custom hook to manage Orderly Kline subscriptions\n */\nexport const useOrderlyKline = ({ symbol, resolution, onData }: UseKlineSubscriptionProps) => {\n  const unsubscribeRef = useRef<(() => void) | null>(null);\n  const timeframe = mapResolutionToTimeframe(resolution);\n\n  const handleData = useCallback((data: any) => {\n    try {\n      // Validate data structure before processing\n      if (!data || typeof data !== 'object') return;\n\n      const { open, close, high, low, volume, startTime } = data;\n\n      // Normalize data for charting libraries (ensure numbers)\n      const klineData: KlineData = {\n        time: startTime,\n        open: Number(open),\n        high: Number(high),\n        low: Number(low),\n        close: Number(close),\n        volume: Number(volume),\n      };\n\n      onData(klineData);\n    } catch (error) {\n      console.error('Error parsing Kline data:', error);\n    }\n  }, [onData]);\n\n  useEffect(() => {\n    const ws = getWSInstance();\n    const topic = `${symbol}@kline_${timeframe}`;\n\n    // Check if already subscribed to avoid duplicates\n    // (Implementation depends on specific SDK capabilities, usually handled internally)\n\n    try {\n      const unsub = ws.subscribe(\n        {\n          event: 'subscribe',\n          topic: topic,\n          id: topic, // Unique ID for the subscription\n          ts: new Date().getTime()\n        },\n        {\n          onMessage: handleData,\n          onError: (err) => console.error(`WebSocket Error on ${topic}:`, err)\n        }\n      );\n\n      unsubscribeRef.current = unsub;\n    } catch (error) {\n      console.error('Failed to subscribe to Kline feed:', error);\n    }\n\n    // Cleanup function: Unsubscribe when component unmounts or dependencies change\n    return () => {\n      if (unsubscribeRef.current) {\n        unsubscribeRef.current();\n        unsubscribeRef.current = null;\n      }\n    };\n  }, [symbol, timeframe, handleData]);\n};",
+          "notes": [
+            "Connection Stability: The WebSocket connection should be initialized once (Singleton). Re-creating connections on every re-render will cause performance degradation and potential bans from the server.",
+            "Data Gaps: WebSocket streams can sometimes drop packets. It is best practice to implement a 'snapshot' request via REST API upon initial subscription to fill historical data before switching to real-time updates.",
+            "Throttling: If the charting library lags, consider wrapping the `onData` callback in a requestAnimationFrame loop or a throttle function to prevent UI freezing during high-volatility periods.",
+            "Authentication: While public market data (Klines) often does not require authentication, ensure your WebSocket client handles authentication if you plan to subscribe to private topics (account updates) simultaneously.",
+            "Timezones: Ensure `startTime` from the server is handled correctly in your frontend's timezone. Orderly typically uses Unix timestamps in milliseconds."
+          ],
+          "difficulty": "advanced",
+          "prerequisites": [
+            "Understanding of WebSocket lifecycle (Open, Message, Close, Error)",
+            "React Hooks (useEffect, useRef, useCallback)",
+            "Data normalization for financial charting libraries",
+            "Singleton design pattern"
+          ],
+          "related": [
+            "OrderBookWebSocketSubscription",
+            "TradeHistoryStream",
+            "AccountBalanceUpdates"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trading Interface",
+      "patterns": [
+        {
+          "name": "RealTimeOrderbookDisplay",
+          "description": "A comprehensive pattern for implementing a high-performance, real-time orderbook interface on Orderly Network. This pattern handles WebSocket data ingestion via useOrderbookStream, calculates market depth visualization using CSS gradients, and ensures precise decimal formatting based on symbol-specific tick sizes.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types decimal.js",
+          "usage": {
+            "whenToUse": "Implement this pattern when building a central trading interface, market depth analysis tool, or liquidity visualization dashboard where traders need to see live bid/ask spreads and volume distribution.",
+            "prerequisites": [
+              "React functional components environment",
+              "Orderly Network SDK context provider configured in the app root",
+              "Basic understanding of WebSocket data streams and decimal precision"
+            ],
+            "integrationSteps": [
+              "Import useOrderbookStream and useSymbolsInfo from @orderly.network/hooks",
+              "Initialize the stream hook with the target trading pair symbol and desired depth level",
+              "Fetch symbol metadata to determine tick size and quantity step for formatting",
+              "Create a row component to render individual price levels with calculated depth bars",
+              "Implement aggregation logic to merge price levels if necessary (though the hook often handles raw levels)",
+              "Apply CSS gradients where width is calculated as (level_volume / max_volume) * 100"
+            ],
+            "configurationOptions": {
+              "symbol": "The trading pair identifier (e.g., 'PERP_ETH_USDC')",
+              "level": "Depth of the orderbook (e.g., 10, 20, 100). Higher levels consume more memory.",
+              "interval": "Throttle interval for updates if the stream is too fast (optional)"
+            }
+          },
+          "example": "import React, { useMemo, memo } from 'react';\nimport { useOrderbookStream, useSymbolsInfo } from '@orderly.network/hooks';\nimport { Decimal } from 'decimal.js';\n\n// Utility to determine decimals from tick size\nconst getDecimalsFromTick = (tickSize: number | string) => {\n  if (!tickSize) return 2;\n  const str = tickSize.toString();\n  if (str.includes('.')) {\n    return str.split('.')[1].length;\n  }\n  return 0;\n};\n\n// Individual Row Component with Depth Visualization\nconst OrderbookRow = memo(({ \n  type, \n  price, \n  size, \n  total, \n  maxTotal, \n  priceDecimals, \n  sizeDecimals \n}: { \n  type: 'bid' | 'ask'; \n  price: number; \n  size: number; \n  total: number; \n  maxTotal: number; \n  priceDecimals: number; \n  sizeDecimals: number; \n}) => {\n  const isAsk = type === 'ask';\n  const depthPercentage = (total / maxTotal) * 100;\n  \n  // Color coding: Red for Asks (Sell), Green for Bids (Buy)\n  const color = isAsk ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)';\n  const textColor = isAsk ? 'text-red-500' : 'text-green-500';\n  \n  return (\n    <div className=\"flex justify-between items-center text-xs py-1 relative hover:bg-gray-800\">\n      {/* Depth Visualization Background */}\n      <div \n        className=\"absolute top-0 bottom-0 pointer-events-none\"\n        style={{\n          width: `${depthPercentage}%`,\n          background: color,\n          right: isAsk ? 0 : 'auto', // Asks align right, Bids align left\n          left: isAsk ? 'auto' : 0\n        }}\n      />\n      \n      {/* Price */}\n      <div className={`w-1/3 text-right z-10 font-mono ${textColor}`}>\n        {price.toFixed(priceDecimals)}\n      </div>\n      \n      {/* Size */}\n      <div className=\"w-1/3 text-right z-10 font-mono text-gray-300\">\n        {size.toFixed(sizeDecimals)}\n      </div>\n      \n      {/* Total */}\n      <div className=\"w-1/3 text-right z-10 font-mono text-gray-400\">\n        {total.toFixed(sizeDecimals)}\n      </div>\n    </div>\n  );\n});\n\nOrderbookRow.displayName = 'OrderbookRow';\n\nexport const RealTimeOrderbook = ({ symbol }: { symbol: string }) => {\n  // 1. Fetch real-time data\n  const [data, { isLoading, error }] = useOrderbookStream(symbol, undefined, { level: 20 });\n  const symbolsInfo = useSymbolsInfo();\n  \n  // 2. Get Symbol Info for formatting\n  const symbolInfo = symbolsInfo[symbol]();\n  \n  // Fallback decimals if symbol info is loading\n  const priceDecimals = useMemo(() => {\n    return symbolInfo ? getDecimalsFromTick(symbolInfo.tick_size) : 2;\n  }, [symbolInfo]);\n  \n  const sizeDecimals = useMemo(() => {\n    return symbolInfo ? getDecimalsFromTick(symbolInfo.quantity_step) : 4;\n  }, [symbolInfo]);\n\n  // 3. Processing Data for Visualization\n  const { asks, bids, maxTotal } = useMemo(() => {\n    if (!data || !data.asks || !data.bids) return { asks: [], bids: [], maxTotal: 0 };\n\n    // Process Asks (Sells) - usually displayed top to bottom (High Price -> Low Price)\n    // We slice and reverse to show lowest ask at the bottom near the spread\n    const rawAsks = data.asks.slice(0, 10).reverse();\n    const processedAsks = rawAsks.map((level, index) => {\n      const price = Number(level[0]);\n      const size = Number(level[1]);\n      // Calculate cumulative total (sum of sizes from current level to the edge)\n      const total = rawAsks.slice(0, index + 1).reduce((acc, curr) => acc + Number(curr[1]), 0);\n      return { price, size, total };\n    });\n\n    // Process Bids (Buys) - displayed bottom to top (High Price -> Low Price)\n    const rawBids = data.bids.slice(0, 10);\n    const processedBids = rawBids.map((level, index) => {\n      const price = Number(level[0]);\n      const size = Number(level[1]);\n      const total = rawBids.slice(0, index + 1).reduce((acc, curr) => acc + Number(curr[1]), 0);\n      return { price, size, total };\n    });\n\n    // Find max volume for scaling the gradient bars\n    const maxAskTotal = processedAsks[processedAsks.length - 1]?.total || 0;\n    const maxBidTotal = processedBids[processedBids.length - 1]?.total || 0;\n    const maxTotal = Math.max(maxAskTotal, maxBidTotal);\n\n    return { asks: processedAsks, bids: processedBids, maxTotal };\n  }, [data]);\n\n  // 4. Render States\n  if (isLoading) return <div className=\"p-4 text-gray-500\">Loading orderbook...</div>;\n  if (error) return <div className=\"p-4 text-red-500\">Error loading orderbook</div>;\n  if (!symbolInfo) return <div className=\"p-4 text-gray-500\">Symbol info not found</div>;\n\n  return (\n    <div className=\"w-full bg-gray-900 border border-gray-800 rounded-lg overflow-hidden flex flex-col h-full\">\n      {/* Header */}\n      <div className=\"flex justify-between px-2 py-2 bg-gray-800 text-xs text-gray-400 font-bold uppercase\">\n        <div className=\"w-1/3 text-right\">Price</div>\n        <div className=\"w-1/3 text-right\">Size</div>\n        <div className=\"w-1/3 text-right\">Total</div>\n      </div>\n\n      {/* Asks Section */}\n      <div className=\"flex-1 overflow-hidden flex flex-col justify-end\">\n        {asks.map((level, i) => (\n          <OrderbookRow \n            key={`ask-${level.price}-${i}`} \n            type=\"ask\" \n            {...level} \n            maxTotal={maxTotal}\n            priceDecimals={priceDecimals}\n            sizeDecimals={sizeDecimals}\n          />\n        ))}\n      </div>\n\n      {/* Spread / Current Price Indicator */}\n      <div className=\"py-2 text-center text-sm font-bold text-gray-200 bg-gray-800/50 border-y border-gray-700\">\n        Spread: {asks[asks.length-1] && bids[0] ? \n          new Decimal(asks[asks.length-1].price).minus(bids[0].price).toFixed(priceDecimals) \n          : '-'}\n      </div>\n\n      {/* Bids Section */}\n      <div className=\"flex-1 overflow-hidden flex flex-col\">\n        {bids.map((level, i) => (\n          <OrderbookRow \n            key={`bid-${level.price}-${i}`} \n            type=\"bid\" \n            {...level} \n            maxTotal={maxTotal}\n            priceDecimals={priceDecimals}\n            sizeDecimals={sizeDecimals}\n          />\n        ))}\n      </div>\n    </div>\n  );\n};",
+          "notes": [
+            "Performance Optimization: Orderbook streams update very frequently (milliseconds). Always use React.memo on row components to prevent unnecessary re-renders of the entire list.",
+            "Decimal Precision: Never rely on default JavaScript numbers for price calculations. Use the tick_size from symbolInfo to determine formatting, otherwise, you may display prices that the exchange rejects.",
+            "Data Aggregation: The 'level' parameter in useOrderbookStream controls how many levels you fetch. Fetching too many levels (e.g., 1000) can cause UI lag. Stick to 10-20 for standard views.",
+            "Memory Leaks: Ensure that the useOrderbookStream hook automatically cleans up WebSocket subscriptions when the component unmounts. The official SDK handles this, but be careful if wrapping it in custom effects.",
+            "Visual Clarity: When calculating depth (gradient width), ensure you calculate the 'Cumulative Volume' (sum of all sizes behind the current row) rather than just the row's individual size. This creates the 'wall' effect traders expect.",
+            "Error Handling: WebSocket connections can drop. Implement a visual indicator (like a red dot or 'Reconnecting...' text) if the stream fails to update for more than a few seconds."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Hooks (useMemo, useCallback, memo)",
+            "CSS Flexbox for layout alignment",
+            "Understanding of Orderbook mechanics (Bids vs Asks, Spread)",
+            "TypeScript basics"
+          ],
+          "related": [
+            "useOrderbook (Snapshot/REST version)",
+            "useTradesStream (Recent trades history)",
+            "useMarkPriceStream (Current index price)"
+          ]
+        },
+        {
+          "name": "AdvancedOrderEntryForm",
+          "description": "A comprehensive, production-ready order entry interface for the Orderly Network. This pattern handles the complexity of trading state management, supporting multiple order types (Market, Limit, Stop, Bracket), real-time calculations for leverage and liquidation prices, and robust input validation using the useOrderEntry hook.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "when_to_use": "Implement this pattern when building the primary trading interface of a decentralized exchange (DEX) where users need to execute trades with precision, view risk metrics in real-time, and switch between different order strategies.",
+            "prerequisites": [
+              "A connected wallet via Orderly's WalletProvider",
+              "An active Orderly account context (useOrderlyAccount)",
+              "A selected trading symbol (e.g., 'PERP_ETH_USDC')"
+            ],
+            "integration_steps": [
+              "Import useOrderEntry, OrderSide, and OrderType from @orderly.network/hooks and types.",
+              "Initialize the hook with the target trading symbol and default order configuration.",
+              "Bind form inputs (Price, Quantity) to the setValue function returned by the hook.",
+              "Utilize metaState (errors, dirty, submitted) to provide real-time UI feedback and validation messages.",
+              "Display calculated metrics (estLeverage, estLiqPrice) to inform user risk decisions.",
+              "Connect the submit function to your 'Place Order' button, handling the returned Promise."
+            ],
+            "configuration_options": {
+              "initialOrder": "Defines the default state for side (BUY/SELL), type (LIMIT/MARKET), price, and quantity.",
+              "symbol": "The trading pair identifier (e.g., 'BTC-USDC') which determines price precision and margin requirements."
+            }
+          },
+          "example": "import React, { useState } from 'react';\nimport { useOrderEntry, OrderSide, OrderType } from '@orderly.network/hooks';\nimport { useOrderlyAccount } from '@orderly.network/hooks';\n\nexport const AdvancedOrderEntryForm = ({ symbol }: { symbol: string }) => {\n  const { state: accountState } = useOrderlyAccount();\n  const [isSubmitting, setIsSubmitting] = useState(false);\n\n  // Initialize the hook with current symbol and default values\n  const {\n    submit,\n    setValue,\n    maxQty,\n    estLeverage,\n    estLiqPrice,\n    formattedOrder,\n    metaState: { errors, dirty, submitted },\n    reset\n  } = useOrderEntry(symbol, {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.LIMIT,\n      order_price: '',\n      order_quantity: ''\n    }\n  });\n\n  // Handle input changes with validation feedback\n  const handleInputChange = (field: 'order_price' | 'order_quantity' | 'side' | 'order_type', value: any) => {\n    setValue(field, value);\n  };\n\n  // Handle form submission\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    if (!accountState.address) {\n      alert('Please connect wallet first');\n      return;\n    }\n\n    setIsSubmitting(true);\n    try {\n      // The submit function triggers validation and API call\n      const result = await submit();\n      console.log('Order submitted successfully:', result);\n      alert('Order Placed!');\n      reset(); // Reset form after success\n    } catch (err) {\n      console.error('Order submission failed:', err);\n      // Handle specific errors from the hook or network\n      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);\n    } finally {\n      setIsSubmitting(false);\n    }\n  };\n\n  // Helper to determine if input is invalid\n  const hasError = (field: string) => submitted && dirty[field] && errors[field];\n\n  return (\n    <div className=\"order-entry-form p-4 border rounded\">\n      <h3>Place Order ({symbol})</h3>\n      \n      <form onSubmit={handleSubmit} className=\"flex flex-col gap-4\">\n        {/* Side Toggle */}\n        <div className=\"flex gap-2\">\n          <button\n            type=\"button\"\n            onClick={() => handleInputChange('side', OrderSide.BUY)}\n            className={`flex-1 py-2 ${formattedOrder.side === OrderSide.BUY ? 'bg-green-500 text-white' : 'bg-gray-200'}`}\n          >\n            Long\n          </button>\n          <button\n            type=\"button\"\n            onClick={() => handleInputChange('side', OrderSide.SELL)}\n            className={`flex-1 py-2 ${formattedOrder.side === OrderSide.SELL ? 'bg-red-500 text-white' : 'bg-gray-200'}`}\n          >\n            Short\n          </button>\n        </div>\n\n        {/* Order Type Selector */}\n        <select\n          value={formattedOrder.order_type}\n          onChange={(e) => handleInputChange('order_type', e.target.value as OrderType)}\n          className=\"p-2 border rounded\"\n        >\n          <option value={OrderType.LIMIT}>Limit</option>\n          <option value={OrderType.MARKET}>Market</option>\n          {/* Additional types like STOP or BRACKET can be added here */}\n        </select>\n\n        {/* Price Input */}\n        {formattedOrder.order_type !== OrderType.MARKET && (\n          <div>\n            <label className=\"block text-sm font-bold mb-1\">Price</label>\n            <input\n              type=\"number\"\n              step=\"0.01\"\n              value={formattedOrder.order_price}\n              onChange={(e) => handleInputChange('order_price', e.target.value)}\n              className={`w-full p-2 border rounded ${hasError('order_price') ? 'border-red-500' : ''}`}\n              placeholder=\"0.00\"\n            />\n            {hasError('order_price') && <span className=\"text-red-500 text-xs\">{errors.order_price}</span>}\n          </div>\n        )}\n\n        {/* Quantity Input */}\n        <div>\n          <label className=\"block text-sm font-bold mb-1\">Quantity (Max: {maxQty})</label>\n          <input\n            type=\"number\"\n            step=\"0.001\"\n            value={formattedOrder.order_quantity}\n            onChange={(e) => handleInputChange('order_quantity', e.target.value)}\n            className={`w-full p-2 border rounded ${hasError('order_quantity') ? 'border-red-500' : ''}`}\n            placeholder=\"0.00\"\n          />\n          {hasError('order_quantity') && <span className=\"text-red-500 text-xs\">{errors.order_quantity}</span>}\n        </div>\n\n        {/* Estimated Metrics */}\n        <div className=\"bg-gray-100 p-2 rounded text-sm\">\n          <div className=\"flex justify-between\">\n            <span>Est. Leverage:</span>\n            <span className=\"font-bold\">{estLeverage}x</span>\n          </div>\n          <div className=\"flex justify-between\">\n            <span>Est. Liq. Price:</span>\n            <span className=\"font-bold\">{estLiqPrice || '-'}</span>\n          </div>\n        </div>\n\n        {/* Submit Button */}\n        <button\n          type=\"submit\"\n          disabled={isSubmitting}\n          className={`w-full py-3 text-white font-bold rounded ${\n            formattedOrder.side === OrderSide.BUY ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'\n          } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}\n        >\n          {isSubmitting ? 'Submitting...' : `${formattedOrder.side} ${formattedOrder.order_type}`}\n        </button>\n      </form>\n    </div>\n  );\n};",
+          "notes": [
+            "Market Order Handling: When OrderType is MARKET, the price input should be disabled or hidden, as the execution price is determined by the market at the time of the trade.",
+            "Validation Feedback: The metaState object provides granular control. Use the 'dirty' flag to show errors only after the user has interacted with a field, rather than showing errors immediately on mount.",
+            "Precision Handling: Ensure input 'step' attributes match the symbol's tick size and lot size requirements to avoid server-side rejection due to precision errors.",
+            "Debouncing: For high-frequency typing in price/quantity fields, consider debouncing the setValue calls if the hook triggers expensive calculations on every keystroke.",
+            "Reset Strategy: Always call reset() after a successful submission to clear the form state and prepare for the next trade.",
+            "Error Boundaries: Wrap this component in an Error Boundary, as network requests within submit() can potentially throw unhandled exceptions."
+          ],
+          "difficulty": "advanced",
+          "prerequisites": [
+            "React Hooks (useState, useEffect)",
+            "Orderly Network Account Context",
+            "Understanding of Derivatives Trading (Leverage, Liquidation, Order Types)"
+          ],
+          "related": ["useOrderlyAccount", "usePositions", "useOpenOrders"]
+        }
+      ]
+    },
+    {
+      "name": "Position Management",
+      "patterns": [
+        {
+          "name": "RealTimePositionDisplay",
+          "description": "A comprehensive pattern for implementing a live trading dashboard that displays open positions with real-time updates. This pattern leverages Orderly Network's WebSocket streams to fetch position data, calculates financial metrics like Unrealized PnL and ROI, and provides UI elements to distinguish between Long and Short positions. It serves as the foundation for portfolio management interfaces.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "whenToUse": "Use this pattern when building a trading dashboard, portfolio overview, or account summary page where users need to monitor their active derivatives positions and profitability in real-time.",
+            "prerequisites": [
+              "Active Orderly Network account with API keys configured",
+              "Wallet connection established via Orderly SDK",
+              "Basic understanding of derivative trading concepts (Long/Short, PnL, ROI)"
+            ],
+            "integrationSteps": [
+              "Import `usePositionStream` from `@orderly.network/hooks`.",
+              "Initialize the hook, optionally passing a specific `symbol` to filter for a single asset or `undefined` to fetch all positions.",
+              "Destructure `positions`, `info`, and `isLoading` from the hook response.",
+              "Implement currency formatters (USD/Percent) for consistent data display.",
+              "Render the data using a table or grid layout, handling loading and empty states.",
+              "Implement logic to determine position side (Long/Short) based on `position_qty` sign."
+            ],
+            "configurationOptions": {
+              "symbol": "Pass a specific trading pair string (e.g., 'PERP_BTC_USDC') to stream only that position. Pass `undefined` to stream all positions for the account.",
+              "refetchInterval": "While the hook uses WebSockets by default, configuration can be adjusted for polling fallbacks if necessary."
+            }
+          },
+          "example": "import React, { useMemo } from 'react';\nimport { usePositionStream, Position } from '@orderly.network/hooks';\n\n// Mock UI components for context (replace with your library like Radix, MUI, etc.)\nconst Table = ({ children, headers }: { children: React.ReactNode; headers: string[] }) => (\n  <div className=\"overflow-x-auto\">\n    <table className=\"min-w-full divide-y divide-gray-200\">\n      <thead className=\"bg-gray-50\">\n        <tr>\n          {headers.map((h) => (\n            <th key={h} className=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">{h}</th>\n          ))}\n        </tr>\n      </thead>\n      <tbody className=\"bg-white divide-y divide-gray-200\">{children}</tbody>\n    </table>\n  </div>\n);\n\nconst Badge = ({ children, color }: { children: React.ReactNode; color: 'green' | 'red' | 'gray' }) => (\n  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${color}-100 text-${color}-800`}>\n    {children}\n  </span>\n);\n\nconst Button = ({ onClick, children, disabled }: { onClick: () => void; children: React.ReactNode; disabled?: boolean }) => (\n  <button\n    onClick={onClick}\n    disabled={disabled}\n    className=\"px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:opacity-50\"\n  >\n    {children}\n  </button>\n);\n\nexport const PositionDashboard = () => {\n  // 1. Fetch real-time data. Pass undefined to get all positions, or a symbol string for one.\n  const [positions, _info, { isLoading }] = usePositionStream(undefined);\n\n  // 2. Define formatters (Memoized for performance)\n  const usdFormatter = useMemo(() => new Intl.NumberFormat('en-US', {\n    style: 'currency',\n    currency: 'USD',\n    minimumFractionDigits: 2\n  }), []);\n\n  const percentFormatter = useMemo(() => new Intl.NumberFormat('en-US', {\n    style: 'percent',\n    minimumFractionDigits: 2\n  }), []);\n\n  // 5. Close Position Logic (Placeholder)\n  const handleClosePosition = async (symbol: string, quantity: number) => {\n    try {\n      console.log(`Closing position: ${symbol}, Qty: ${quantity}`);\n      // Integration with useOrder or usePlaceOrder would go here\n      // Example: placeOrder({ symbol: symbol, side: quantity > 0 ? 'SELL' : 'BUY', order_type: 'MARKET', order_qty: Math.abs(quantity) })\n    } catch (error) {\n      console.error('Failed to close position', error);\n    }\n  };\n\n  if (isLoading) {\n    return <div className=\"p-4 text-center\">Loading positions...</div>;\n  }\n\n  if (!positions || positions.length === 0) {\n    return <div className=\"p-4 text-center text-gray-500\">No open positions found.</div>;\n  }\n\n  return (\n    <div className=\"p-6\">\n      <h2 className=\"text-xl font-bold mb-4\">Open Positions</h2>\n      <Table headers={['Symbol', 'Side', 'Size', 'Avg Open Price', 'Mark Price', 'Unrealized PnL', 'ROI', 'Action']}>\n        {positions.map((position: Position) => {\n          // 2. Determine Side\n          const isLong = position.position_qty > 0;\n          const sideColor = isLong ? 'green' : 'red';\n          const sideLabel = isLong ? 'Long' : 'Short';\n\n          // 4. Calculations (SDK provides these, but we format them here)\n          const pnl = position.unrealized_pnl;\n          const roi = position.unrealized_pnl_ROI;\n          const pnlColor = pnl >= 0 ? 'text-green-600' : 'text-red-600';\n\n          return (\n            <tr key={position.symbol}>\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900\">\n                {position.symbol}\n              </td>\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">\n                <Badge color={sideColor}>{sideLabel}</Badge>\n              </td>\n              {/* 3. Show Quantity and Prices */}\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">\n                {Math.abs(position.position_qty).toFixed(4)}\n              </td>\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">\n                {usdFormatter.format(position.avg_open_price)}\n              </td>\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">\n                {usdFormatter.format(position.mark_price)}\n              </td>\n              {/* 4. PnL and ROI Display */}\n              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${pnlColor}`}>\n                {usdFormatter.format(pnl)}\n              </td>\n              <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${pnlColor}`}>\n                {percentFormatter.format(roi)}\n              </td>\n              <td className=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">\n                <Button \n                  onClick={() => handleClosePosition(position.symbol, position.position_qty)}\n                >\n                  Close\n                </Button>\n              </td>\n            </tr>\n          );\n        })}\n      </Table>\n    </div>\n  );\n};",
+          "notes": [
+            "Common Issue: Position quantity is often a number with high precision (e.g., 0.00000001). Always format display values using `.toFixed()` or a number formatter to avoid layout shifts.",
+            "Performance: The `usePositionStream` hook updates via WebSocket. Ensure your UI components are optimized (e.g., using `React.memo` on row components) to prevent excessive re-renders if the portfolio is large.",
+            "Security: Never trust client-side calculations for final settlement. Always verify PnL and balances against the server state before executing critical actions like withdrawals.",
+            "Testing: Mock the `usePositionStream` hook in unit tests to simulate different portfolio states (empty, all long, all short, mixed) without requiring a live WebSocket connection.",
+            "Alternative: For static snapshots where real-time updates aren't needed, consider using the REST API endpoint via `usePositions` to reduce socket load."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Functional Components",
+            "Custom Hooks (useState, useEffect, useMemo)",
+            "TypeScript basics",
+            "Orderly Network Account Setup"
+          ],
+          "related": ["useOrderStream", "useAccountStream", "usePlaceOrder"]
+        }
+      ]
+    },
+    {
+      "name": "Wallet Connection",
+      "patterns": [
+        {
+          "name": "MultiChainWalletConnection",
+          "description": "A comprehensive pattern for integrating both EVM (Ethereum Virtual Machine) and Solana wallets into a unified Orderly Network application. This pattern abstracts the complexities of different blockchain signature schemes and provider structures, allowing the application to treat wallet connections agnostically through the Orderly SDK's adapter system.",
+          "installation": "npm install @orderly.network/core @orderly.network/ethers-adapter @orderly.network/solana-adapter ethers @solana/wallet-adapter-react @solana/wallet-adapter-wallets",
+          "usage": {
+            "when_to_use": "Use this pattern when your decentralized exchange (DEX) or trading application needs to support users from both the Ethereum ecosystem (e.g., MetaMask, WalletConnect) and the Solana ecosystem (e.g., Phantom, Solflare) within the same interface.",
+            "prerequisites": [
+              "A React application environment",
+              "Environment variables configured for Orderly Broker ID",
+              "Basic understanding of EIP-1193 (EVM) and Solana Wallet Adapter standards"
+            ],
+            "integration_steps": [
+              "Wrap your application root with the OrderlyConfigProvider.",
+              "Instantiate wallet adapters for EVM (using ethers/viem) and Solana.",
+              "Pass the adapters array to the walletAdapters prop.",
+              "Dynamically set networkId based on your deployment environment (testnet/mainnet)."
+            ],
+            "configuration_options": {
+              "networkId": "Determines the Orderly environment ('testnet' or 'mainnet'). Ensure this matches the wallet's connected network.",
+              "brokerId": "Your unique identifier registered with Orderly Network.",
+              "walletAdapters": "An array of adapter instances. The SDK will iterate through these to find an active connection or prompt connection."
+            }
+          },
+          "example": "import React, { createContext, useContext, useState, useEffect } from 'react';\nimport {\n  OrderlyConfigProvider,\n  useAccount,\n  DefaultEVMWalletAdapter,\n  DefaultSolanaWalletAdapter\n} from '@orderly.network/core';\nimport { ethers } from 'ethers';\nimport { useWallet } from '@solana/wallet-adapter-react';\nimport { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';\n\n/**\n * Production-ready Provider Setup\n * Handles environment configuration and adapter initialization\n */\nexport const OrderlyAppProvider = ({ children }: { children: React.ReactNode }) => {\n  // Determine network from environment variables\n  const [networkId, setNetworkId] = useState<'testnet' | 'mainnet'>(\n    import.meta.env.VITE_NETWORK_ID === 'mainnet' ? 'mainnet' : 'testnet'\n  );\n\n  // Initialize EVM Adapter\n  // We check for window.ethereum to ensure we are in a browser environment\n  const evmAdapter = typeof window !== 'undefined' && window.ethereum \n    ? new DefaultEVMWalletAdapter(new ethers.BrowserProvider(window.ethereum)) \n    : null;\n\n  // Initialize Solana Adapter\n  // Note: In a real app, you might pass specific wallets or use the React context\n  const solanaAdapter = new DefaultSolanaWalletAdapter();\n\n  // Filter out null adapters to prevent runtime errors\n  const activeAdapters = [evmAdapter, solanaAdapter].filter(\n    (adapter): adapter is NonNullable<typeof adapter> => adapter !== null\n  );\n\n  return (\n    <OrderlyConfigProvider\n      networkId={networkId}\n      brokerId={import.meta.env.VITE_BROKER_ID}\n      walletAdapters={activeAdapters}\n    >\n      {children}\n    </OrderlyConfigProvider>\n  );\n};\n\n/**\n * Component demonstrating connection handling and state management\n */\nexport const MultiChainWalletButton = () => {\n  const { account, connect, disconnect, state } = useAccount();\n  const [isConnecting, setIsConnecting] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  const handleConnect = async () => {\n    setIsConnecting(true);\n    setError(null);\n    try {\n      // The SDK will attempt to connect using the configured adapters\n      await connect();\n    } catch (err) {\n      console.error('Connection failed:', err);\n      setError('Failed to connect wallet. Please try again.');\n    } finally {\n      setIsConnecting(false);\n    }\n  };\n\n  const handleDisconnect = async () => {\n    try {\n      await disconnect();\n    } catch (err) {\n      console.error('Disconnect failed:', err);\n    }\n  };\n\n  // Render connection state\n  if (state.status === 'connected' && account) {\n    return (\n      <div className=\"wallet-connected\">\n        <div className=\"account-info\">\n          <span className=\"chain-badge\">{account.chainType.toUpperCase()}</span>\n          <span className=\"address\">\n            {account.address.slice(0, 6)}...{account.address.slice(-4)}\n          </span>\n        </div>\n        <button onClick={handleDisconnect} className=\"btn-disconnect\">\n          Disconnect\n        </button>\n      </div>\n    );\n  }\n\n  return (\n    <div className=\"wallet-disconnected\">\n      <button \n        onClick={handleConnect} \n        disabled={isConnecting}\n        className=\"btn-connect\"\n      >\n        {isConnecting ? 'Connecting...' : 'Connect Wallet'}\n      </button>\n      {error && <div className=\"error-message\">{error}</div>}\n    </div>\n  );\n};",
+          "notes": [
+            "Common Issue: 'User rejected the request'. This is standard wallet behavior. Ensure your UI gracefully handles connection cancellations without crashing.",
+            "Network Mismatch: Ensure the user's wallet (e.g., MetaMask) is set to the correct network (Sepolia for Testnet, Arbitrum/Optimism for Mainnet) matching the Orderly SDK networkId.",
+            "Solana Context: The DefaultSolanaWalletAdapter often works best when wrapped inside a Solana WalletProvider context from @solana/wallet-adapter-react for full functionality.",
+            "Performance: Wallet adapters are initialized once. Avoid recreating the OrderlyConfigProvider on every render to prevent resetting connection state.",
+            "Security: Never hardcode private keys. Always rely on the injected providers (window.ethereum or Solana window.solana) to handle signing.",
+            "Testing: Use mock providers for unit testing wallet connection logic to avoid requiring actual browser extensions in CI/CD pipelines."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Context API",
+            "EIP-1193 Ethereum Provider Standard",
+            "Solana Wallet Adapter Standard",
+            "TypeScript"
+          ],
+          "related": ["useAccount", "OrderlyKeyPair", "OrderlyConfigProvider"]
+        }
+      ]
+    },
+    {
+      "name": "Chart Components",
+      "patterns": [
+        {
+          "name": "LightweightChart",
+          "description": "A responsive candlestick chart component that fetches and visualizes historical kline data from the Orderly Network API using the lightweight-charts library.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": "This component requires a trading pair symbol to fetch data. It relies on the Orderly ConfigProvider to resolve the API base URL. Simply import and render it within a layout that allows it to expand (it has a minimum height).\n\n**Required Props:**\n- `symbol`: string (e.g., 'PERP_ETH_USDC')\n\n**Context:**\n- Must be a descendant of `OrderlyConfigProvider` to access `apiBaseUrl`.\n\n**Integration:**\n1. Ensure `lightweight-charts` and `use-resize-observer` are installed.\n2. Wrap your app in `OrderlyConfigProvider`.\n3. Pass the target symbol to the component.",
+          "example": "import { useConfig } from '@orderly.network/hooks';\nimport { createChart, type IChartApi, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';\nimport { FC, useEffect, useRef, useState } from 'react';\nimport useResizeObserver from 'use-resize-observer';\n\n// Orderly API returns columnar data arrays\ntype Klines = {\n  a: number[]; // Ask close price\n  c: number[]; // Close price\n  h: number[]; // High price\n  l: number[]; // Low price\n  o: number[]; // Open price\n  t: number[]; // Timestamp (seconds)\n  v: number[]; // Volume\n};\n\nexport const LightweightChart: FC<{ symbol: string }> = ({ symbol }) => {\n  const [chartData, setChartData] = useState<[IChartApi, ISeriesApi<'Candlestick'>]>();\n  const chartRef = useRef<HTMLDivElement>(null);\n  const { width } = useResizeObserver({ ref: chartRef });\n  const apiBaseUrl = useConfig('apiBaseUrl');\n\n  // 1. Fetch Data from Orderly API\n  useEffect(() => {\n    if (!chartData) return;\n    const [_, candleStickSeries] = chartData;\n    \n    // Calculate time range (e.g., last 7 days)\n    const resolution = '60'; // 1 hour\n    const to = Math.trunc(Date.now() / 1_000);\n    const from = Math.trunc((Date.now() - 1_000 * 60 * 60 * 24 * 7) / 1_000);\n\n    fetch(`${apiBaseUrl}/tv/history?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`)\n      .then((res) => res.json() as Promise<Klines>)\n      .then((klines) => {\n        // 2. Transform Orderly columnar format to Lightweight-charts object format\n        const data = klines.t.map((timestamp, index) => ({\n          time: timestamp as UTCTimestamp,\n          open: klines.o[index],\n          high: klines.h[index],\n          low: klines.l[index],\n          close: klines.c[index],\n        }));\n        \n        candleStickSeries.setData(data);\n      });\n  }, [chartData, apiBaseUrl, symbol]);\n\n  // 3. Initialize and Resize Chart\n  useEffect(() => {\n    if (!chartRef.current || width == null) return;\n    \n    if (!chartData) {\n      const chart = createChart(chartRef.current, {\n        width,\n        height: chartRef.current.clientHeight,\n        layout: { background: { color: '#26272a' }, textColor: '#fff' },\n      });\n      const series = chart.addCandlestickSeries();\n      setChartData([chart, series]);\n    } else {\n      const [chart] = chartData;\n      chart.applyOptions({ width });\n    }\n  }, [chartData, width]);\n\n  return <div className=\"w-full min-h-[35rem]\" ref={chartRef} />;\n};",
+          "notes": [
+            "The Orderly `/tv/history` endpoint returns data in a columnar format (arrays of numbers for open, close, high, low, etc.), which differs from the standard object format used by many charting libraries. You must map these arrays to objects.",
+            "Timestamps from the API are in Unix seconds (UTCTimestamp), whereas JavaScript `Date.now()` is in milliseconds. Ensure you divide by 1000 when constructing 'from' and 'to' parameters.",
+            "Lightweight-charts requires explicit dimensions. The `useResizeObserver` hook is essential here to handle container resizing responsively.",
+            "This example fetches historical data. For real-time updates, you would need to integrate the Orderly WebSocket feed to push new ticks to `candleStickSeries.update()`.",
+            "Ensure the container div has a defined height (e.g., `min-h-[35rem]`), otherwise the chart will collapse to height 0."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React functional components and Hooks (useEffect, useRef, useState)",
+            "lightweight-charts library installed",
+            "use-resize-observer library installed",
+            "Orderly ConfigProvider configured in the application root"
+          ],
+          "related": ["useConfig", "OrderlyConfigProvider"]
+        },
+        {
+          "name": "AdvancedChart",
+          "description": "A React component that integrates the TradingView Advanced Charting Library specifically for the Orderly Network ecosystem. It renders a professional-grade candlestick chart with customizable theming, designed to display market data for a specific trading symbol.",
+          "installation": "npm install @orderly.network/ui-tradingview @orderly.network/ui",
+          "usage": {
+            "requiredProps": {
+              "symbol": "string - The trading pair symbol (e.g., 'PERP_BTC_USDC') to display on the chart."
+            },
+            "optionalProps": {
+              "libraryPath": "string - Path to the TradingView charting library bundles.",
+              "scriptSRC": "string - Path to the main TradingView charting_library.js file.",
+              "customCssUrl": "string - Path to a custom CSS file for chart styling overrides.",
+              "overrides": "object - A configuration object to customize chart colors, grid styles, and pane properties."
+            },
+            "contextProviders": "No specific Orderly Context providers are strictly required for this component to render, but it typically consumes state (like the current symbol) from a parent trading layout.",
+            "integrationSteps": "1. Ensure you have a valid TradingView Charting Library license and the library files hosted in your project's public folder. 2. Configure environment variables (e.g., VITE_BASE) to point to the hosted library location. 3. Import the Orderly UI styles. 4. Pass the dynamic symbol prop to the component."
+          },
+          "example": "import { TradingviewWidget } from '@orderly.network/ui-tradingview';\nimport { FC } from 'react';\n\n// Import global Orderly styles for consistent UI elements\nimport '@orderly.network/ui/dist/styles.css';\n\ninterface AdvancedChartProps {\n  symbol: string;\n}\n\nexport const AdvancedChart: FC<AdvancedChartProps> = ({ symbol }) => {\n  // Determine base path for TradingView library assets (adjust based on your build config)\n  const basePath = import.meta.env.VITE_BASE ? `${import.meta.env.VITE_BASE}/` : '';\n\n  return (\n    <div className=\"w-full h-0 min-h-[35rem] [&_iframe]:min-h-[30rem]\">\n      <TradingviewWidget\n        symbol={symbol}\n        // Point to your hosted TradingView library files\n        libraryPath={`${basePath}tradingview/charting_library/bundles`}\n        scriptSRC={`${basePath}tradingview/charting_library/charting_library.js`}\n        customCssUrl={`${basePath}tradingview/chart.css`}\n        // Theme overrides to match Orderly's dark mode aesthetic\n        overrides={{\n          'mainSeriesProperties.candleStyle.borderDownColor': '#DC2140',\n          'mainSeriesProperties.candleStyle.borderUpColor': '#1F8040',\n          'mainSeriesProperties.candleStyle.downColor': '#DC2140',\n          'mainSeriesProperties.candleStyle.upColor': '#1F8040',\n          'mainSeriesProperties.candleStyle.wickDownColor': '#DC2140',\n          'mainSeriesProperties.candleStyle.wickUpColor': '#1F8040',\n          'paneProperties.background': '#101418',\n          'paneProperties.backgroundType': 'solid',\n          'paneProperties.separatorColor': '#164165',\n          'paneProperties.horzGridProperties.color': '#161B22',\n          'paneProperties.vertGridProperties.color': '#161B22',\n          'paneProperties.legendProperties.showSeriesTitle': 'false'\n        }}\n      />\n    </div>\n  );\n};",
+          "notes": [
+            "Asset Hosting: The TradingView Charting Library is not included in the npm package. You must download the library files from TradingView (requires a license) and place them in your public directory (e.g., /public/tradingview).",
+            "Iframe Sizing: The wrapper div uses `h-0 min-h-[35rem]` combined with `[&_iframe]:min-h-[30rem]`. This is a specific CSS pattern to ensure the iframe expands correctly within flex containers, preventing it from collapsing or overflowing.",
+            "Environment Variables: The code relies on `import.meta.env.VITE_BASE`. Ensure this is configured in your `.env` file if your app is deployed in a subdirectory.",
+            "Theming: The `overrides` prop uses specific TradingView internal property keys. Changing these requires referencing the TradingView Charting Library API documentation.",
+            "Performance: The TradingView widget is resource-intensive. Consider lazy loading this component if it is not immediately visible in the viewport."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Access to TradingView Charting Library files (license required)",
+            "Hosting setup for static library assets",
+            "Basic understanding of iframe resizing behaviors in CSS"
+          ],
+          "related": ["@orderly.network/ui-tradingview", "@orderly.network/ui"]
+        }
+      ]
+    },
+    {
+      "name": "WebSocket Services",
+      "patterns": [
+        {
+          "name": "WebsocketService",
+          "description": "A singleton service class that wraps the Orderly Network WebSocket client to manage real-time market data subscriptions. It handles multiplexing Kline (candlestick) and Trade data, allowing multiple subscribers for the same topic while maintaining a single underlying connection. It also includes logic to map charting library resolutions to Orderly API formats and updates current candle close prices based on live trade data.",
+          "installation": "npm install @orderly.network/net",
+          "usage": "This is a Singleton class, not a standard React component. It should be instantiated once with an Orderly WS instance and shared across your application (e.g., via a React Context or global store).\n\n**Key Methods:**\n\n1.  `subscribeKline(subscribeId: string, symbol: string, resolution: KlineResolution, onTickCallback: Function)`\n    *   `subscribeId`: Unique identifier for this specific subscription (used for unsubscription).\n    *   `symbol`: Trading pair (e.g., 'PERP_ETH_USDC').\n    *   `resolution`: Enum value (e.g., `KlineResolution.RESOLUTION_15m`).\n    *   `onTickCallback`: Function triggered when new kline data arrives.\n\n2.  `unsubscribeKline(subscribeId: string)`: Removes the specific listener and unsubscribes from the WS topic if no other listeners remain.\n\n3.  `subscribeSymbol(symbol: string)`: Subscribes to trade data for a symbol to update the current candle's close price in real-time.",
+          "example": "import { WS } from '@orderly.network/net';\nimport { WebsocketService, KlineResolution } from './websocket.service';\n\n// 1. Initialize the Orderly WS Client\n// Note: Configuration depends on your environment (testnet/mainnet)\nconst wsClient = new WS({\n  brokerId: 'your_broker_id',\n  // ...other config options\n});\n\n// 2. Instantiate the Singleton Service\nconst wsService = new WebsocketService(wsClient);\n\n// 3. Subscribe to Kline Data (Candlesticks)\nconst subscriptionId = 'chart-eth-15m';\n\nwsService.subscribeKline(\n  subscriptionId,\n  'PERP_ETH_USDC',\n  KlineResolution.RESOLUTION_15m,\n  (klineData) => {\n    // Handle incoming kline update\n    console.log('New Candle:', klineData);\n    // klineData structure: { time, open, close, high, low, volume }\n  }\n);\n\n// 4. Subscribe to Trades (for real-time price updates)\n// This automatically updates the 'close' price of the active kline\nwsService.subscribeSymbol('PERP_ETH_USDC');\n\n// 5. Cleanup (e.g., in a React useEffect return)\n// wsService.unsubscribeKline(subscriptionId);",
+          "notes": [
+            "Singleton Pattern: The class enforces a single instance (`WebsocketService._instance`) to prevent multiple WebSocket connections.",
+            "Multiplexing: You can call `subscribeKline` multiple times with different `subscribeId`s but the same `symbol` and `resolution`. The service manages one network subscription and fans out messages to all registered callbacks.",
+            "Resolution Mapping: The `mapResolution` function converts TradingView-style strings (e.g., '15') to Orderly API formats (e.g., '15m'). Ensure you use the provided `KlineResolution` enum.",
+            "Real-time Price Updates: The service automatically listens to `trade` topics via `subscribeSymbol` to update the `close` price of the currently forming candle, providing a smoother charting experience.",
+            "Memory Management: Always call `unsubscribeKline` when your component unmounts to remove callbacks and prevent memory leaks.",
+            "Type Safety: The source code uses `any` in several places. In a production environment, consider defining interfaces for `KlineData` and `TradeData`."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Orderly Network Broker ID",
+            "Understanding of WebSocket concepts",
+            "TypeScript knowledge",
+            "React Context or State Management (for global access)"
+          ],
+          "related": ["@orderly.network/net", "OrderlyContext", "useOrderlyTrade"]
+        }
+      ]
+    },
+    {
+      "name": "Trading Components",
+      "patterns": [
+        {
+          "name": "CreateOrderForm",
+          "description": "A comprehensive order entry form component supporting Market, Limit, Stop-Limit, and Bracket orders. It handles complex trading logic, including price validation, leverage estimation, and dynamic field rendering based on order type, powered by the Orderly Network SDK.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": "symbol (string): The trading pair symbol (e.g., 'PERP_ETH_USDC').",
+            "optionalProps": "None. The component derives all state from the symbol and the SDK hooks.",
+            "context": "Requires the application to be wrapped in OrderlyContextProvider and a Wallet Provider (e.g., Web3Onboard).",
+            "integration": "Import the component and pass the active symbol from your trading view context. Ensure the user has an active wallet connection and Orderly account."
+          },
+          "example": "import React, { useState } from 'react';\nimport { useOrderEntry, useSymbolsInfo, useAccount, useWithdraw } from '@orderly.network/hooks';\nimport { OrderSide, OrderType, AlgoOrderRootType } from '@orderly.network/types';\n\nexport const OrderEntryPattern = ({ symbol }: { symbol: string }) => {\n  // 1. Initialize Order Entry Hook\n  const {\n    submit,\n    setValue,\n    maxQty,\n    estLiqPrice,\n    estLeverage,\n    formattedOrder,\n    metaState: { errors, dirty, submitted },\n    reset\n  } = useOrderEntry(symbol, {\n    initialOrder: {\n      side: OrderSide.BUY,\n      order_type: OrderType.LIMIT,\n      trigger_price: '',\n      order_price: '',\n      order_quantity: ''\n    }\n  });\n\n  const { account } = useAccount();\n  const { availableWithdraw } = useWithdraw();\n  const symbolsInfo = useSymbolsInfo();\n  const [loading, setLoading] = useState(false);\n\n  // 2. Handle Submission\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    setLoading(true);\n    try {\n      await submit();\n      alert('Order Created Successfully');\n      reset(); // Clear form after success\n    } catch (err) {\n      console.error('Order failed', err);\n      alert('Order Failed');\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  if (symbolsInfo.isNil) return <div>Loading...</div>;\n\n  const symbolInfo = symbolsInfo[symbol]();\n\n  return (\n    <form onSubmit={handleSubmit} className=\"p-4 border rounded\">\n      {/* Side Selection */}\n      <div className=\"flex gap-2 mb-4\">\n        <button\n          type=\"button\"\n          onClick={() => setValue('side', OrderSide.BUY)}\n          className={formattedOrder.side === OrderSide.BUY ? 'bg-green-500 text-white' : 'bg-gray-200'}\n        >\n          Buy\n        </button>\n        <button\n          type=\"button\"\n          onClick={() => setValue('side', OrderSide.SELL)}\n          className={formattedOrder.side === OrderSide.SELL ? 'bg-red-500 text-white' : 'bg-gray-200'}\n        >\n          Sell\n        </button>\n      </div>\n\n      {/* Order Type Selector */}\n      <select\n        className=\"w-full p-2 mb-4 border\"\n        onChange={(e) => {\n          const val = e.target.value;\n          // Handle Algo/Bracket types\n          if (val.startsWith('BRACKET')) {\n            setValue('order_type', val === 'BRACKET_MARKET' ? OrderType.MARKET : OrderType.LIMIT);\n            setValue('algo_type', AlgoOrderRootType.BRACKET);\n          } else {\n            setValue('order_type', val as OrderType);\n            setValue('algo_type', undefined);\n          }\n        }}\n      >\n        <option value=\"MARKET\">Market</option>\n        <option value=\"LIMIT\">Limit</option>\n        <option value=\"STOP_LIMIT\">Stop Limit</option>\n        <option value=\"BRACKET_LIMIT\">Bracket Limit</option>\n      </select>\n\n      {/* Dynamic Price Input */}\n      {formattedOrder.order_type !== OrderType.MARKET && (\n        <div className=\"mb-4\">\n          <label className=\"block text-sm font-bold mb-1\">Price</label>\n          <input\n            type=\"number\"\n            className=\"w-full p-2 border\"\n            placeholder=\"Price\"\n            onChange={(e) => setValue('order_price', e.target.value)}\n          />\n        </div>\n      )}\n\n      {/* Bracket Fields (Conditional) */}\n      {formattedOrder.algo_type === AlgoOrderRootType.BRACKET && (\n        <div className=\"mb-4 p-2 bg-gray-50 border\">\n          <h3 className=\"font-bold\">Bracket Settings</h3>\n          <input\n            className=\"w-full p-1 border mb-2\"\n            placeholder=\"Take Profit Price\"\n            onChange={(e) => setValue('tp_trigger_price', e.target.value)}\n          />\n          <input\n            className=\"w-full p-1 border\"\n            placeholder=\"Stop Loss Price\"\n            onChange={(e) => setValue('sl_trigger_price', e.target.value)}\n          />\n        </div>\n      )}\n\n      {/* Quantity Input */}\n      <div className=\"mb-4\">\n        <label className=\"block text-sm font-bold mb-1\">Quantity (Max: {maxQty})</label>\n        <input\n          type=\"number\"\n          className=\"w-full p-2 border\"\n          placeholder=\"Quantity\"\n          onChange={(e) => setValue('order_quantity', e.target.value)}\n        />\n      </div>\n\n      {/* Estimations */}\n      <div className=\"text-sm text-gray-600 mb-4\">\n        <p>Est. Leverage: {estLeverage}</p>\n        <p>Est. Liq Price: {estLiqPrice}</p>\n        <p>Available: {availableWithdraw}</p>\n      </div>\n\n      <button\n        type=\"submit\"\n        disabled={loading || !account.address}\n        className=\"w-full bg-blue-600 text-white p-2 rounded disabled:opacity-50\"\n      >\n        {loading ? 'Submitting...' : 'Place Order'}\n      </button>\n    </form>\n  );\n};",
+          "notes": [
+            "The `useOrderEntry` hook manages the complexity of order validation. Always check `metaState.errors` before enabling the submit button to prevent API rejections.",
+            "When implementing Bracket orders, you must set both `order_type` (e.g., LIMIT) and `algo_type` (BRACKET).",
+            "Use `formattedOrder` from the hook to determine which UI fields to render (e.g., hide Price input for Market orders).",
+            "Precision is critical. Use `getDecimalsFromTick(symbolInfo)` to determine the correct number of decimal places for price and quantity inputs to avoid 'Invalid tick size' errors.",
+            "The `reset()` function is useful for clearing the form after a successful submission, but ensure you preserve the desired `side` or `order_type` if you want a faster trading workflow."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Active Web3 Wallet Connection",
+            "Orderly Account Key registration",
+            "Basic understanding of Order Types (Market, Limit, Stop, Bracket)"
+          ],
+          "related": ["useOrderEntry", "useSymbolsInfo", "useAccount", "useWithdraw"]
+        },
+        {
+          "name": "Orderbook",
+          "description": "A real-time orderbook component that displays live market depth (bids and asks) for a specific trading pair. It utilizes WebSocket streams for low-latency updates and includes visual depth bars to represent liquidity concentration.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "requiredProps": {
+              "symbol": "string - The trading pair symbol (e.g., 'PERP_ETH_USDC')"
+            },
+            "optionalProps": "None directly on the component, but the underlying hook accepts options like 'level' for depth aggregation.",
+            "context": "Must be wrapped within an OrderlyProvider (or V2Provider) to access the WebSocket connection and account context.",
+            "integration": "1. Ensure your app is wrapped with the Orderly Provider. 2. Import the Orderbook component. 3. Pass the active symbol string. 4. The component automatically handles WebSocket subscriptions via the useOrderbookStream hook."
+          },
+          "example": "import React, { FC } from 'react';\nimport { useOrderbookStream, useSymbolsInfo } from '@orderly.network/hooks';\n\nexport const OrderbookPattern: FC<{ symbol: string }> = ({ symbol }) => {\n  // 1. Subscribe to real-time orderbook updates\n  // level: 10 means we get the top 10 bids and asks\n  const [data, { isLoading }] = useOrderbookStream(symbol, undefined, { level: 10 });\n\n  // 2. Fetch symbol metadata to determine decimal precision\n  const symbolsInfo = useSymbolsInfo();\n\n  if (isLoading || !symbolsInfo || !symbolsInfo[symbol]) {\n    return <div>Loading Orderbook...</div>;\n  }\n\n  const symbolInfo = symbolsInfo[symbol]();\n  \n  // 3. Calculate decimal places for formatting (Crucial for trading UIs)\n  // Note: Implement getDecimalsFromTick based on symbolInfo.min_tick or similar\n  const baseDecimals = 4; // Example value, derive from symbolInfo\n  const quoteDecimals = 2; // Example value, derive from symbolInfo\n\n  const formatPrice = (val: number) => val.toFixed(quoteDecimals);\n  const formatSize = (val: number) => val.toFixed(baseDecimals);\n\n  // 4. Render Logic\n  // Asks (Sells) are typically red, Bids (Buys) are green\n  // Depth bars are calculated relative to the max volume at the best price\n  return (\n    <div className=\"orderbook-container\">\n      <div className=\"header\">\n        <span>Price</span>\n        <span>Size</span>\n        <span>Total</span>\n      </div>\n      \n      <div className=\"asks\">\n        {data.asks?.map(([price, size, total], idx) => {\n           // Calculate depth visualization width\n           const maxTotal = data.asks?.[0]?.[2] || 1; \n           const depthWidth = (total / maxTotal) * 100;\n\n           return (\n             <div key={`ask-${idx}`} className=\"row ask\">\n               <span className=\"price\">{formatPrice(price)}</span>\n               <span className=\"size\">{formatSize(size)}</span>\n               <div className=\"total-container\">\n                 <div \n                   className=\"depth-bar\" \n                   style={{ width: `${depthWidth}%`, background: 'rgba(255, 0, 0, 0.2)' }}\n                 />\n                 <span className=\"total\">{formatSize(total)}</span>\n               </div>\n             </div>\n           );\n        })}\n      </div>\n\n      {/* Spread / Current Price Indicator could go here */}\n\n      <div className=\"bids\">\n        {data.bids?.map(([price, size, total], idx) => {\n           const maxTotal = data.bids?.[0]?.[2] || 1;\n           const depthWidth = (total / maxTotal) * 100;\n\n           return (\n             <div key={`bid-${idx}`} className=\"row bid\">\n               <span className=\"price\">{formatPrice(price)}</span>\n               <span className=\"size\">{formatSize(size)}</span>\n               <div className=\"total-container\">\n                 <div \n                   className=\"depth-bar\" \n                   style={{ width: `${depthWidth}%`, background: 'rgba(0, 255, 0, 0.2)' }}\n                 />\n                 <span className=\"total\">{formatSize(total)}</span>\n               </div>\n             </div>\n           );\n        })}\n      </div>\n    </div>\n  );\n};",
+          "notes": [
+            "Data Structure: The hook returns arrays of tuples [price, quantity, total]. 'Total' is the aggregated volume at that price level.",
+            "Precision: Never hardcode decimal places. Always derive them from the symbol info (tick_size) to ensure the UI matches the exchange's trading rules.",
+            "Performance: The useOrderbookStream hook manages the WebSocket connection lifecycle automatically. Unsubscribing happens when the component unmounts.",
+            "Visual Alignment: Asks are usually sorted ascending (Low -> High) but rendered from bottom-up visually to meet the spread. Bids are sorted descending (High -> Low) and rendered top-down.",
+            "Depth Calculation: The example calculates depth relative to the best price (first element of the array). This highlights liquidity near the current market price."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React functional components and Hooks",
+            "Orderly Network Provider setup",
+            "Understanding of financial order book concepts (Bids, Asks, Spread)",
+            "Basic CSS Grid/Flexbox for layout"
+          ],
+          "related": ["useOrderbookStream", "useSymbolsInfo", "useTrades", "useMarkets"]
+        },
+        {
+          "name": "SymbolHeader",
+          "description": "A trading pair header component that displays real-time market data including mark price, index price, 24h volume, and price change percentage. It utilizes Orderly's WebSocket streams to provide live updates for a selected symbol.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "required_props_and_their_types": "symbol: string (The trading pair symbol, e.g., 'PERP_ETH_USDC'), setSymbol: React.Dispatch<React.SetStateAction<string | undefined>> (State dispatcher to change the active trading pair)",
+            "optional_props_and_defaults": "None",
+            "context_providers_needed": "OrderlyProvider (from @orderly.network/hooks) must be wrapping the component tree to enable WebSocket connections.",
+            "integration_steps": "1. Ensure your app is wrapped with OrderlyProvider. 2. Create a parent component to hold the state for the selected symbol. 3. Import and render SymbolHeader, passing the symbol and setter. 4. The component will automatically handle the WebSocket subscription via useTickerStream."
+          },
+          "example": "import { useTickerStream } from '@orderly.network/hooks';\nimport React, { FC } from 'react';\n\n// Utility for formatting currency (replacing local import for example)\nconst usdFormatter = new Intl.NumberFormat('en-US', {\n  style: 'currency',\n  currency: 'USD',\n});\n\nexport const SymbolHeaderPattern: FC<{\n  symbol: string;\n  setSymbol: (symbol: string) => void;\n}> = ({ symbol, setSymbol }) => {\n  // Subscribe to real-time ticker updates for the specific symbol\n  const stream = useTickerStream(symbol);\n\n  // Handle loading state while WebSocket connects or data fetches\n  if (!stream) {\n    return <div className=\"p-4\">Loading market data...</div>;\n  }\n\n  // Calculate 24h change percentage safely\n  const dailyChange = stream['24h_change'];\n  const changePercent = stream.change \n    ? (stream.change * 100).toFixed(2) \n    : undefined;\n\n  const isPositive = dailyChange && !dailyChange.startsWith('-');\n\n  return (\n    <div className=\"flex items-center gap-4 p-4 border-b border-gray-700\">\n      {/* Symbol Selector */}\n      <button \n        onClick={() => setSymbol('PERP_BTC_USDC')}\n        className=\"font-bold text-lg\"\n      >\n        {symbol}\n      </button>\n\n      {/* Mark Price */}\n      <div className=\"flex flex-col\">\n        <span className=\"text-xs text-gray-500\">Mark Price</span>\n        <span>{usdFormatter.format(stream.mark_price)}</span>\n      </div>\n\n      {/* 24h Volume */}\n      <div className=\"flex flex-col\">\n        <span className=\"text-xs text-gray-500\">24h Volume</span>\n        <span>{usdFormatter.format(stream['24h_amount'])}</span>\n      </div>\n\n      {/* 24h Change */}\n      <div className=\"flex flex-col\">\n        <span className=\"text-xs text-gray-500\">24h Change</span>\n        <span className={isPositive ? 'text-green-500' : 'text-red-500'}>\n          {isPositive && '+'}{usdFormatter.format(Number(dailyChange) || 0)} / \n          {isPositive && '+'}{changePercent}%\n        </span>\n      </div>\n    </div>\n  );\n};",
+          "notes": [
+            "The useTickerStream hook manages the WebSocket lifecycle automatically. It will unsubscribe when the component unmounts or the symbol changes.",
+            "Data fields like '24h_change' and 'change' can be null initially. Always perform null checks or optional chaining before rendering.",
+            "The '24h_change' field is a string representation of the price difference, while 'change' is a float multiplier (e.g., 0.05 for 5%).",
+            "Ensure the symbol passed matches the format expected by Orderly (e.g., 'PERP_ETH_USDC').",
+            "This component relies on real-time data, so visual feedback (like a Spinner) is important during the initial connection phase."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React functional components and Hooks (useState)",
+            "Basic understanding of WebSocket streams",
+            "OrderlyProvider setup in the application root"
+          ],
+          "related": ["useTickerStream", "OrderlyProvider", "useOrderlyContext"]
+        },
+        {
+          "name": "SymbolSelection",
+          "description": "A dropdown selector component that allows users to switch between available trading pairs. It fetches market data from Orderly Network and displays the base asset for easy selection.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "required_props": [
+              {
+                "name": "symbol",
+                "type": "string | undefined",
+                "description": "The currently active trading pair symbol (e.g., 'PERP_BTC_USDC')."
+              },
+              {
+                "name": "setSymbol",
+                "type": "React.Dispatch<React.SetStateAction<string | undefined>>",
+                "description": "State dispatcher function to update the selected symbol when a user clicks an option."
+              }
+            ],
+            "optional_props": [],
+            "context": "Must be a descendant of the OrderlyProvider to access market data via the useMarkets hook.",
+            "integration": "1. Import useMarkets and MarketsType from @orderly.network/hooks.\n2. Initialize the hook with useMarkets(MarketsType.ALL) to retrieve the full list of markets.\n3. Handle the loading state if the initial symbol is undefined.\n4. Parse the symbol string (splitting by '_') to extract the base asset for display purposes.\n5. Map over Object.values(markets) to render the list of selectable options."
+          },
+          "example": "import { useMarkets, MarketsType } from '@orderly.network/hooks';\nimport { useState } from 'react';\n\nexport const SymbolSelection = ({ symbol, setSymbol }) => {\n  const [isOpen, setIsOpen] = useState(false);\n\n  // Fetch all available markets (Spot and Perp)\n  // Returns [markets, error, isLoading]\n  const [markets] = useMarkets(MarketsType.ALL);\n\n  // Guard clause for initial load\n  if (!symbol) return <div>Loading...</div>;\n\n  // Extract base asset (e.g., 'BTC' from 'PERP_BTC_USDC')\n  // Note: Index depends on symbol format (TYPE_BASE_QUOTE vs BASE_QUOTE)\n  const [_, base] = symbol.split('_');\n\n  return (\n    <div className=\"symbol-selector\">\n      <button onClick={() => setIsOpen(!isOpen)}>\n        {base}\n      </button>\n\n      {isOpen && (\n        <div className=\"dropdown-list\">\n          {/* markets is an object keyed by symbol, so we iterate values */}\n          {Object.values(markets).map((market) => {\n            const [_, marketBase] = market.symbol.split('_');\n            return (\n              <div\n                key={market.symbol}\n                onClick={() => {\n                  setSymbol(market.symbol);\n                  setIsOpen(false);\n                }}\n              >\n                {marketBase}\n              </div>\n            );\n          })}\n        </div>\n      )}\n    </div>\n  );\n};",
+          "notes": [
+            "The useMarkets hook returns a data object where keys are symbol strings, not an array. You must use Object.values(markets) to iterate.",
+            "Symbol parsing logic (splitting by '_') assumes standard Orderly formatting (e.g., PERP_BTC_USDC). If using SPOT, the format might be BTC_USDC, so the array index for the base asset may change.",
+            "MarketsType.ALL fetches both Spot and Perp markets. Use MarketsType.PERP or MarketsType.SPOT to filter the data source directly if your app only supports one type.",
+            "Ensure the parent component manages the 'symbol' state, as this component is a controlled component.",
+            "TypeScript users should ensure the symbol type matches the MarketInfo['symbol'] type from the SDK for type safety."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React functional components and hooks (useState)",
+            "OrderlyProvider configured at the application root",
+            "Basic understanding of Orderly symbol nomenclature"
+          ],
+          "related": ["useMarkets", "MarketsType", "OrderlyProvider"]
+        }
+      ]
+    },
+    {
+      "name": "Position Components",
+      "patterns": [
+        {
+          "name": "Positions",
+          "description": "A real-time table component displaying user's open trading positions, including quantity, entry price, mark price, unrealized PnL, and liquidation prices. It automatically handles authentication checks and loading states.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": "None strictly required, but typically used to filter by market.",
+            "optionalProps": {
+              "symbol": "string - The trading pair symbol (e.g., 'PERP_ETH_USDC'). If provided and showAll is false, filters for this specific market.",
+              "showAll": "boolean - Defaults to true. If true, fetches all positions; if false, fetches only the position matching the symbol prop."
+            },
+            "context": "Must be a descendant of OrderlyProvider from @orderly.network/hooks.",
+            "integration": "1. Ensure the app is wrapped in OrderlyProvider. 2. Import the component. 3. Pass 'symbol' if you want to isolate a specific market's position, or leave default to show the full portfolio."
+          },
+          "example": "import { useAccount, usePositionStream } from '@orderly.network/hooks';\nimport { AccountStatusEnum } from '@orderly.network/types';\nimport { FC } from 'react';\n\nexport const Positions: FC<{ symbol?: string; showAll?: boolean }> = ({\n  symbol,\n  showAll = true\n}) => {\n  // Fetch real-time position data.\n  // If showAll is true, symbol is undefined (fetches all).\n  // If showAll is false, fetches specific symbol.\n  const [positions, _info, { isLoading }] = usePositionStream(\n    showAll ? undefined : symbol\n  );\n\n  // Check account authentication status\n  const { state } = useAccount();\n\n  // Guard clause: Do not render if user is not signed in\n  if (state.status <= AccountStatusEnum.NotSignedIn) {\n    return null;\n  }\n\n  // Loading state\n  if (!positions.rows || isLoading) {\n    return <div>Loading positions...</div>;\n  }\n\n  return (\n    <table>\n      <thead>\n        <tr>\n          <th>Symbol</th>\n          <th>Side</th>\n          <th>Size</th>\n          <th>Unrealized PnL</th>\n          <th>Liq. Price</th>\n        </tr>\n      </thead>\n      <tbody>\n        {positions.rows.map((position) => (\n          <tr key={position.symbol}>\n            <td>{position.symbol}</td>\n            <td>\n              {/* Determine Long or Short based on quantity */}\n              <span style={{ color: position.position_qty > 0 ? 'green' : 'red' }}>\n                {position.position_qty > 0 ? 'Long' : 'Short'}\n              </span>\n            </td>\n            <td>{Math.abs(position.position_qty)}</td>\n            <td>\n              {position.unrealized_pnl.toFixed(2)} USD \n              ({(position.unrealized_pnl_ROI * 100).toFixed(2)}%)\n            </td>\n            <td>\n              {/* Liquidation price might be null if position is safe/closed */}\n              {position.est_liq_price ? position.est_liq_price.toFixed(2) : '-'}\n            </td>\n          </tr>\n        ))}\n      </tbody>\n    </table>\n  );\n};",
+          "notes": [
+            "The `usePositionStream` hook establishes a WebSocket connection, so updates happen in real-time without manual refetching.",
+            "Always check `state.status` against `AccountStatusEnum` before rendering sensitive financial data to avoid errors or empty states for unauthenticated users.",
+            "`position_qty` indicates the direction: positive values are Long, negative values are Short.",
+            "The `est_liq_price` can be null, especially if the position is very small or the account has a high margin ratio; always add a null check when rendering.",
+            "PnL ROI is returned as a decimal (e.g., 0.05 for 5%), so multiply by 100 for display."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React functional components knowledge",
+            "OrderlyProvider setup in the application root",
+            "Basic understanding of trading concepts (Long/Short, PnL, Liquidation)"
+          ],
+          "related": ["usePositionStream", "useAccount", "AccountStatusEnum", "useOrderStream"]
+        },
+        {
+          "name": "UpdatePosition",
+          "description": "A modal component for managing open trading positions. It displays real-time position metrics (PnL, Entry Price, Liquidation Price) and provides a tabbed interface to execute position management actions such as closing the position, setting stop-market orders, or configuring take-profit/stop-loss limits.",
+          "installation": "npm install @orderly.network/types",
+          "usage": {
+            "requiredProps": {
+              "position": "API.PositionExt - The position object containing symbol, quantity, prices, and PnL data."
+            },
+            "optionalProps": "None. The component manages its own open/close state internally.",
+            "context": "While this component itself doesn't strictly require a Context Provider, the child components (ClosePosition, StopOrder, TpSlOrder) typically rely on OrderlyProvider or Wallet context to execute transactions.",
+            "integration": "Import the component and pass a valid position object retrieved from the Orderly API or a hook like usePositions. Ensure you have the required child components (ClosePosition, StopOrder, TpSlOrder) implemented or imported."
+          },
+          "example": "import { API } from '@orderly.network/types';\nimport { useState } from 'react';\nimport { Dialog, Tabs, Button } from '@radix-ui/themes';\n\n// Mock child components for demonstration\nconst ClosePosition = ({ position, setOpen }: any) => <div>Close Logic for {position.symbol}</div>;\nconst StopOrder = ({ position, setOpen }: any) => <div>Stop Logic for {position.symbol}</div>;\nconst TpSlOrder = ({ position, setOpen }: any) => <div>TP/SL Logic for {position.symbol}</div>;\n\nexport const UpdatePosition = ({ position }: { position: API.PositionExt }) => {\n  const [open, setOpen] = useState(false);\n\n  // Parse symbol (e.g., \"PERP_BTC_USDC\" -> [\"PERP\", \"BTC\", \"USDC\"])\n  const [_, base, quote] = position.symbol.split('_');\n\n  // Utility for formatting currency\n  const formatUSD = (val: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);\n\n  return (\n    <Dialog.Root open={open} onOpenChange={setOpen}>\n      <Dialog.Trigger>\n        <Button>Update Position</Button>\n      </Dialog.Trigger>\n      \n      <Dialog.Content\n        className=\"max-w-md\"\n        onInteractOutside={(e) => e.preventDefault()} // Prevent accidental closing\n      >\n        <Dialog.Title>\n          Update Position: {base}/{quote}\n        </Dialog.Title>\n\n        {/* Position Metrics Grid */}\n        <div className=\"grid grid-cols-2 gap-4 my-4\">\n          <div>\n            <div className=\"text-gray-500\">Quantity</div>\n            <div className=\"font-bold\">{position.position_qty}</div>\n          </div>\n          <div>\n            <div className=\"text-gray-500\">Mark Price</div>\n            <div className=\"font-bold\">{formatUSD(position.mark_price)}</div>\n          </div>\n          <div>\n            <div className=\"text-gray-500\">Unreal. PnL</div>\n            <div className={position.unrealized_pnl >= 0 ? \"text-green-500\" : \"text-red-500\"}>\n              {formatUSD(position.unrealized_pnl)}\n            </div>\n          </div>\n          <div>\n            <div className=\"text-gray-500\">Est. Liq Price</div>\n            <div className=\"font-bold\">\n              {position.est_liq_price ? formatUSD(position.est_liq_price) : '-'}\n            </div>\n          </div>\n        </div>\n\n        {/* Action Tabs */}\n        <Tabs.Root defaultValue=\"close\">\n          <Tabs.List>\n            <Tabs.Trigger value=\"close\">Close</Tabs.Trigger>\n            <Tabs.Trigger value=\"stop\">Stop</Tabs.Trigger>\n            <Tabs.Trigger value=\"tp_sl\">TP / SL</Tabs.Trigger>\n          </Tabs.List>\n\n          <Tabs.Content value=\"close\">\n            <ClosePosition position={position} setOpen={setOpen} />\n          </Tabs.Content>\n          <Tabs.Content value=\"stop\">\n            <StopOrder position={position} setOpen={setOpen} />\n          </Tabs.Content>\n          <Tabs.Content value=\"tp_sl\">\n            <TpSlOrder position={position} setOpen={setOpen} />\n          </Tabs.Content>\n        </Tabs.Root>\n      </Dialog.Content>\n    </Dialog.Root>\n  );\n};",
+          "notes": [
+            "The component assumes the position symbol follows the format TYPE_BASE_QUOTE (e.g., PERP_BTC_USDC). Adjust the split logic if your data format differs.",
+            "The `onInteractOutside` handler prevents the modal from closing when clicking the backdrop. This is a UX choice to prevent accidental dismissal during trading actions.",
+            "Child components (`ClosePosition`, `StopOrder`, `TpSlOrder`) receive the `setOpen` function. This allows them to programmatically close the modal after successfully submitting an order to the blockchain.",
+            "Ensure `API.PositionExt` is populated with accurate `mark_price` and `est_liq_price` to avoid misleading UI information.",
+            "This component relies heavily on Radix UI primitives. Ensure your project has `@radix-ui/themes` installed and configured."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Functional Components",
+            "Radix UI (Dialog, Tabs)",
+            "Orderly Network Position Data Structure (API.PositionExt)"
+          ],
+          "related": ["usePositions", "API.PositionExt", "OrderlyProvider"]
+        },
+        {
+          "name": "ClosePosition",
+          "description": "A form component designed to close or reduce an existing trading position. It utilizes the useOrderEntry hook to construct a Market order with reduce_only enabled, automatically determining the correct side (Buy/Sell) based on the current position quantity.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": "This component requires a position object (API.PositionExt) and a state setter to close the modal/dialog upon completion. It must be used within an OrderlyProvider context. The component initializes the order entry hook with specific parameters: side is opposite to the position, type is MARKET, and reduce_only is true.",
+          "example": "import { useOrderEntry, useSymbolsInfo } from '@orderly.network/hooks';\nimport { OrderSide, OrderType } from '@orderly.network/types';\nimport { useState } from 'react';\nimport type { API } from '@orderly.network/types';\n\ntype Props = {\n  position: API.PositionExt;\n  setOpen: (open: boolean) => void;\n};\n\nexport const ClosePosition = ({ position, setOpen }: Props) => {\n  const [loading, setLoading] = useState(false);\n  const symbolsInfo = useSymbolsInfo();\n\n  // Determine the side: Long positions need SELL orders to close, Short need BUY\n  const closeSide = position.position_qty > 0 ? OrderSide.SELL : OrderSide.BUY;\n  const maxQty = Math.abs(position.position_qty);\n\n  // Initialize the order entry hook with a reduce-only market order\n  const { submit, setValue, formattedOrder, metaState } = useOrderEntry(position.symbol, {\n    initialOrder: {\n      side: closeSide,\n      order_type: OrderType.MARKET,\n      order_quantity: String(maxQty),\n      reduce_only: true // Critical: ensures we only reduce the position, not open a new one\n    }\n  });\n\n  const submitForm = async (e: React.FormEvent) => {\n    e.preventDefault();\n    setLoading(true);\n    try {\n      await submit();\n      setOpen(false); // Close modal on success\n    } catch (err) {\n      console.error('Failed to close position', err);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  if (symbolsInfo.isNil) return <div>Loading symbol info...</div>;\n\n  const symbolInfo = symbolsInfo[position.symbol]();\n\n  return (\n    <form onSubmit={submitForm}>\n      <div>\n        <label>Quantity ({position.symbol.split('_')[1]})</label>\n        <input\n          type=\"number\"\n          value={formattedOrder.order_quantity}\n          onChange={(e) => setValue('order_quantity', e.target.value)}\n          max={maxQty}\n          step={symbolInfo.base_tick}\n        />\n      </div>\n\n      {/* Slider for quick percentage selection */}\n      <input\n        type=\"range\"\n        min=\"0\"\n        max={maxQty}\n        step={symbolInfo.base_tick}\n        value={formattedOrder.order_quantity}\n        onChange={(e) => setValue('order_quantity', e.target.value)}\n      />\n\n      <button type=\"submit\" disabled={loading}>\n        {loading ? 'Closing...' : 'Close Position'}\n      </button>\n    </form>\n  );\n};",
+          "notes": [
+            "Always set reduce_only to true in the initialOrder config to prevent accidentally opening a new position in the opposite direction.",
+            "The order side is dynamically calculated: if position_qty is positive (Long), you must Sell to close; if negative (Short), you must Buy to close.",
+            "Use Math.abs(position_qty) to determine the maximum quantity the user can input.",
+            "The useSymbolsInfo hook is essential to fetch the 'base_tick' for the slider/input step to ensure precision compliance.",
+            "Ensure the component is unmounted or reset after successful submission to prevent state leakage if the modal is reused."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Understanding of Orderly Position data structure (API.PositionExt)",
+            "Familiarity with useOrderEntry hook",
+            "Understanding of Order Types (Market) and Order Sides (Buy/Sell)"
+          ],
+          "related": ["useOrderEntry", "usePositions", "useSymbolsInfo", "API.Position"]
+        }
+      ]
+    },
+    {
+      "name": "Order Components",
+      "patterns": [
+        {
+          "name": "PendingOrders",
+          "description": "A component that renders a real-time list of open or incomplete orders for a specific trading symbol or all symbols. It handles fetching, loading states, and provides actions to cancel standard and algorithmic orders.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": "This component relies on the `useOrderStream` hook to subscribe to order updates via WebSocket and `useAccount` to handle authentication states. It accepts a `symbol` prop to filter orders and an optional `showAll` prop to toggle between symbol-specific and global views. The component automatically hides if the user is not signed in.",
+          "example": "import { useAccount, useOrderStream } from '@orderly.network/hooks';\nimport { API, AccountStatusEnum, OrderStatus } from '@orderly.network/types';\nimport { FC } from 'react';\n\nexport const PendingOrders: FC<{ symbol: string; showAll?: boolean }> = ({\n  symbol,\n  showAll = true\n}) => {\n  // 1. Setup Account Context to check auth status\n  const { state } = useAccount();\n\n  // 2. Subscribe to order stream\n  // - symbol: undefined fetches all symbols, specific string filters by symbol\n  // - status: INCOMPLETE covers open, partially_filled, new, etc.\n  const [orders, { cancelOrder, cancelAlgoOrder, isLoading }] = useOrderStream({\n    symbol: showAll ? undefined : symbol,\n    status: OrderStatus.INCOMPLETE\n  });\n\n  // 3. Guard clause: Do not render if user is not authenticated\n  if (state.status <= AccountStatusEnum.NotSignedIn) {\n    return null;\n  }\n\n  // 4. Handle loading state\n  if (!orders || isLoading) {\n    return <div>Loading orders...</div>;\n  }\n\n  return (\n    <div className=\"order-list\">\n      {orders.map((order) => {\n        // 5. Type Guard: Distinguish between AlgoOrders and standard Orders\n        // AlgoOrders have an 'algo_order_id' property\n        const isAlgo = !!(order as API.AlgoOrder).algo_order_id;\n        \n        return (\n          <div key={isAlgo ? (order as API.AlgoOrder).algo_order_id : (order as API.Order).order_id}>\n            <span>{(order as API.Order).symbol}</span>\n            <span>{(order as API.Order).side}</span>\n            <span>{(order as API.Order).quantity}</span>\n            <button \n              onClick={() => isAlgo \n                ? cancelAlgoOrder((order as API.AlgoOrder).algo_order_id) \n                : cancelOrder((order as API.Order).order_id)}\n            >\n              Cancel\n            </button>\n          </div>\n        );\n      })}\n    </div>\n  );\n};",
+          "notes": [
+            "The hook `useOrderStream` returns a tuple where the first element is the array of orders and the second is an object containing action functions like `cancelOrder`.",
+            "TypeScript users should note that `useOrderStream` may return a union type of `API.Order` and `API.AlgoOrder`. You must use type guards (checking for `algo_order_id`) to safely access properties specific to either type.",
+            "`OrderStatus.INCOMPLETE` is the recommended status filter for 'Pending' or 'Open' order books, as it includes 'NEW', 'PARTIALLY_FILLED', and 'OPEN' statuses.",
+            "Ensure the `OrderlyProvider` is wrapping your component tree at a higher level for these hooks to function.",
+            "The `cancelOrder` and `cancelAlgoOrder` functions returned by the hook handle the API calls and automatically update the local state via the WebSocket stream."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "OrderlyProvider must be configured in the app root",
+            "Basic understanding of React Hooks",
+            "Understanding of TypeScript Union Types and Type Guards"
+          ],
+          "related": ["useOrderStream", "useAccount", "useCancelOrder", "OrderStatus"]
+        },
+        {
+          "name": "PendingOrder",
+          "description": "A table row component that renders details for a single pending order (standard or algorithmic) and provides a user interface to cancel it. It handles the distinction between regular orders and algo orders using a discriminated union pattern.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": {
+              "order": "A discriminated union object: `{ isAlgoOrder: false; order: API.Order } | { isAlgoOrder: true; order: API.AlgoOrder }`. This structure allows the component to strictly type-check which specific ID and cancel function to use.",
+              "cancelOrder": "Function to cancel a standard order. Signature: `(orderId: number, symbol: string) => Promise<void>`. Usually sourced from `useOrderStream`.",
+              "cancelAlgoOrder": "Function to cancel an algorithmic order. Signature: `(algoOrderId: number, symbol: string) => Promise<void>`. Usually sourced from `useOrderStream`."
+            },
+            "context": "This component is typically used inside a loop mapping over open orders from the `useOrderStream` hook. It relies on a parent component to provide the cancellation functions.",
+            "integration": "1. Retrieve `cancelOrder` and `cancelAlgoOrder` from `useOrderStream` in a parent container.\n2. Map over your list of orders.\n3. Pass the specific order object and the cancel functions to `PendingOrder`.\n4. Ensure a notification system (like `useNotifications`) is available for user feedback."
+          },
+          "example": "import { useOrderStream } from '@orderly.network/hooks';\nimport { API } from '@orderly.network/types';\nimport { FC, useState } from 'react';\n\n// Define the props using a discriminated union for type safety\ninterface PendingOrderProps {\n  order: { isAlgoOrder: false; order: API.Order } | { isAlgoOrder: true; order: API.AlgoOrder };\n  cancelOrder: (orderId: number, symbol: string) => Promise<void>;\n  cancelAlgoOrder: (algoOrderId: number, symbol: string) => Promise<void>;\n}\n\nexport const PendingOrder: FC<PendingOrderProps> = ({ order, cancelOrder, cancelAlgoOrder }) => {\n  const [loading, setLoading] = useState(false);\n\n  // Parse symbol (e.g., \"PERP_ETH_USDC\" -> \"PERP\", \"ETH\", \"USDC\")\n  const [_, base, quote] = order.order.symbol.split('_');\n\n  const handleCancel = async () => {\n    setLoading(true);\n    try {\n      // Orderly SDK Pattern: Use the discriminator to choose the correct API call\n      if (order.isAlgoOrder) {\n        // Algo orders require algo_order_id\n        await cancelAlgoOrder(order.order.algo_order_id, order.order.symbol);\n      } else {\n        // Standard orders require order_id\n        await cancelOrder(order.order.order_id, order.order.symbol);\n      }\n      // Handle success (e.g., close modal, show toast)\n    } catch (error) {\n      console.error('Cancel failed', error);\n      // Handle error\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <tr>\n      <td>{base}/{quote}</td>\n      <td>{order.order.side}</td>\n      <td>{order.order.quantity}</td>\n      <td>\n        <button onClick={handleCancel} disabled={loading}>\n          {loading ? 'Cancelling...' : 'Cancel'}\n        </button>\n      </td>\n    </tr>\n  );\n};",
+          "notes": [
+            "The `isAlgoOrder` property acts as a type discriminator in TypeScript, ensuring you access `algo_order_id` only when it is an algo order, and `order_id` only when it is a standard order.",
+            "Orderly symbols are typically formatted as `TYPE_BASE_QUOTE` (e.g., `PERP_BTC_USDC`). The code splits this string to display trading pair information.",
+            "Always wrap `cancelOrder` and `cancelAlgoOrder` calls in try/catch blocks, as network failures or invalid order states (e.g., already filled) will throw errors.",
+            "The `cancelOrder` and `cancelAlgoOrder` functions are asynchronous. Ensure UI loading states prevent double-submission.",
+            "This component does not fetch data itself; it relies on data passed from `useOrderStream` to ensure real-time consistency."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Understanding of React Hooks (useState)",
+            "Understanding of TypeScript Discriminated Unions",
+            "Familiarity with `useOrderStream` hook"
+          ],
+          "related": ["useOrderStream", "API.Order", "API.AlgoOrder"]
+        },
+        {
+          "name": "OrderTabs",
+          "description": "A navigation wrapper component that organizes trading data views into tabs, allowing users to switch between Open Positions and Pending Orders for a specific trading pair.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "required_props": [
+              {
+                "name": "symbol",
+                "type": "string",
+                "description": "The trading pair symbol (e.g., 'PERP_BTC_USDC') used to filter data in child components."
+              }
+            ],
+            "optional_props": [],
+            "context_needed": "Must be a descendant of an Orderly context provider (e.g., OrderlyProvider) to ensure child components can access account state and hooks.",
+            "integration_steps": "1. Ensure child components (Positions, PendingOrders) are implemented using Orderly hooks. 2. Import OrderTabs into your trading layout. 3. Pass the current market symbol to the component."
+          },
+          "example": "import { Tabs } from '@radix-ui/themes';\nimport { FC } from 'react';\n\n// Assuming these components utilize Orderly hooks like usePositions and useOrders\nimport { PendingOrders, Positions } from './components';\n\nexport const OrderTabs: FC<{ symbol: string }> = ({ symbol }) => {\n  return (\n    <Tabs.Root defaultValue=\"positions\" className=\"flex-1\">\n      <Tabs.List>\n        <Tabs.Trigger value=\"positions\">Positions</Tabs.Trigger>\n        <Tabs.Trigger value=\"pending\">Pending</Tabs.Trigger>\n      </Tabs.List>\n\n      {/* Renders positions table for the specific symbol */}\n      <Tabs.Content value=\"positions\">\n        <Positions symbol={symbol} showAll={true} />\n      </Tabs.Content>\n\n      {/* Renders pending orders table for the specific symbol */}\n      <Tabs.Content value=\"pending\">\n        <PendingOrders symbol={symbol} showAll={true} />\n      </Tabs.Content>\n    </Tabs.Root>\n  );\n};",
+          "notes": [
+            "The component hardcodes `showAll={true}` for child components. If you need to filter by specific order types or statuses, modify the props passed to children.",
+            "Uses Radix UI for accessible tab management. Ensure your project has Radix themes configured.",
+            "This component acts as a layout orchestrator; the actual SDK logic (fetching data) resides within the `Positions` and `PendingOrders` child components.",
+            "Ensure the `symbol` format matches the specific broker or chain configuration (e.g., including 'PERP_' prefix)."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React functional components",
+            "Radix UI setup",
+            "Orderly Provider context setup",
+            "Child components: Positions, PendingOrders"
+          ],
+          "related": ["usePositions", "useOrders", "Positions", "PendingOrders"]
+        },
+        {
+          "name": "TpSlOrder",
+          "description": "A React component for creating and managing Take Profit (TP) and Stop Loss (SL) orders against an existing trading position. It integrates with Orderly's algorithmic order system to calculate estimated PnL and handle order submission.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": {
+              "position": "API.PositionExt - The position object to attach the TP/SL order to. Must contain symbol, quantity, and average open price."
+            },
+            "optionalProps": {
+              "setOpen": "Dispatch<SetStateAction<boolean>> - Callback to close the modal/dialog upon successful order creation."
+            },
+            "context": "Requires the application to be wrapped within OrderlyProvider (from @orderly.network/hooks) to access wallet and account context.",
+            "integration": "1. Fetch symbol info using useSymbolsInfo to determine decimal precision.\n2. Initialize useTPSLOrder hook with the target position.\n3. Use a form library (e.g., react-hook-form) to manage user input.\n4. Sync form state to the Orderly hook using setValue to trigger real-time PnL calculations.\n5. Call submit() to execute the order."
+          },
+          "example": "import { useTPSLOrder, useSymbolsInfo } from '@orderly.network/hooks';\nimport { API } from '@orderly.network/types';\nimport { useEffect } from 'react';\nimport { useForm, Controller, SubmitHandler } from 'react-hook-form';\n\n// Define inputs matching the Orderly hook expectations\ntype OrderInputs = {\n  tp_trigger_price?: string;\n  sl_trigger_price?: string;\n  quantity?: string;\n};\n\nexport const TpSlOrderExample = ({ position, onClose }: { position: API.PositionExt; onClose: () => void }) => {\n  // 1. Access Orderly Hooks\n  const symbolsInfo = useSymbolsInfo();\n  const [algoOrder, { setValue, submit, errors }] = useTPSLOrder(position);\n\n  // 2. Setup Form State\n  const { control, watch, handleSubmit } = useForm<OrderInputs>({\n    defaultValues: {\n      quantity: String(Math.abs(position.position_qty))\n    }\n  });\n\n  // 3. Sync Form -> Orderly Hook (Crucial for PnL calculation)\n  const watchedValues = watch();\n  useEffect(() => {\n    if (watchedValues.tp_trigger_price) setValue('tp_trigger_price', watchedValues.tp_trigger_price);\n    if (watchedValues.sl_trigger_price) setValue('sl_trigger_price', watchedValues.sl_trigger_price);\n    if (watchedValues.quantity) setValue('quantity', watchedValues.quantity);\n  }, [watchedValues, setValue]);\n\n  // 4. Handle Submission\n  const onSubmit: SubmitHandler<OrderInputs> = async () => {\n    try {\n      await submit();\n      onClose(); // Close modal on success\n    } catch (err) {\n      console.error('Order failed', err);\n    }\n  };\n\n  if (symbolsInfo.isNil) return <div>Loading...</div>;\n\n  const symbolInfo = symbolsInfo[position.symbol]();\n\n  return (\n    <form onSubmit={handleSubmit(onSubmit)}>\n      {/* TP Input */}\n      <Controller\n        name=\"tp_trigger_price\"\n        control={control}\n        render={({ field }) => (\n          <input\n            {...field}\n            placeholder=\"TP Price\"\n            className={errors?.tp_trigger_price ? 'error' : ''}\n          />\n        )}\n      />\n      <div>Est. PnL: {algoOrder.tp_pnl}</div>\n\n      {/* SL Input */}\n      <Controller\n        name=\"sl_trigger_price\"\n        control={control}\n        render={({ field }) => (\n          <input\n            {...field}\n            placeholder=\"SL Price\"\n            className={errors?.sl_trigger_price ? 'error' : ''}\n          />\n        )}\n      />\n      <div>Est. PnL: {algoOrder.sl_pnl}</div>\n\n      {/* Quantity Input */}\n      <Controller\n        name=\"quantity\"\n        control={control}\n        render={({ field }) => (\n          <input\n            {...field}\n            type=\"number\"\n            max={Math.abs(position.position_qty)}\n          />\n        )}\n      />\n\n      <button type=\"submit\">Create Order</button>\n    </form>\n  );\n};",
+          "notes": [
+            "State Synchronization: The component uses a specific pattern where `useEffect` watches form fields and calls `setValue` on the Orderly hook. This is required because the hook needs to recalculate PnL (`algoOrder.tp_pnl`) whenever inputs change.",
+            "Decimal Precision: Always use `useSymbolsInfo` to fetch `tick_size` or `min_order_qty` to format inputs correctly. Sending raw numbers without respecting decimals can cause API errors.",
+            "Quantity Handling: The default quantity is usually the absolute value of the current position size (`Math.abs(position.position_qty)`).",
+            "Error Handling: The `errors` object returned by `useTPSLOrder` contains specific validation messages (e.g., 'Trigger price must be greater than mark price') which should be displayed to the user.",
+            "Position Side: The hook automatically handles logic for Long vs. Short positions based on the `position` prop passed to it."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Familiarity with React Hook Form",
+            "Understanding of Trading concepts (Long/Short, PnL, Trigger Prices)",
+            "Basic knowledge of Orderly Position data structure"
+          ],
+          "related": ["useTPSLOrder", "useSymbolsInfo", "usePositions", "useAlgoOrders"]
+        },
+        {
+          "name": "StopOrder",
+          "description": "A specialized form component for creating Stop Market orders (Stop Loss or Take Profit) to close existing positions. It calculates estimated PnL and handles the logic for determining order sides based on position direction.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types @orderly.network/perp",
+          "usage": {
+            "requiredProps": [
+              {
+                "name": "position",
+                "type": "API.PositionExt",
+                "description": "The position object containing symbol, quantity, and average open price data."
+              }
+            ],
+            "optionalProps": [
+              {
+                "name": "setOpen",
+                "type": "Dispatch<SetStateAction<boolean>>",
+                "description": "Callback function to close the modal or dialog upon successful submission."
+              }
+            ],
+            "context": "Requires the application to be wrapped within Orderly's context provider (usually via `OrderlyProvider` or `WalletProvider` from `@orderly.network/hooks`).",
+            "integration": "1. Import the component into your trading interface. 2. Pass the specific `API.PositionExt` object retrieved from a positions list. 3. The component automatically determines if the user is Long or Short and sets the default order side accordingly (e.g., Longs default to Sell for Take Profit)."
+          },
+          "example": "import { useOrderEntry, useSymbolsInfo } from '@orderly.network/hooks';\nimport { positions } from '@orderly.network/perp';\nimport { API, OrderSide, OrderType } from '@orderly.network/types';\nimport { useState } from 'react';\n\nexport const StopOrderExample = ({ position, onClose }: { position: API.PositionExt; onClose: () => void }) => {\n  const [loading, setLoading] = useState(false);\n  const symbolsInfo = useSymbolsInfo();\n\n  // Determine position side\n  const isLong = position.position_qty > 0;\n\n  // Initialize the order entry hook with STOP_MARKET type\n  const {\n    submit,\n    setValue,\n    formattedOrder,\n    metaState: { errors, dirty, submitted }\n  } = useOrderEntry(position.symbol, {\n    initialOrder: {\n      side: isLong ? OrderSide.SELL : OrderSide.BUY,\n      order_type: OrderType.STOP_MARKET,\n      trigger_price: undefined,\n      order_quantity: String(Math.abs(position.position_qty))\n    }\n  });\n\n  if (symbolsInfo.isNil) return <div>Loading...</div>;\n\n  const symbolInfo = symbolsInfo[position.symbol]();\n\n  // Calculate estimated PnL for the stop order\n  const estimatedPnl = positions.unrealizedPnL({\n    qty: Number(formattedOrder.order_quantity ?? 0),\n    openPrice: position.average_open_price,\n    markPrice: Number(formattedOrder.trigger_price ?? 0)\n  });\n\n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    setLoading(true);\n    try {\n      await submit();\n      onClose(); // Close modal on success\n    } catch (err) {\n      console.error('Order failed', err);\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit}>\n      {/* Toggle for Take Profit vs Stop Loss */}\n      <div className=\"flex gap-2 mb-4\">\n        <button\n          type=\"button\"\n          onClick={() => setValue('side', isLong ? OrderSide.SELL : OrderSide.BUY)}\n        >\n          Take Profit\n        </button>\n        <button\n          type=\"button\"\n          onClick={() => setValue('side', isLong ? OrderSide.BUY : OrderSide.SELL)}\n        >\n          Stop Loss\n        </button>\n      </div>\n\n      {/* Trigger Price Input */}\n      <div className=\"mb-4\">\n        <label>Trigger Price</label>\n        <input\n          type=\"number\"\n          value={formattedOrder.trigger_price || ''}\n          onChange={(e) => setValue('trigger_price', e.target.value)}\n        />\n      </div>\n\n      {/* Quantity Input */}\n      <div className=\"mb-4\">\n        <label>Quantity</label>\n        <input\n          type=\"number\"\n          value={formattedOrder.order_quantity || ''}\n          onChange={(e) => setValue('order_quantity', e.target.value)}\n        />\n      </div>\n\n      {/* Display Estimated PnL */}\n      <div className=\"mb-4\">\n        Est. PnL: {estimatedPnl.toFixed(2)} USD\n      </div>\n\n      <button type=\"submit\" disabled={loading}>\n        {loading ? 'Submitting...' : 'Place Stop Order'}\n      </button>\n    </form>\n  );\n};",
+          "notes": [
+            "The component uses `OrderType.STOP_MARKET`. Ensure you do not confuse this with `OrderType.LIMIT` or `OrderType.MARKET`, as Stop orders require a `trigger_price`.",
+            "The `useOrderEntry` hook manages form state and validation. Accessing `errors` from `metaState` allows you to display real-time validation feedback to the user.",
+            "PnL calculation is client-side estimation using `positions.unrealizedPnL`. It relies on the `trigger_price` input by the user, so it updates dynamically as they type.",
+            "When closing a position, the logic for 'Take Profit' vs 'Stop Loss' is inverse to opening a position: Longs close by Selling, Shorts close by Buying.",
+            "Ensure `useSymbolsInfo` has loaded before rendering inputs that depend on `symbolInfo` (like decimal precision)."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Understanding of Orderly Network Position data structure (API.PositionExt)",
+            "Familiarity with `useOrderEntry` hook for form state management",
+            "Knowledge of Order Types (STOP_MARKET vs LIMIT)"
+          ],
+          "related": [
+            "useOrderEntry",
+            "useSymbolsInfo",
+            "positions.unrealizedPnL",
+            "OrderType.STOP_MARKET"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Wallet Components",
+      "patterns": [
+        {
+          "name": "ConnectWalletButton",
+          "description": "A unified wallet connection interface that abstracts the complexity of managing both EVM (via Web3Onboard) and Solana (via Solana Wallet Adapter) connections. This component serves as the primary entry point for users to authenticate with an Orderly Network-enabled application.",
+          "installation": "None (This component manages wallet adapters required to initialize the Orderly SDK. Install @web3-onboard/core and @solana/wallet-adapter-react for the underlying infrastructure).",
+          "usage": {
+            "props": "None. This is a self-contained UI component.",
+            "context": "Requires the application to be wrapped in the following providers:\n1. Web3OnboardProvider (for EVM)\n2. WalletProvider (for Solana)\n3. WalletModalProvider (for Solana UI)",
+            "integration": "Place this component in your application's header or navigation bar. It handles the state management for opening/closing the connection dialog and routing the user to the appropriate wallet selection modal based on their chosen chain (EVM vs Solana)."
+          },
+          "example": "import { useConnectWallet } from '@web3-onboard/react';\nimport { useWalletModal } from '@solana/wallet-adapter-react-ui';\nimport { useWalletMultiButton } from '@solana/wallet-adapter-base-ui';\nimport { useState, useEffect } from 'react';\n\nexport const ConnectWalletButton = () => {\n  const [open, setOpen] = useState(false);\n\n  // EVM Hook: Handles connection to Ethereum-compatible chains\n  const [{ wallet: evmWallet }, connectEvmWallet] = useConnectWallet();\n\n  // Solana Hooks: Handles connection to Solana chain\n  const { setVisible: setSolanaModalVisible } = useWalletModal();\n  const { buttonState, onConnect } = useWalletMultiButton({\n    onSelectWallet() {\n      setSolanaModalVisible(true);\n    }\n  });\n\n  // Auto-connect logic for Solana if a wallet is already detected\n  useEffect(() => {\n    if (buttonState === 'has-wallet' && onConnect) {\n      onConnect();\n    }\n  }, [buttonState, onConnect]);\n\n  const handleEvmConnect = async () => {\n    if (evmWallet) return;\n    await connectEvmWallet();\n  };\n\n  const handleSolanaConnect = () => {\n    setOpen(false);\n    if (buttonState === 'no-wallet') {\n      setSolanaModalVisible(true);\n    } else if (buttonState === 'has-wallet' && onConnect) {\n      onConnect();\n    }\n  };\n\n  return (\n    <div>\n      <button onClick={() => setOpen(true)}>Connect Wallet</button>\n      \n      {open && (\n        <div className=\"modal\">\n          <button onClick={handleEvmConnect}>Connect EVM Wallet</button>\n          <button onClick={handleSolanaConnect}>Connect Solana Wallet</button>\n          <button onClick={() => setOpen(false)}>Close</button>\n        </div>\n      )}\n    </div>\n  );\n};",
+          "notes": [
+            "Dual-Adapter Architecture: Orderly Network supports cross-chain trading. This pattern demonstrates how to bridge two distinct web3 ecosystems (Web3Onboard for EVM and Wallet Adapter for Solana) in a single UI.",
+            "State Synchronization: The Solana adapter uses a specific 'buttonState' machine ('no-wallet', 'has-wallet', 'connecting', 'connected'). Ensure your UI logic handles these states correctly to avoid duplicate modal triggers.",
+            "Provider Hierarchy: Solana's WalletModalProvider must be a child of WalletProvider. Failing to wrap the app correctly will cause 'useWalletModal' to throw a context error.",
+            "EVM Check: The code checks `if (evmWallet) return;` before attempting to connect. This prevents re-triggering the connection flow if the user is already connected on the EVM side."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React Context API knowledge",
+            "Configuration of Web3Onboard (EVM)",
+            "Configuration of Solana Wallet Adapter"
+          ],
+          "related": ["useAccount", "useOrderlyContext"]
+        },
+        {
+          "name": "EvmDropdownMenu",
+          "description": "A dropdown menu component for managing EVM wallet connections within the Orderly Network ecosystem. It displays the current connected address and chain icon, allows users to switch between supported Mainnet and Testnet networks, and handles the disconnection process by coordinating between Orderly's account state and the Web3 wallet provider.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "requiredProps": "None (This component is self-contained in the example).",
+            "optionalProps": "None.",
+            "contextProviders": "Requires the application to be wrapped in Web3Onboard's provider (for useConnectWallet, useSetChain) and Orderly's context provider (for useAccountInstance).",
+            "integrationSteps": "1. Ensure you have a configuration array for supported chains (e.g., supportedEvmChains) containing id, icon, label, and network type. 2. Import the component into your layout or header. 3. Ensure Web3Onboard is initialized at the root of your application."
+          },
+          "example": "import { useAccountInstance } from '@orderly.network/hooks';\nimport { useConnectWallet, useSetChain, useWallets } from '@web3-onboard/react';\nimport { FC } from 'react';\n\n// Define your supported chains configuration locally or import from config\nconst supportedEvmChains = [\n  { id: '0x1', label: 'Ethereum', icon: '/path/to/eth-icon.png', network: 'mainnet' },\n  { id: '0x89', label: 'Polygon', icon: '/path/to/poly-icon.png', network: 'mainnet' },\n  { id: '0xa4b1', label: 'Arbitrum', icon: '/path/to/arb-icon.png', network: 'testnet' }\n];\n\nexport const EvmDropdownMenu: FC = () => {\n  // 1. Access Orderly's account abstraction layer\n  const account = useAccountInstance();\n  \n  // 2. Access Web3Onboard hooks for wallet control\n  const [_, setChain] = useSetChain();\n  const [__, ___, disconnect] = useConnectWallet();\n  const connectedWallets = useWallets();\n\n  // 3. Determine current chain icon\n  const chainIcon = supportedEvmChains.find(({ id }) => id === account.chainId)?.icon;\n\n  const selectChain = (chainId: string) => () => {\n    // Triggers the wallet provider to request a network switch\n    setChain({ chainId });\n  };\n\n  const handleDisconnect = () => {\n    // 4. Critical: Disconnect from Orderly first\n    account.disconnect();\n    \n    // 5. Then disconnect the underlying wallet\n    if (connectedWallets.length > 0) {\n      disconnect({ label: connectedWallets[0].label });\n    }\n    \n    // Cleanup local storage state if applicable\n    window.localStorage.removeItem('chain-namespace');\n  };\n\n  return (\n    <div className=\"dropdown-container\">\n      <button className=\"trigger-button\">\n        {chainIcon && <img src={chainIcon} alt=\"chain\" />}\n        {`${account.address?.substring(0, 6)}...${account.address?.substr(-4)}`}\n      </button>\n      \n      <div className=\"dropdown-content\">\n        {/* Render Mainnet Options */}\n        {supportedEvmChains\n          .filter(({ network }) => network === 'mainnet')\n          .map(({ id, icon, label }) => (\n            <div \n              key={id} \n              onClick={selectChain(id)}\n              style={{ opacity: account.chainId === id ? 0.5 : 1 }}\n            >\n              <img src={icon} alt={label} /> {label}\n            </div>\n          ))}\n          \n        {/* Render Testnet Options */}\n        {/* ... similar mapping for testnet ... */}\n          \n        <div onClick={handleDisconnect}>\n          Disconnect\n        </div>\n      </div>\n    </div>\n  );\n};",
+          "notes": [
+            "Dual Disconnect Logic: Always call account.disconnect() before the wallet provider's disconnect method. This ensures the Orderly SDK clears its local state and session keys properly.",
+            "Chain Switching: The setChain function from Web3Onboard handles the user prompt to switch networks in their wallet (e.g., MetaMask). Orderly's useAccountInstance will reactively update once the chain change is confirmed on-chain.",
+            "State Synchronization: This component relies on the fact that useAccountInstance reflects the state of the connected wallet. If you switch chains outside this component, the UI will update automatically.",
+            "Type Safety: Ensure the chain IDs in your supportedEvmChains configuration match the hex strings (e.g., '0x1') expected by Web3Onboard and returned by account.chainId.",
+            "Storage Cleanup: The example includes window.localStorage.removeItem('chain-namespace'). This is specific to the example-dex implementation for persisting app preferences and may not be necessary for all integrations."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Web3Onboard provider initialized at the app root",
+            "Orderly Context provider initialized",
+            "Basic understanding of EVM chain IDs (Hex format)",
+            "Configuration object for supported chains"
+          ],
+          "related": ["useAccountInstance", "useConnectWallet"]
+        },
+        {
+          "name": "SolanaDropdownMenu",
+          "description": "A UI component that manages wallet connection state and network selection for Solana within the Orderly ecosystem. It displays the truncated wallet address and current chain icon, while providing options to switch networks or fully disconnect the session.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "required_props": [],
+            "optional_props": "None (this specific implementation relies on Context hooks rather than props).",
+            "context_providers": "Requires the application to be wrapped in OrderlyProvider and Solana Wallet Adapter providers (WalletProvider, ConnectionProvider).",
+            "integration_steps": "1. Ensure the Orderly context is active. 2. Use the useAccountInstance hook to access account details (address, chainId) and the disconnect method. 3. Integrate with a custom network provider (like SolanaProvider in the example) to handle chain switching logic. 4. Ensure the disconnect handler clears both Orderly state and the underlying wallet adapter state."
+          },
+          "example": "import React, { FC } from 'react';\nimport { useAccountInstance } from '@orderly.network/hooks';\nimport { useWallet } from '@solana/wallet-adapter-react';\nimport { DropdownMenu } from '@radix-ui/themes';\n\n// Define your supported chains configuration\nconst SUPPORTED_CHAINS = [\n  { id: 1115, network: 'orderly', label: 'Orderly Testnet', icon: '/path/to/icon.png' },\n  // ... other chains\n];\n\nexport const SolanaDropdownMenu: FC = () => {\n  // 1. Access Orderly account state and methods\n  const account = useAccountInstance();\n  \n  // 2. Access Solana wallet adapter methods\n  const { disconnect } = useWallet();\n\n  // 3. Determine current chain icon (assuming you have a mapping logic)\n  const currentChain = SUPPORTED_CHAINS.find(c => c.id === account.chainId);\n\n  const handleDisconnect = () => {\n    // 4. Critical: Disconnect from Orderly\n    account.disconnect();\n    \n    // 5. Critical: Disconnect from Solana Wallet Adapter\n    disconnect();\n    \n    // 6. Cleanup local storage or app state if necessary\n    window.localStorage.removeItem('chain-namespace');\n  };\n\n  return (\n    <DropdownMenu.Root>\n      <DropdownMenu.Trigger>\n        <button>\n          {currentChain && <img src={currentChain.icon} alt=\"chain\" />}\n          {/* Display truncated address from Orderly account */}\n          {account.address ? `${account.address.substring(0, 6)}...${account.address.substr(-4)}` : 'Connect'}\n        </button>\n      </DropdownMenu.Trigger>\n      \n      <DropdownMenu.Content>\n        {SUPPORTED_CHAINS.map((chain) => (\n          <DropdownMenu.Item \n            key={chain.id} \n            onSelect={() => /* Call your network switcher function */ console.log('Switch to', chain.network)}\n          >\n            {chain.label}\n          </DropdownMenu.Item>\n        ))}\n        \n        <DropdownMenu.Separator />\n        \n        <DropdownMenu.Item onSelect={handleDisconnect}>\n          Disconnect\n        </DropdownMenu.Item>\n      </DropdownMenu.Content>\n    </DropdownMenu.Root>\n  );\n};",
+          "notes": [
+            "Dual Disconnect: Always call both account.disconnect() (Orderly) and disconnect() (Wallet Adapter) to ensure the session is fully cleared.",
+            "Chain ID Mapping: The account.chainId returned by Orderly must match your application's internal chain configuration IDs to display the correct icon.",
+            "State Synchronization: When switching networks, ensure your custom provider updates the Orderly context, otherwise the UI may not reflect the change immediately.",
+            "Type Safety: useAccountInstance returns an object where address can be undefined; always add optional chaining (?.) when rendering the address string."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React functional components",
+            "Solana Wallet Adapter setup",
+            "Orderly Provider configuration",
+            "Understanding of React Context API"
+          ],
+          "related": ["useAccountInstance"]
+        },
+        {
+          "name": "WalletConnection",
+          "description": "A unified wallet connection controller that bridges EVM (via Web3Onboard) and Solana (via Wallet Adapter) ecosystems with the Orderly Network SDK. It handles the synchronization of wallet addresses, chain switching, and provider injection into the Orderly context.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": "None (This component consumes context and hooks rather than receiving props).",
+            "optionalProps": "None.",
+            "contextProviders": "Requires the application to be wrapped in Web3OnboardProvider (for EVM) and WalletProvider (for Solana), as well as Orderly's own context provider.",
+            "integrationSteps": [
+              "Ensure Web3Onboard and Solana Wallet Adapter providers are set up at the root of your application.",
+              "Import and place the WalletConnection component in your header or navigation area.",
+              "The component automatically detects wallet changes via useEffect hooks and calls account.setAddress() to update the Orderly SDK state.",
+              "It conditionally renders different UI components (Connect Button vs. Dropdowns) based on connection status."
+            ]
+          },
+          "example": "import { useAccount } from '@orderly.network/hooks';\nimport { ChainNamespace } from '@orderly.network/types';\nimport { useConnectWallet, useSetChain } from '@web3-onboard/react';\nimport { useWallet } from '@solana/wallet-adapter-react';\nimport { useEffect, useMemo } from 'react';\n\nexport const WalletConnection = () => {\n  // Access Orderly's global account state\n  const { account, state } = useAccount();\n\n  // --- EVM Integration ---\n  const [{ wallet: evmWallet }] = useConnectWallet();\n  const [{ connectedChain: connectedEvmChain }] = useSetChain();\n  \n  const evmAddress = useMemo(() => evmWallet?.accounts[0].address, [evmWallet]);\n\n  useEffect(() => {\n    // Sync EVM wallet with Orderly\n    if (evmWallet && connectedEvmChain && evmAddress) {\n      account.setAddress(evmAddress, {\n        chain: {\n          id: connectedEvmChain.id,\n          namespace: ChainNamespace.evm\n        },\n        provider: evmWallet.provider, // Pass the EIP-1193 provider\n        wallet: { name: evmWallet.label }\n      });\n    }\n  }, [account, evmWallet, evmAddress, connectedEvmChain]);\n\n  // --- Solana Integration ---\n  const { signMessage, sendTransaction, publicKey, wallet: solanaWallet } = useWallet();\n  const { connection: solanaConnection } = useConnection();\n\n  const solanaAddress = useMemo(() => publicKey?.toBase58(), [publicKey]);\n\n  useEffect(() => {\n    // Sync Solana wallet with Orderly\n    if (solanaWallet && solanaAddress) {\n      // Note: Orderly uses specific Chain IDs for Solana (900900900 for Mainnet)\n      account.setAddress(solanaAddress, {\n        chain: {\n          id: 900900900, \n          namespace: ChainNamespace.solana\n        },\n        // Solana requires a specific provider structure with signMessage/connection\n        provider: {\n          signMessage,\n          connection: solanaConnection,\n          sendTransaction\n        },\n        wallet: { name: solanaWallet.adapter.name }\n      });\n    }\n  }, [solanaAddress, account, solanaConnection, signMessage, sendTransaction, solanaWallet]);\n\n  // Render UI based on connection state\n  return account.address ? (\n    <div>Connected: {account.address.slice(0, 6)}...</div>\n  ) : (\n    <button>Connect Wallet</button>\n  );\n};",
+          "notes": [
+            "Chain IDs for Solana are hardcoded integers in Orderly (Mainnet: 900900900, Testnet: 901901901), unlike EVM which uses hex strings.",
+            "The provider object structure differs significantly between EVM (standard provider) and Solana (object containing signMessage, connection, and sendTransaction).",
+            "Always check if the wallet address matches the current account address before calling setAddress to prevent unnecessary re-renders or resets.",
+            "The component uses localStorage to persist the 'chain-namespace', allowing the app to remember if the user was on EVM or Solana upon refresh.",
+            "Ensure the Orderly Provider is initialized before this component mounts to avoid 'account is undefined' errors."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Understanding of React Hooks (useEffect, useMemo)",
+            "Setup of Web3Onboard for EVM connections",
+            "Setup of Solana Wallet Adapter for Solana connections",
+            "Familiarity with Orderly's useAccount hook"
+          ],
+          "related": ["useAccount", "ChainNamespace"]
+        }
+      ]
+    },
+    {
+      "name": "Account Components",
+      "patterns": [
+        {
+          "name": "Assets",
+          "description": "A dashboard component that displays and manages user assets, showing the distinction between on-chain wallet balance and Orderly account collateral, while providing interfaces for deposits, withdrawals, and PnL settlement.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": "This component requires no props but relies heavily on the Orderly Context and Web3 connection context. It must be rendered within an application wrapped by the OrderlyProvider. It automatically detects the connected chain to resolve token metadata for deposit/withdraw operations.",
+          "example": "import {\n  useAccount,\n  useChains,\n  useCollateral,\n  useDeposit,\n  useWithdraw\n} from '@orderly.network/hooks';\nimport { AccountStatusEnum } from '@orderly.network/types';\nimport { FC, useMemo } from 'react';\n\nexport const Assets: FC = () => {\n  // 1. Access core account state and collateral data\n  const {\n    account,\n    state: { status }\n  } = useAccount();\n  const collateral = useCollateral();\n  const { withdraw, availableWithdraw } = useWithdraw();\n\n  // 2. Determine network settings (testnet vs mainnet)\n  const isTestnet = true; // Or derive from app state\n  const [chains] = useChains(isTestnet ? 'testnet' : 'mainnet');\n\n  // 3. Resolve token info based on the connected chain ID\n  // This is crucial for knowing which token (USDC, USDT, etc.) is being used\n  const token = useMemo(\n    () => chains.find((item) => item.network_infos.chain_id === account.chainId)?.token_infos[0],\n    [chains, account.chainId]\n  );\n\n  // 4. Initialize deposit hook with resolved token info\n  const deposit = useDeposit({\n    address: token?.address,\n    decimals: token?.decimals,\n    srcToken: token?.symbol,\n    srcChainId: Number(account.chainId)\n  });\n\n  // 5. Calculate wallet balance only if account is properly connected\n  const walletBalance = useMemo(\n    () => (status >= AccountStatusEnum.Connected ? deposit.balance : undefined),\n    [status, deposit, account.chainId]\n  );\n\n  const handleSettle = async () => {\n    try {\n      await account.settle();\n      alert('PnL Settled Successfully');\n    } catch (err) {\n      console.error('Settlement failed:', err);\n    }\n  };\n\n  return (\n    <div className=\"assets-container\">\n      <div className=\"balance-row\">\n        <span>Wallet Balance:</span>\n        <span>{walletBalance ?? '0.00'} {token?.symbol}</span>\n      </div>\n      <div className=\"balance-row\">\n        <span>Orderly Balance:</span>\n        <span>{collateral.availableBalance.toFixed(2)} USD</span>\n      </div>\n      \n      {/* Action Buttons */}\n      <button onClick={() => deposit.execute()}>Deposit</button>\n      <button onClick={() => withdraw.execute()}>Withdraw</button>\n      <button onClick={handleSettle}>Settle PnL</button>\n    </div>\n  );\n};",
+          "notes": [
+            "Token Resolution: The pattern of finding the token via `chains.find(...)` is essential because Orderly supports multiple chains, and the token address/decimals change depending on the connected network.",
+            "Status Checks: Always check `status >= AccountStatusEnum.Connected` before accessing wallet-specific data to prevent rendering errors during the connection handshake.",
+            "Balance Precision: The example uses `ethers.FixedNumber` for precise arithmetic in the UI. When displaying balances, ensure you handle decimal places correctly to avoid floating point errors.",
+            "Settlement: The `account.settle()` function moves realized PnL from unsettled funds to available collateral. It is an async operation that requires user interaction.",
+            "Hook Dependencies: `useDeposit` requires the token address and decimals. If these are undefined (e.g., chain not supported), the hook may throw or return invalid data."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Web3 Wallet Connection (e.g., Web3Onboard, Wagmi, or ConnectKit)",
+            "OrderlyProvider configured in the app root",
+            "Understanding of Orderly Account States (AccountStatusEnum)"
+          ],
+          "related": ["useAccount", "useCollateral", "useDeposit", "useWithdraw", "useChains"]
+        },
+        {
+          "name": "OrderlyDeposit",
+          "description": "A comprehensive UI component for managing fund transfers between a user's Web3 wallet and their Orderly trading account. It handles the full lifecycle of deposits (including ERC20 approvals) and withdrawals (including PnL settlements), with support for balance previews and testnet faucets.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "requiredProps": {
+              "walletBalance": "FixedNumber - The current balance of the token in the user's wallet.",
+              "orderlyBalance": "FixedNumber - The current balance of the token in the user's Orderly account.",
+              "availableWithdraw": "FixedNumber - The amount available for withdrawal (may differ from total balance if unsettled PnL exists).",
+              "withdraw": "Function - The withdraw function returned by the useWithdraw hook."
+            },
+            "optionalProps": "None defined in the interface, but relies on context from OrderlyProvider.",
+            "context": "Requires the application to be wrapped in OrderlyProvider and a Web3 wallet provider (e.g., Web3Onboard).",
+            "integration": "1. Import the component. 2. Fetch wallet and orderly balances using your preferred method (e.g., useBalance). 3. Instantiate the useWithdraw hook in the parent component. 4. Pass these values as props to OrderlyDeposit."
+          },
+          "example": "import { useAccount, useChains, useDeposit } from '@orderly.network/hooks';\nimport { OrderlyDeposit } from './OrderlyDeposit';\nimport { FixedNumber } from 'ethers';\n\nexport const WalletPage = () => {\n  const { account } = useAccount();\n  const [chains] = useChains('mainnet');\n  \n  // Identify token based on current chain\n  const token = chains.find(c => c.network_infos.chain_id === account.chainId)?.token_infos[0];\n\n  // Configure Deposit Hook\n  const { deposit, approve, allowance, setQuantity } = useDeposit({\n    address: token?.address,\n    decimals: token?.decimals,\n    srcToken: token?.symbol,\n    srcChainId: Number(account.chainId)\n  });\n\n  // Configure Withdraw Hook (passed to component)\n  const { withdraw } = useWithdraw();\n\n  // Mock balances - in production fetch via API or hooks\n  const walletBalance = FixedNumber.from(\"100.0\");\n  const orderlyBalance = FixedNumber.from(\"50.0\");\n  const availableWithdraw = FixedNumber.from(\"50.0\");\n\n  return (\n    <OrderlyDeposit \n      walletBalance={walletBalance}\n      orderlyBalance={orderlyBalance}\n      availableWithdraw={availableWithdraw}\n      withdraw={withdraw}\n    />\n  );\n};\n\n/* \nKey Implementation Pattern:\nInside the component, the transaction flow follows this logic:\n\n1. User inputs amount -> setQuantity(amount) is called.\n2. On Deposit Click:\n   - Check if Number(allowance) < amount.\n   - If true: Call approve(amount). Wait for success.\n   - If false: Call deposit().\n3. On Withdraw Click:\n   - Check if availableWithdraw < orderlyBalance.\n   - If true: Call account.settle() to settle PnL first.\n   - Call withdraw({ chainId, amount, token, allowCrossChainWithdraw }).\n*/",
+          "notes": [
+            "Approval Flow: The component automatically handles the ERC20 'approve' transaction if the user has not yet authorized Orderly to spend their tokens.",
+            "Settlement Requirement: Before withdrawing, if 'availableWithdraw' is less than 'orderlyBalance', the component triggers 'account.settle()'. This is crucial for closing positions and realizing PnL.",
+            "Quantity Sync: The useDeposit hook requires 'setQuantity' to be called with the input string value before executing the deposit function.",
+            "Testnet Faucet: The component includes logic to mint test USDC via the Orderly testnet faucet API when 'isTestnet' is true.",
+            "Math: Uses ethers.js FixedNumber for precise decimal arithmetic to avoid floating point errors.",
+            "Cross-Chain: The example sets 'allowCrossChainWithdraw: false', meaning withdrawals only go to the current connected chain."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Active Web3 Wallet Connection",
+            "Created Orderly Account (Wallet registered)",
+            "Understanding of ERC20 Allowances (Approve/Deposit pattern)",
+            "Basic understanding of Trading PnL and Settlement"
+          ],
+          "related": ["useDeposit", "useWithdraw", "useAccount", "useChains", "useBalance"]
+        },
+        {
+          "name": "OrderlyConnect",
+          "description": "A modal-based onboarding component that manages the Orderly Network account lifecycle. It automatically detects wallet connection status and guides users through account registration and secure Orderly Key generation required for trading.",
+          "installation": "npm install @orderly.network/hooks @orderly.network/types",
+          "usage": {
+            "props": "None. This component operates autonomously based on context state.",
+            "context": "Requires an active Wallet Provider (e.g., Web3Onboard) and the OrderlyProvider to be wrapping the application tree.",
+            "integration": "Place this component high in your application layout (e.g., inside App.tsx or RootLayout). It listens to wallet connection events and automatically opens the modal if the connected wallet has not yet registered with Orderly or lacks a valid trading key.",
+            "flow": "1. User connects wallet -> 2. Component checks AccountStatus -> 3. If status < SignedIn, prompt registration -> 4. If status < EnableTrading, prompt key creation."
+          },
+          "example": "import { useAccount } from '@orderly.network/hooks';\nimport { AccountStatusEnum } from '@orderly.network/types';\nimport { FC, useEffect, useState } from 'react';\n\nexport const OrderlyConnect: FC = () => {\n  const [open, setOpen] = useState(false);\n  // Access Orderly account state and methods\n  const { account, state } = useAccount();\n\n  // Auto-open modal if wallet is connected but account isn't ready for trading\n  useEffect(() => {\n    const timer = setTimeout(() => {\n      // Check if user has wallet but hasn't finished onboarding\n      if (state.status < AccountStatusEnum.EnableTrading && account.address) {\n        setOpen(true);\n      }\n    }, 1000); // Slight delay for better UX\n    return () => clearTimeout(timer);\n  }, [state, account]);\n\n  const isRegistered = state.status >= AccountStatusEnum.SignedIn;\n  const hasOrderlyKey = state.status >= AccountStatusEnum.EnableTrading;\n\n  const handleRegister = async () => {\n    try {\n      // Step 1: Register the wallet address with Orderly\n      await account.createAccount();\n    } catch (error) {\n      console.error('Registration failed', error);\n    }\n  };\n\n  const handleCreateKey = async () => {\n    try {\n      // Step 2: Generate a private key stored locally for API signing\n      // Argument is expiration time in days (e.g., 365)\n      await account.createOrderlyKey(365);\n    } catch (error) {\n      console.error('Key creation failed', error);\n    }\n  };\n\n  if (!open) return null;\n\n  return (\n    <div className=\"modal-overlay\">\n      <div className=\"modal-content\">\n        <h2>Orderly Setup</h2>\n        \n        {/* Step 1: Registration */}\n        <div className=\"step\">\n          <p>1. Register Account</p>\n          <button \n            onClick={handleRegister} \n            disabled={isRegistered}\n          >\n            {isRegistered ? 'Done' : 'Register'}\n          </button>\n        </div>\n\n        {/* Step 2: Key Generation */}\n        <div className=\"step\">\n          <p>2. Create Trading Key</p>\n          <button \n            onClick={handleCreateKey} \n            disabled={hasOrderlyKey || !isRegistered}\n          >\n            {hasOrderlyKey ? 'Done' : 'Create Key'}\n          </button>\n        </div>\n      </div>\n    </div>\n  );\n};",
+          "notes": [
+            "Chain Synchronization: The source code includes logic to sync the wallet chain ID with the Orderly account context (account.switchChainId). Ensure this is implemented if your app supports multi-chain.",
+            "Status Enums: Always use AccountStatusEnum for comparisons rather than magic numbers to ensure future compatibility.",
+            "Key Storage: The Orderly Key generated by createOrderlyKey is stored in the browser's local storage. Users will need to recreate this key if they switch devices or clear cache.",
+            "Modal Blocking: The source code prevents closing the modal (onInteractOutside) until the user is fully onboarded (hasOrderlyKey). This ensures users cannot trade without completing setup.",
+            "Error Handling: Always wrap createAccount and createOrderlyKey in try/catch blocks, as these involve network requests and user wallet signatures."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "Working Web3 Wallet connection (e.g., Wagmi, Web3Onboard)",
+            "OrderlyProvider configured in the app root",
+            "Understanding of Asynchronous React patterns"
+          ],
+          "related": ["useAccount", "AccountStatusEnum", "createAccount", "createOrderlyKey"]
+        },
+        {
+          "name": "LeverageDialog",
+          "description": "A modal component that allows users to view their current account leverage and update it within the limits defined by the Orderly Network. It handles the asynchronous mutation of leverage settings and manages the UI state for pending changes.",
+          "installation": "npm install @orderly.network/hooks",
+          "usage": {
+            "requiredProps": {
+              "children": "ReactNode - The trigger element (e.g., a button) that opens the dialog."
+            },
+            "optionalProps": "None defined in the source, but relies on Radix UI Dialog props internally.",
+            "context": "Must be wrapped within an OrderlyProvider context to access account data.",
+            "integration": "1. Import useLeverage and useMarginRatio from @orderly.network/hooks. 2. Call useMarginRatio to get the current leverage display value. 3. Call useLeverage to get max leverage limits and the update function. 4. Implement a save handler that calls the update function with the desired leverage value."
+          },
+          "example": "import { useLeverage, useMarginRatio } from '@orderly.network/hooks';\nimport { FC, PropsWithChildren, useRef, useState } from 'react';\n\nexport const LeverageDialog: FC<PropsWithChildren> = ({ children }) => {\n  const [open, setOpen] = useState(false);\n  \n  // Fetch current display leverage\n  const { currentLeverage } = useMarginRatio();\n\n  // useLeverage returns a tuple: [maxLeverage, controlObject]\n  const [maxLeverage, { update, config: leverageLevers, isMutating }] = useLeverage();\n  \n  // Use a ref to store the pending value without triggering re-renders on every slide/change\n  const nextLeverage = useRef(maxLeverage ?? 0);\n\n  const handleSave = () => {\n    // Only submit if the value has actually changed\n    if (nextLeverage.current === maxLeverage) {\n      setOpen(false);\n      return;\n    }\n\n    update({ leverage: nextLeverage.current })\n      .then(() => {\n        setOpen(false);\n        // Handle success (e.g., toast notification)\n      })\n      .catch((err) => {\n        console.error(err);\n        // Handle error (e.g., show error message)\n      });\n  };\n\n  return (\n    <>\n      <button onClick={() => setOpen(true)}>{children}</button>\n      \n      {open && (\n        <div className=\"modal\">\n          <h3>Account Leverage</h3>\n          <p>Current: {currentLeverage}x</p>\n          <p>Max: {maxLeverage}x</p>\n          \n          {/* UI for selecting leverage would update nextLeverage.current */}\n          <input \n            type=\"number\" \n            defaultValue={maxLeverage} \n            onChange={(e) => nextLeverage.current = Number(e.target.value)} \n          />\n\n          <div className=\"actions\">\n            <button onClick={() => setOpen(false)}>Cancel</button>\n            <button onClick={handleSave} disabled={isMutating}>\n              {isMutating ? 'Saving...' : 'Save'}\n            </button>\n          </div>\n        </div>\n      )}\n    </>\n  );\n};",
+          "notes": [
+            "The useLeverage hook returns a specific tuple pattern: [maxLeverage, { update, config, isMutating }]. Ensure you destructure correctly.",
+            "Use a ref (like useRef) for the 'pending' leverage value during user interaction to prevent unnecessary re-renders of the component tree while the user drags a slider or types.",
+            "The update function returns a Promise. Always handle .then() for success (closing dialog) and .catch() for errors (validation failures or network issues).",
+            "isMutating is a boolean provided by the hook that should be used to disable the submit button to prevent double-submissions.",
+            "The config object (aliased as leverageLevers in the source) contains step constraints and valid ranges for building the input UI."
+          ],
+          "difficulty": "intermediate",
+          "prerequisites": [
+            "React functional components and hooks (useState, useRef)",
+            "OrderlyProvider must be configured in the app root",
+            "Understanding of Promise handling for async mutations"
+          ],
+          "related": ["useLeverage", "useMarginRatio"]
+        },
+        {
+          "name": "LeverageEditor",
+          "description": "A controlled slider component designed for adjusting trading leverage. It maps discrete leverage values (e.g., 1x, 5x, 10x) to slider indices and handles API submission on commit (mouse release), with automatic rollback on failure.",
+          "installation": "None (UI-only component)",
+          "usage": {
+            "required_props": {
+              "onSave": "(value: { leverage: number }) => Promise<void> - Async function called when the user commits a leverage change. This is where the Orderly SDK API call should be triggered.",
+              "leverageLevers": "number[] - An array of allowed leverage values (e.g., [1, 2, 5, 10, 20]). The slider snaps to these specific values.",
+              "maxLeverage": "number - The current leverage value of the position/account."
+            },
+            "optional_props": {},
+            "integration_steps": "1. Fetch current leverage and allowed leverage steps from Orderly symbol info. 2. Pass the current leverage to `maxLeverage`. 3. Implement `onSave` to call the Orderly API (e.g., orderlyClient.updateLeverage). 4. Handle loading states and errors within the parent or the `onSave` promise.",
+            "context": "This component does not require specific Orderly Providers but relies on the parent to fetch and provide leverage data."
+          },
+          "example": "import { LeverageEditor } from './components/LeverageEditor';\nimport { orderlyClient } from '@orderly/network';\n\nexport const PositionSettings = () => {\n  // In a real app, fetch these from Orderly Symbol Info\n  const currentLeverage = 5;\n  const leverageSteps = [1, 2, 5, 10, 20, 50, 100];\n\n  const handleSaveLeverage = async ({ leverage }: { leverage: number }) => {\n    try {\n      // Integration with Orderly SDK\n      // Note: Actual method depends on SDK version, typically involves setting leverage for a symbol\n      // await orderlyClient.trading.setLeverage({ symbol: 'PERP_BTC_USDC', leverage });\n      console.log(`Setting leverage to ${leverage}x`);\n      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network\n    } catch (error) {\n      console.error('Failed to update leverage', error);\n      throw error; // Throwing allows the component to revert the UI state\n    }\n  };\n\n  return (\n    <div className=\"p-4 border rounded\">\n      <h3>Adjust Leverage</h3>\n      <LeverageEditor\n        maxLeverage={currentLeverage}\n        leverageLevers={leverageSteps}\n        onSave={handleSaveLeverage}\n      />\n    </div>\n  );\n};",
+          "notes": [
+            "The component uses `onValueCommit` (from Radix UI) to trigger the API call only when the user releases the slider handle, preventing excessive API calls during dragging.",
+            "If the `onSave` promise rejects, the component automatically reverts the slider to the previous `maxLeverage` value, ensuring the UI stays in sync with the server state.",
+            "The `leverageLevers` array determines the granularity of the slider. Ensure these values are valid according to the Orderly symbol's `max_leverage` constraints.",
+            "This component uses `@radix-ui/themes` for styling. Ensure your application has the Radix Theme provider set up."
+          ],
+          "difficulty": "beginner",
+          "prerequisites": [
+            "React Hooks (useState, useMemo)",
+            "Orderly Account API (Update Leverage endpoint)",
+            "Radix UI Slider"
+          ],
+          "related": ["useSymbolInfo", "useAccount", "usePositions"]
+        }
+      ]
     }
-  ]
+  ],
+  "metadata": {
+    "enrichedWithExamples": {
+      "timestamp": "2026-02-05T10:43:33.972Z",
+      "source": "https://github.com/orderlynetwork/example-dex",
+      "mode": "ai-enhanced",
+      "patternsAdded": 31,
+      "errors": 0,
+      "processedFiles": [
+        "Lightweight Charts Integration",
+        "TradingView Widget Setup",
+        "Real-time Orderbook Display",
+        "Complete Order Entry Form",
+        "Position Display and Management",
+        "Multi-Chain Wallet Connection",
+        "Real-time Kline Data via WebSocket",
+        "LightweightChart.tsx",
+        "AdvancedChart.tsx",
+        "websocket.service.ts",
+        "CreateOrder.tsx",
+        "Orderbook.tsx",
+        "SymbolHeader.tsx",
+        "SymbolSelection.tsx",
+        "Positions.tsx",
+        "UpdatePosition.tsx",
+        "ClosePosition.tsx",
+        "PendingOrders.tsx",
+        "PendingOrder.tsx",
+        "OrderTabs.tsx",
+        "TpSlOrder.tsx",
+        "StopOrder.tsx",
+        "wallet/ConnectWalletButton.tsx",
+        "wallet/EvmDropdownMenu.tsx",
+        "wallet/SolanaDropdownMenu.tsx",
+        "wallet/WalletConnection.tsx",
+        "Assets.tsx",
+        "OrderlyDeposit.tsx",
+        "OrderlyConnect.tsx",
+        "Leverage.tsx",
+        "LeverageEditor.tsx"
+      ],
+      "model": "zai-org/GLM-4.7"
+    }
+  }
 }

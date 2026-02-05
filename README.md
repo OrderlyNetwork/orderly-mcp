@@ -141,21 +141,26 @@ Search Orderly documentation for specific topics, concepts, or questions.
 
 ### 2. `get_sdk_pattern`
 
-Get code examples and patterns for Orderly SDK v2 hooks.
+Get code examples and patterns for Orderly SDK v2 hooks and complete DEX components.
 
 **Parameters**:
 
-- `pattern` (string, required): Hook or pattern name (e.g., 'useOrderEntry', 'wallet-connection')
+- `pattern` (string, required): Hook or pattern name (e.g., 'useOrderEntry', 'wallet-connection', 'LightweightChart')
 - `includeExample` (boolean, optional): Include full code example (default: true)
 
 **Available patterns**:
 
-- Account: `useAccount`, `useWalletConnector`
-- Orders: `useOrderEntry`, `useOrderStream`
-- Positions: `usePositionStream`, `useCollateral`
-- Market Data: `useOrderbookStream`, `useMarkPrice`, `useTickerStream`
-- Chains: `useChains`
-- Assets: `useDeposit`
+- **Account**: `useAccount`, `useWalletConnector`
+- **Orders**: `useOrderEntry`, `useOrderStream`
+- **Positions**: `usePositionStream`, `useCollateral`
+- **Market Data**: `useOrderbookStream`, `useMarkPrice`, `useTickerStream`
+- **Chains**: `useChains`
+- **Assets**: `useDeposit`
+- **Charts**: `LightweightChart`, `TradingViewWidgetSetup`, `Real-timeKlineDataviaWebSocket`
+- **Trading Components**: `CreateOrder`, `Orderbook`, `SymbolHeader`, `SymbolSelection`
+- **Position Components**: `Positions`, `UpdatePosition`, `ClosePosition`
+- **Wallet Components**: `ConnectWalletButton`, `WalletConnection`, `EvmDropdownMenu`
+- **WebSocket Services**: `websocket.service` (real-time kline data)
 
 ### 3. `get_contract_addresses`
 
@@ -292,9 +297,10 @@ This MCP server includes embedded data from:
 
 1. **Orderly Documentation**: Architecture, concepts, and guides
 2. **SDK Patterns**: v2 hook examples and patterns from @orderly.network/hooks
-3. **Contract Addresses**: All deployed contracts across supported chains
-4. **API Specifications**: REST and WebSocket endpoints
-5. **Workflow Guides**: Common development task explanations
+3. **DEX Examples**: Complete working components from the [example-dex](https://github.com/orderlynetwork/example-dex) repository
+4. **Contract Addresses**: All deployed contracts across supported chains
+5. **API Specifications**: REST and WebSocket endpoints
+6. **Workflow Guides**: Common development task explanations
 
 ## Project Structure
 
@@ -364,16 +370,27 @@ node scripts/analyze_llms_full.js
 # 5. Get SDK patterns from source (FREE - no AI calls)
 node scripts/analyze_sdk.js
 
-# 6. Generate documentation and workflows
+# 6. Get DEX examples from example-dex repo
+# Option A: Basic (FREE - no AI calls)
+git clone --depth 1 https://github.com/orderlynetwork/example-dex.git /tmp/example-dex
+node scripts/analyze_example_dex.js
+node scripts/enrich_sdk_patterns_with_examples.js
+
+# Option B: AI-Enhanced (~$1-3, better documentation)
+# git clone --depth 1 https://github.com/orderlynetwork/example-dex.git /tmp/example-dex
+# node scripts/analyze_example_dex.js
+# USE_AI=true node scripts/enrich_sdk_patterns_with_examples.js
+
+# 7. Generate documentation and workflows
 node scripts/generate_mcp_data.js
 
-# 7. Generate API docs from OpenAPI spec
+# 8. Generate API docs from OpenAPI spec
 node scripts/generate_api_from_openapi.js
 
-# 8. Generate contract addresses
+# 9. Generate contract addresses
 node scripts/generate_contracts.js
 
-# 9. Build and test
+# 10. Build and test
 yarn build && yarn test:run
 ```
 
@@ -397,14 +414,15 @@ yarn build
 
 ### Data Files
 
-| File                      | Source                         | Generation Script              |
-| ------------------------- | ------------------------------ | ------------------------------ |
-| **documentation.json**    | Official docs + Telegram chats | `generate_mcp_data.js`         |
-| **sdk-patterns.json**     | SDK source code (GitHub)       | `analyze_sdk.js`               |
-| **component-guides.json** | SDK source code (GitHub)       | `analyze_sdk.js`               |
-| **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`         |
-| **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js` |
-| **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`        |
+| File                      | Source                         | Generation Script                                                                                 |
+| ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| **documentation.json**    | Official docs + Telegram chats | `generate_mcp_data.js`                                                                            |
+| **sdk-patterns.json**     | SDK source code (GitHub)       | `analyze_sdk.js`                                                                                  |
+| **sdk-patterns.json**     | Example DEX repo (GitHub)      | `analyze_example_dex.js` + `enrich_sdk_patterns_with_examples.js` (add `USE_AI=true` for AI mode) |
+| **component-guides.json** | SDK source code (GitHub)       | `analyze_sdk.js`                                                                                  |
+| **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`                                                                            |
+| **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
+| **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`                                                                           |
 
 ## Contributing
 
@@ -412,8 +430,9 @@ To add new content, you need to update the source data and regenerate:
 
 1. **New Documentation**: Update `llms-full.txt` or Telegram exports, then run generation scripts
 2. **New SDK Pattern**: The SDK is auto-parsed from GitHub - patterns appear automatically when SDK updates
-3. **New Chain**: Update source documentation, then regenerate
-4. **New Workflow**: Add to source docs or Telegram chats, then regenerate
+3. **New DEX Examples**: Clone the [example-dex](https://github.com/orderlynetwork/example-dex) repo and run the analysis scripts
+4. **New Chain**: Update source documentation, then regenerate
+5. **New Workflow**: Add to source docs or Telegram chats, then regenerate
 
 ## License
 

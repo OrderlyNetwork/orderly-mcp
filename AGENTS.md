@@ -252,20 +252,114 @@ Processes official documentation to extract structured Q&A.
 node scripts/analyze_sdk.js
 ```
 
+#### `scripts/analyze_example_dex.js` ⭐ **NEW - DEX Examples**
+
+**Purpose:** Extract chart and DEX component examples from example-dex repo  
+**Input:** Clones from `https://github.com/OrderlyNetwork/example-dex`  
+**Output:** `example_dex_analysis.json` (root level)  
+**Cost:** **FREE** (no AI calls, pure code analysis)
+
+**What it extracts:**
+
+- **Chart implementations:**
+  - Lightweight Charts integration (custom candlestick charts)
+  - TradingView widget setup
+  - WebSocket kline data service
+- **Trading components:**
+  - Order entry forms (market/limit/stop/bracket)
+  - Orderbook display with depth visualization
+  - Symbol selection and headers
+- **Position components:**
+  - Position table with PnL
+  - Position update/close modals
+- **Order components:**
+  - Pending orders list
+  - Take Profit / Stop Loss orders
+- **Wallet components:**
+  - Multi-chain wallet connection (EVM + Solana)
+  - Connection dropdowns
+- **Account components:**
+  - Assets/balance display
+  - Deposit/withdraw UI
+  - Leverage management
+
+**Why this is useful:**
+
+- Real working DEX code examples
+- Complete component implementations
+- Chart integration patterns
+- WebSocket data handling
+- FREE (no API costs)
+
+**Usage:**
+
+```bash
+# 1. Clone the example-dex repo
+ git clone --depth 1 https://github.com/orderlynetwork/example-dex.git /tmp/example-dex
+
+# 2. Analyze and extract patterns
+node scripts/analyze_example_dex.js
+
+# 3. Merge into SDK patterns
+node scripts/enrich_sdk_patterns_with_examples.js
+```
+
+#### `scripts/enrich_sdk_patterns_with_examples.js`
+
+**Purpose:** Merge example-dex analysis into sdk-patterns.json  
+**Input:** `example_dex_analysis.json`  
+**Output:** Updated `src/data/sdk-patterns.json`  
+**Cost:** **FREE** (or ~$1.00-3.00 with AI mode)
+
+Adds real-world code examples from the example-dex repository to the SDK patterns data, making them available via the MCP server.
+
+**Two modes:**
+
+1. **Basic Mode** (default): Direct code copying with truncation
+2. **AI-Enhanced Mode**: Intelligent code analysis and documentation generation
+
+**What AI adds:**
+
+- **Intelligent code analysis** - Extracts key patterns from full files
+- **Enhanced documentation** - Clear explanations and usage guides
+- **Educational code snippets** - Focused examples (not truncated)
+- **Troubleshooting tips** - Common issues and solutions
+- **Cross-referencing** - Links related patterns together
+- **Difficulty assessment** - Tags beginner/intermediate/advanced
+- **Prerequisites** - Lists what you need to know first
+
+**Usage:**
+
+```bash
+# Basic mode (FREE)
+node scripts/enrich_sdk_patterns_with_examples.js
+
+# AI-enhanced mode (~$1-3)
+USE_AI=true node scripts/enrich_sdk_patterns_with_examples.js
+```
+
 **Recommended workflow:**
 
 ```bash
 # 1. Get SDK patterns (FREE and accurate)
 node scripts/analyze_sdk.js
 
-# 2. Analyze Telegram for real Q&A (paid)
+# 2. Get DEX examples (choose mode)
+node scripts/analyze_example_dex.js
+node scripts/enrich_sdk_patterns_with_examples.js  # Basic
+# USE_AI=true node scripts/enrich_sdk_patterns_with_examples.js  # AI-enhanced
+
+# 3. Analyze Telegram for real Q&A (paid)
 node scripts/analyze_chat_openai.js
 
-# 3. Analyze docs for API details (paid)
+# 4. Analyze docs for API details (paid)
 node scripts/analyze_llms_full.js
 
-# 4. Generate everything
+# 5. Generate everything
 node scripts/generate_mcp_data.js
+
+# 6. Build and test
+yarn build && yarn test:run
 ```
 
 #### `scripts/split_telegram_chats.js`
