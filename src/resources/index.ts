@@ -605,7 +605,7 @@ export async function getResource(uri: string) {
           text += '- Descriptions\n\n';
           text += '**Pagination:**\n';
           text += '- Use `?page=2` to see more results\n';
-          text += '- Use `?limit=5` to change results per page (max 10)\n';
+          text += '- Use `?limit=5` to change results per page (max 10)';
 
           return {
             contents: [
@@ -650,6 +650,111 @@ export async function getResource(uri: string) {
           itemText += `${item.description}\n\n`;
           if (item.auth) {
             itemText += '🔒 Requires authentication\n\n';
+          }
+          itemText += '---\n';
+          return itemText;
+        });
+
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: 'text/markdown',
+              text,
+            },
+          ],
+        };
+      }
+
+      case 'orderly://api/indexer': {
+        const indexerApi = JSON.parse(
+          fs.readFileSync(path.join(dataDir, 'indexer-api.json'), 'utf-8')
+        );
+
+        if (!searchQuery) {
+          let text = '# Indexer API Reference\n\n';
+          text += `${indexerApi.description}\n\n`;
+          text += `**Version:** ${indexerApi.version}\n\n`;
+          text += `**Base URLs:**\n`;
+          text += `- Mainnet: ${indexerApi.baseUrl.mainnet}\n`;
+          text += `- Testnet: ${indexerApi.baseUrl.testnet}\n\n`;
+          text += '## Categories\n\n';
+
+          for (const category of indexerApi.categories) {
+            text += `### ${category.name}\n\n`;
+            text += `${category.description}\n\n`;
+            text += `**${category.endpoints.length} endpoints:**\n`;
+            for (const endpoint of category.endpoints.slice(0, 5)) {
+              text += `- ${endpoint.method} ${endpoint.path} - ${endpoint.summary}\n`;
+            }
+            if (category.endpoints.length > 5) {
+              text += `- ... and ${category.endpoints.length - 5} more\n`;
+            }
+            text += '\n';
+          }
+
+          text += '## How to Search\n\n';
+          text += 'To search for specific endpoints, add a `?search=` query parameter:\n\n';
+          text += '```\n';
+          text += 'orderly://api/indexer?search=daily_volume\n';
+          text += 'orderly://api/indexer?search=events\n';
+          text += 'orderly://api/indexer?search=ranking\n';
+          text += '```\n\n';
+          text += '**Search supports:**\n';
+          text += '- Endpoint paths (e.g., `/daily_volume`, `/events_v2`)\n';
+          text += '- Operation IDs (e.g., `daily_volume`, `list_events`)\n';
+          text += '- Summaries and descriptions\n\n';
+          text += '**Pagination:**\n';
+          text += '- Use `?page=2` to see more results\n';
+          text += '- Use `?limit=5` to change results per page (max 10)';
+
+          return {
+            contents: [
+              {
+                uri,
+                mimeType: 'text/markdown',
+                text,
+              },
+            ],
+          };
+        }
+
+        const allEndpoints: Array<{
+          id: string;
+          name: string;
+          description: string;
+          method: string;
+          path: string;
+          summary: string;
+          operationId: string;
+        }> = [];
+
+        for (const endpoint of indexerApi.endpoints) {
+          allEndpoints.push({
+            id: endpoint.operationId || `${endpoint.method} ${endpoint.path}`,
+            name: endpoint.summary || `${endpoint.method} ${endpoint.path}`,
+            description: endpoint.description,
+            method: endpoint.method,
+            path: endpoint.path,
+            summary: endpoint.summary,
+            operationId: endpoint.operationId,
+          });
+        }
+
+        const fuse = createFuseSearch(allEndpoints, [
+          { name: 'name', weight: 0.3 },
+          { name: 'path', weight: 0.3 },
+          { name: 'description', weight: 0.3 },
+          { name: 'operationId', weight: 0.1 },
+        ]);
+
+        const result = searchWithPagination(fuse, { query: searchQuery, page, limit });
+
+        const text = formatSearchResults(result, 'Indexer API Endpoints', (item) => {
+          let itemText = `### ${item.method} ${item.path}\n\n`;
+          itemText += `**${item.summary}**\n\n`;
+          if (item.description) {
+            itemText += `${item.description}\n\n`;
           }
           itemText += '---\n';
           return itemText;

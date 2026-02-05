@@ -14,6 +14,7 @@ This MCP server enables AI assistants to answer questions about Orderly Network 
 - **Workflow Guides**: Step-by-step explanations of common development tasks
 - **Component Guides**: Patterns for building trading UI components
 - **API Reference**: REST and WebSocket endpoint documentation
+- **Indexer API**: Trading metrics, account events, volume statistics, and rankings
 
 ## Installation
 
@@ -202,7 +203,36 @@ Get information about Orderly REST API or WebSocket streams.
 - `type` (string, required): 'rest', 'websocket', or 'auth'
 - `endpoint` (string, optional): Specific endpoint or stream name
 
-### 6. `get_component_guide`
+### 6. `get_indexer_api_info`
+
+Get information about Orderly Indexer API for trading metrics, account events, volume statistics, and rankings.
+
+**Parameters**:
+
+- `endpoint` (string, optional): Specific endpoint path or name (e.g., '/events_v2', 'daily_volume', 'ranking/positions')
+- `category` (string, optional): Filter by category (e.g., 'trading_metrics', 'events', 'ranking')
+
+**Available categories**:
+
+- **Trading Metrics**: Daily volume, fees, perp trading data (`/daily_volume`, `/daily_trading_fee`, `/daily_orderly_perp`)
+- **Events**: Account events with pagination (`/events_v2`) - trades, settlements, liquidations, transactions
+- **Volume Statistics**: Account and broker volume stats (`/get_account_volume_statistic`, `/get_broker_volume_statistic`)
+- **Rankings**: Positions, PnL, trading volume, deposits/withdrawals (`/ranking/positions`, `/ranking/realized_pnl`, `/ranking/trading_volume`, `/ranking/deposit`, `/ranking/withdraw`)
+
+**Example**:
+
+```
+# Get all indexer API endpoints
+get_indexer_api_info
+
+# Get specific endpoint details
+get_indexer_api_info endpoint="/events_v2"
+
+# Get all endpoints in a category
+get_indexer_api_info category="trading_metrics"
+```
+
+### 7. `get_component_guide`
 
 Get guidance on building React UI components using Orderly SDK.
 
@@ -237,6 +267,7 @@ Access comprehensive documentation via resource URIs. All resources support fuzz
 - `orderly://workflows?search=wallet` - Search workflows by name or steps
 - `orderly://api/rest?search=position` - Search REST API endpoints
 - `orderly://api/websocket?search=orderbook` - Search WebSocket streams
+- `orderly://api/indexer?search=events` - Search Indexer API endpoints
 
 **Example:**
 
@@ -300,7 +331,8 @@ This MCP server includes embedded data from:
 3. **DEX Examples**: Complete working components from the [example-dex](https://github.com/orderlynetwork/example-dex) repository
 4. **Contract Addresses**: All deployed contracts across supported chains
 5. **API Specifications**: REST and WebSocket endpoints
-6. **Workflow Guides**: Common development task explanations
+6. **Indexer API**: Trading metrics, account events, volume statistics, and rankings
+7. **Workflow Guides**: Common development task explanations
 
 ## Project Structure
 
@@ -316,6 +348,7 @@ orderly-mcp/
 │   │   ├── contracts.ts         # Contract address lookup
 │   │   ├── workflows.ts         # Workflow explanations
 │   │   ├── apiInfo.ts           # API documentation
+│   │   ├── indexerApi.ts        # Indexer API documentation
 │   │   └── componentGuides.ts   # Component building guides
 │   ├── resources/
 │   │   └── index.ts             # Resource handlers
@@ -325,6 +358,7 @@ orderly-mcp/
 │       ├── contracts.json       # Contract addresses
 │       ├── workflows.json       # Workflow explanations
 │       ├── api.json             # API specifications
+│       ├── indexer-api.json     # Indexer API documentation
 │       ├── component-guides.json # Component guides
 │       └── resources/
 │           └── overview.md      # Protocol overview
@@ -387,10 +421,13 @@ node scripts/generate_mcp_data.js
 # 8. Generate API docs from OpenAPI spec
 node scripts/generate_api_from_openapi.js
 
-# 9. Generate contract addresses
+# 9. Generate Indexer API docs from OpenAPI spec
+node scripts/generate_indexer_api.js
+
+# 10. Generate contract addresses
 node scripts/generate_contracts.js
 
-# 10. Build and test
+# 11. Build and test
 yarn build && yarn test:run
 ```
 
@@ -422,6 +459,7 @@ yarn build
 | **component-guides.json** | SDK source code (GitHub)       | `analyze_sdk.js`                                                                                  |
 | **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`                                                                            |
 | **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
+| **indexer-api.json**      | Indexer API OpenAPI spec       | `generate_indexer_api.js`                                                                         |
 | **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`                                                                           |
 
 ## Contributing

@@ -10,6 +10,7 @@ import { getSdkPattern } from './tools/sdkPatterns.js';
 import { getContractAddresses } from './tools/contracts.js';
 import { explainWorkflow } from './tools/workflows.js';
 import { getApiInfo } from './tools/apiInfo.js';
+import { getIndexerApiInfo } from './tools/indexerApi.js';
 import { getComponentGuide } from './tools/componentGuides.js';
 import { getResource } from './resources/index.js';
 
@@ -140,6 +141,26 @@ export function createMcpServer(): Server {
           },
         },
         {
+          name: 'get_indexer_api_info',
+          description:
+            'Get information about Orderly Indexer API for trading metrics, account events, volume statistics, and rankings',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              endpoint: {
+                type: 'string',
+                description:
+                  "Specific endpoint path or name (e.g., '/events_v2', 'daily_volume', 'ranking/positions')",
+              },
+              category: {
+                type: 'string',
+                description:
+                  "Filter by category (e.g., 'trading_metrics', 'events', 'ranking') - use instead of endpoint to see all endpoints in a category",
+              },
+            },
+          },
+        },
+        {
           name: 'get_component_guide',
           description: 'Get guidance on building React UI components using Orderly SDK',
           inputSchema: {
@@ -215,6 +236,13 @@ export function createMcpServer(): Server {
           )) as ToolResult;
           break;
 
+        case 'get_indexer_api_info':
+          result = (await getIndexerApiInfo(
+            args.endpoint as string | undefined,
+            args.category as string | undefined
+          )) as ToolResult;
+          break;
+
         case 'get_component_guide':
           result = (await getComponentGuide(
             args.component as string,
@@ -284,6 +312,13 @@ export function createMcpServer(): Server {
           uri: 'orderly://api/websocket',
           name: 'WebSocket API Reference',
           description: 'Real-time WebSocket streams documentation',
+          mimeType: 'text/markdown',
+        },
+        {
+          uri: 'orderly://api/indexer',
+          name: 'Indexer API Reference',
+          description:
+            'Indexer API for trading metrics, account events, volume statistics, and rankings',
           mimeType: 'text/markdown',
         },
       ],

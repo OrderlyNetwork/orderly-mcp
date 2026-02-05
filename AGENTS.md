@@ -33,6 +33,7 @@ This is a Model Context Protocol (MCP) server that provides Orderly Network docu
 - `contracts.ts` - Contract address lookup
 - `workflows.ts` - Workflow explanations
 - `apiInfo.ts` - API documentation
+- `indexerApi.ts` - Indexer API documentation
 - `componentGuides.ts` - Component building guides
 
 **Data** (`src/data/*.json`):
@@ -103,6 +104,7 @@ src/
 │   ├── contracts.ts           # Contract lookup
 │   ├── workflows.ts           # Workflows
 │   ├── apiInfo.ts             # API info
+│   ├── indexerApi.ts          # Indexer API info
 │   └── componentGuides.ts     # Component guides
 ├── resources/
 │   └── index.ts               # Resource handlers
@@ -112,6 +114,7 @@ src/
 │   ├── contracts.json         # Contract addresses
 │   ├── workflows.json         # Workflows
 │   ├── api.json               # API docs
+│   ├── indexer-api.json       # Indexer API docs
 │   ├── component-guides.json   # Component guides
 │   └── resources/
 │       └── overview.md
@@ -370,6 +373,30 @@ yarn build && yarn test:run
 
 Filters out non-group chats and applies blacklist.
 
+#### `scripts/generate_api_from_openapi.js`
+
+**Purpose:** Generate REST and WebSocket API documentation from OpenAPI spec  
+**Input:** OpenAPI YAML spec from GitHub (`https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/.../evm.openapi.yaml`)  
+**Output:** `src/data/api.json`  
+**Cost:** **FREE** (no AI calls, direct YAML parsing)
+
+Extracts endpoints, parameters, request/response schemas, and generates code examples.
+
+#### `scripts/generate_indexer_api.js`
+
+**Purpose:** Generate Indexer API documentation from OpenAPI spec  
+**Input:** Indexer API OpenAPI JSON spec (`https://orderly-dashboard-query-service.orderly.network/api-docs/openapi.json`)  
+**Output:** `src/data/indexer-api.json`  
+**Cost:** **FREE** (no AI calls, direct JSON parsing)
+
+Extracts 12 endpoints across 3 categories:
+
+- **Trading Metrics**: Daily volume, fees, perp data
+- **Events**: Account events (trades, settlements, liquidations, transactions) with pagination
+- **Rankings**: Positions, PnL, trading volume, deposits/withdrawals
+
+Also extracts 43 schemas for request/response types.
+
 ### Cost Management
 
 **Total cost per complete run:** ~$3.50-7.00
@@ -378,6 +405,8 @@ Filters out non-group chats and applies blacklist.
 - Telegram analysis: ~$0.50-1.00
 - Docs analysis: ~$1.00-2.00
 - Data generation: ~$2.00-4.00
+- API generation: **FREE** (parses OpenAPI specs directly)
+- Indexer API generation: **FREE** (parses OpenAPI spec directly)
 
 **Money-saving tips:**
 
@@ -402,6 +431,71 @@ Filters out non-group chats and applies blacklist.
 - Single quotes, 100 char line width (Prettier)
 - Import assertions: use `with { type: "json" }` not `assert`
 - Export interfaces for tool results
+
+## Using the Indexer API Tool
+
+The `get_indexer_api_info` tool helps AI assistants query the Orderly Indexer API. Here's how to navigate it:
+
+### Understanding the Indexer API
+
+The Indexer API is a **read-only** API for historical and aggregated trading data. Key characteristics:
+
+- **No authentication required** (unlike the trading API)
+- **Historical data** (not real-time trading)
+- **Aggregated metrics** (volume, fees, rankings)
+- **Account events** (trades, settlements, liquidations with pagination)
+
+### Navigation Patterns
+
+**1. Start with the overview (no parameters):**
+
+```
+get_indexer_api_info
+→ Returns complete guide with categories and use cases
+```
+
+**2. Browse by category:**
+
+```
+get_indexer_api_info category="trading_metrics"
+get_indexer_api_info category="events"
+get_indexer_api_info category="ranking"
+```
+
+**3. Get specific endpoint details:**
+
+```
+get_indexer_api_info endpoint="/daily_volume"
+get_indexer_api_info endpoint="/events_v2"
+get_indexer_api_info endpoint="ranking/positions"
+```
+
+### Common Use Cases
+
+**For Trading Dashboards:**
+
+- Daily volume, fees, perp metrics → `category="trading_metrics"`
+
+**For User History:**
+
+- Account trades, settlements, liquidations → `endpoint="/events_v2"`
+
+**For Leaderboards:**
+
+- Top traders by PnL, volume, positions → `category="ranking"`
+
+**For Volume Stats:**
+
+- Account or broker volume statistics → `endpoint="/get_account_volume_statistic"`
+
+### Key Differences from Main API
+
+| Aspect    | Main API           | Indexer API    |
+| --------- | ------------------ | -------------- |
+| Auth      | Required (Ed25519) | Not required   |
+| Purpose   | Trading operations | Data querying  |
+| Data      | Real-time          | Historical     |
+| Write ops | Yes                | No (read-only) |
 
 ## MCP Protocol
 
