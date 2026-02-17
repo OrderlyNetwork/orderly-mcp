@@ -12,6 +12,7 @@ import { explainWorkflow } from './tools/workflows.js';
 import { getApiInfo } from './tools/apiInfo.js';
 import { getIndexerApiInfo } from './tools/indexerApi.js';
 import { getComponentGuide } from './tools/componentGuides.js';
+import { getOrderlyOneApiInfo } from './tools/orderlyOneApi.js';
 import { getResource } from './resources/index.js';
 
 // Common result type for all tools
@@ -180,6 +181,26 @@ export function createMcpServer(): Server {
             required: ['component'],
           },
         },
+        {
+          name: 'get_orderly_one_api_info',
+          description:
+            'Get information about Orderly One API for DEX creation, graduation, and management',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              endpoint: {
+                type: 'string',
+                description:
+                  "Specific endpoint path or name (e.g., '/dex', 'verify-tx', '/theme/modify')",
+              },
+              category: {
+                type: 'string',
+                description:
+                  "Filter by category (e.g., 'auth', 'dex', 'graduation', 'theme', 'stats', 'leaderboard', 'admin')",
+              },
+            },
+          },
+        },
       ],
     };
   });
@@ -247,6 +268,13 @@ export function createMcpServer(): Server {
           result = (await getComponentGuide(
             args.component as string,
             (args.complexity as string) || 'standard'
+          )) as ToolResult;
+          break;
+
+        case 'get_orderly_one_api_info':
+          result = (await getOrderlyOneApiInfo(
+            args.endpoint as string | undefined,
+            args.category as string | undefined
           )) as ToolResult;
           break;
 
