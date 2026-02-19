@@ -362,6 +362,40 @@ Get guidance on building React UI components using Orderly SDK.
 - `positions`: Position management table
 - `wallet-connector`: Wallet connection UI
 
+### 8. `get_orderly_one_api_info`
+
+Get information about Orderly One API for DEX creation, graduation, and management.
+
+**Parameters**:
+
+- `endpoint` (string, optional): Specific endpoint path or name (e.g., '/dex', 'verify-tx', '/theme/modify')
+- `category` (string, optional): Filter by category (e.g., 'auth', 'dex', 'graduation', 'theme', 'stats', 'leaderboard', 'admin')
+
+**Available categories**:
+
+- **auth**: Wallet signature-based authentication (nonce, verify, validate)
+- **dex**: DEX management - create, update, delete, deploy, and manage exchanges
+- **graduation**: Graduation system - upgrade from demo to full broker with fee splits
+- **theme**: AI-powered theme generation and CSS customization
+- **stats**: Platform-wide statistics and analytics
+- **leaderboard**: DEX rankings, performance metrics, and leaderboards
+- **admin**: Administrative operations for platform management
+
+**Example**:
+
+```
+# Get overview and authentication flow
+get_orderly_one_api_info
+
+# Get all endpoints in a category
+get_orderly_one_api_info category="dex"
+get_orderly_one_api_info category="graduation"
+
+# Get specific endpoint details
+get_orderly_one_api_info endpoint="verify-tx"
+get_orderly_one_api_info endpoint="/theme/modify"
+```
+
 ## Available Resources
 
 Access comprehensive documentation via resource URIs. All resources support fuzzy search with pagination:
@@ -446,7 +480,8 @@ This MCP server includes embedded data from:
 4. **Contract Addresses**: All deployed contracts across supported chains
 5. **API Specifications**: REST and WebSocket endpoints
 6. **Indexer API**: Trading metrics, account events, volume statistics, and rankings
-7. **Workflow Guides**: Common development task explanations
+7. **Orderly One API**: DEX creation, graduation, and management API documentation
+8. **Workflow Guides**: Common development task explanations
 
 ## Project Structure
 
@@ -463,7 +498,8 @@ orderly-mcp/
 │   │   ├── workflows.ts         # Workflow explanations
 │   │   ├── apiInfo.ts           # API documentation
 │   │   ├── indexerApi.ts        # Indexer API documentation
-│   │   └── componentGuides.ts   # Component building guides
+│   │   ├── componentGuides.ts   # Component building guides
+│   │   └── orderlyOneApi.ts     # Orderly One API documentation
 │   ├── resources/
 │   │   └── index.ts             # Resource handlers
 │   └── data/
@@ -473,6 +509,7 @@ orderly-mcp/
 │       ├── workflows.json       # Workflow explanations
 │       ├── api.json             # API specifications
 │       ├── indexer-api.json     # Indexer API documentation
+│       ├── orderly-one-api.json # Orderly One API documentation
 │       ├── component-guides.json # Component guides
 │       └── resources/
 │           └── overview.md      # Protocol overview
@@ -574,6 +611,7 @@ yarn build
 | **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`                                                                            |
 | **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
 | **indexer-api.json**      | Indexer API OpenAPI spec       | `generate_indexer_api.js`                                                                         |
+| **orderly-one-api.json**  | Orderly One OpenAPI spec       | `generate_orderly_one_api.js`                                                                     |
 | **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`                                                                           |
 
 ## Contributing
