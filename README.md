@@ -2,6 +2,45 @@
 
 A Model Context Protocol (MCP) server providing documentation and SDK patterns for Orderly Network - an omnichain perpetual futures trading infrastructure.
 
+## Quick Start
+
+Install the MCP server with one command for your AI client:
+
+```bash
+npx @orderly.network/mcp-server init --client <client>
+```
+
+**Supported clients:** `claude`, `cursor`, `vscode`, `codex`, `opencode`
+
+### Examples
+
+```bash
+# OpenCode
+npx @orderly.network/mcp-server init --client opencode
+
+# Claude Code
+npx @orderly.network/mcp-server init --client claude
+
+# Cursor
+npx @orderly.network/mcp-server init --client cursor
+
+# VS Code (with Copilot)
+npx @orderly.network/mcp-server init --client vscode
+
+# Interactive mode (prompts for client selection)
+npx @orderly.network/mcp-server init
+```
+
+This command will:
+
+1. Create the appropriate configuration file for your AI client
+2. Install `@orderly.network/mcp-server` as a dev dependency
+3. Guide you through the next steps
+
+**After installation:** Restart your AI client and try asking: _"How do I connect to Orderly Network?"_
+
+---
+
 ## What This Server Provides
 
 This MCP server enables AI assistants to answer questions about Orderly Network and guide developers in building React components using the Orderly SDK v2.
@@ -18,12 +57,34 @@ This MCP server enables AI assistants to answer questions about Orderly Network 
 
 ## Installation
 
-### Prerequisites
+### Quick Install (Recommended)
+
+Use the CLI to automatically configure your AI client:
+
+```bash
+npx @orderly.network/mcp-server init --client <client>
+```
+
+**Available clients:**
+
+| Client      | Command             | Config Location        |
+| ----------- | ------------------- | ---------------------- |
+| Claude Code | `--client claude`   | `.mcp.json`            |
+| Cursor      | `--client cursor`   | `.cursor/mcp.json`     |
+| VS Code     | `--client vscode`   | `.vscode/mcp.json`     |
+| Codex       | `--client codex`    | `~/.codex/config.toml` |
+| OpenCode    | `--client opencode` | `.opencode/mcp.json`   |
+
+### Manual Setup
+
+If you prefer to configure manually or the automatic setup doesn't work for your client:
+
+#### Prerequisites
 
 - Node.js 18 or higher
 - Yarn (or npm)
 
-### Setup
+#### Setup from Source
 
 1. **Clone or create the project**:
 
@@ -55,17 +116,70 @@ Use this for local AI assistants:
 yarn start
 ```
 
-Configure your MCP client:
+#### Manual Configuration
+
+If not using the automatic installer, add this configuration to your AI client:
+
+**Claude Code** (`.mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "orderly-network": {
-      "command": "node",
-      "args": ["/path/to/orderly-mcp/dist/index.js"]
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
     }
   }
 }
+```
+
+**Cursor** (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
+    }
+  }
+}
+```
+
+**VS Code** (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
+    }
+  }
+}
+```
+
+**OpenCode** (`.opencode/mcp.json`):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "orderly": {
+      "type": "local",
+      "command": ["npx", "@orderly.network/mcp-server@latest"],
+      "enabled": true
+    }
+  }
+}
+```
+
+**Codex** (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.orderly]
+command = "npx"
+args = ["@orderly.network/mcp-server@latest"]
 ```
 
 #### 2. HTTP Mode (for hosted deployments)

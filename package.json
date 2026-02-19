@@ -32,13 +32,22 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.3",
+    "commander": "^12.0.0",
+    "deepmerge": "^4.3.1",
+    "execa": "^9.0.0",
     "express": "^4.18.2",
+    "fs-extra": "^11.2.0",
     "fuse.js": "^7.1.0",
-    "yaml": "^2.8.2"
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2",
+    "yaml": "^2.8.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.0.0",
+    "@types/prompts": "^2.4.9",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "JSONStream": "^1.3.5",
@@ -54,6 +63,11 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
     "vitest": "^3.0.0"
+  },
+  "bin": {
+    "orderly-mcp": "dist/cli/index.js",
+    "orderly-mcp-server": "dist/cli/index.js",
+    "orderly-network-mcp-server": "dist/cli/index.js"
   },
   "engines": {
     "node": ">=24.0.0"
