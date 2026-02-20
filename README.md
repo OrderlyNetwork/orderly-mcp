@@ -2,6 +2,45 @@
 
 A Model Context Protocol (MCP) server providing documentation and SDK patterns for Orderly Network - an omnichain perpetual futures trading infrastructure.
 
+## Quick Start
+
+Install the MCP server with one command for your AI client:
+
+```bash
+npx @orderly.network/mcp-server init --client <client>
+```
+
+**Supported clients:** `claude`, `cursor`, `vscode`, `codex`, `opencode`
+
+### Examples
+
+```bash
+# OpenCode
+npx @orderly.network/mcp-server init --client opencode
+
+# Claude Code
+npx @orderly.network/mcp-server init --client claude
+
+# Cursor
+npx @orderly.network/mcp-server init --client cursor
+
+# VS Code (with Copilot)
+npx @orderly.network/mcp-server init --client vscode
+
+# Interactive mode (prompts for client selection)
+npx @orderly.network/mcp-server init
+```
+
+This command will:
+
+1. Create the appropriate configuration file for your AI client
+2. Install `@orderly.network/mcp-server` as a dev dependency
+3. Guide you through the next steps
+
+**After installation:** Restart your AI client and try asking: _"How do I connect to Orderly Network?"_
+
+---
+
 ## What This Server Provides
 
 This MCP server enables AI assistants to answer questions about Orderly Network and guide developers in building React components using the Orderly SDK v2.
@@ -18,12 +57,34 @@ This MCP server enables AI assistants to answer questions about Orderly Network 
 
 ## Installation
 
-### Prerequisites
+### Quick Install (Recommended)
+
+Use the CLI to automatically configure your AI client:
+
+```bash
+npx @orderly.network/mcp-server init --client <client>
+```
+
+**Available clients:**
+
+| Client      | Command             | Config Location        |
+| ----------- | ------------------- | ---------------------- |
+| Claude Code | `--client claude`   | `.mcp.json`            |
+| Cursor      | `--client cursor`   | `.cursor/mcp.json`     |
+| VS Code     | `--client vscode`   | `.vscode/mcp.json`     |
+| Codex       | `--client codex`    | `~/.codex/config.toml` |
+| OpenCode    | `--client opencode` | `.opencode/mcp.json`   |
+
+### Manual Setup
+
+If you prefer to configure manually or the automatic setup doesn't work for your client:
+
+#### Prerequisites
 
 - Node.js 18 or higher
 - Yarn (or npm)
 
-### Setup
+#### Setup from Source
 
 1. **Clone or create the project**:
 
@@ -55,17 +116,70 @@ Use this for local AI assistants:
 yarn start
 ```
 
-Configure your MCP client:
+#### Manual Configuration
+
+If not using the automatic installer, add this configuration to your AI client:
+
+**Claude Code** (`.mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "orderly-network": {
-      "command": "node",
-      "args": ["/path/to/orderly-mcp/dist/index.js"]
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
     }
   }
 }
+```
+
+**Cursor** (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
+    }
+  }
+}
+```
+
+**VS Code** (`.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "orderly": {
+      "command": "npx",
+      "args": ["@orderly.network/mcp-server@latest"]
+    }
+  }
+}
+```
+
+**OpenCode** (`.opencode/mcp.json`):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "orderly": {
+      "type": "local",
+      "command": ["npx", "@orderly.network/mcp-server@latest"],
+      "enabled": true
+    }
+  }
+}
+```
+
+**Codex** (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.orderly]
+command = "npx"
+args = ["@orderly.network/mcp-server@latest"]
 ```
 
 #### 2. HTTP Mode (for hosted deployments)
@@ -248,6 +362,40 @@ Get guidance on building React UI components using Orderly SDK.
 - `positions`: Position management table
 - `wallet-connector`: Wallet connection UI
 
+### 8. `get_orderly_one_api_info`
+
+Get information about Orderly One API for DEX creation, graduation, and management.
+
+**Parameters**:
+
+- `endpoint` (string, optional): Specific endpoint path or name (e.g., '/dex', 'verify-tx', '/theme/modify')
+- `category` (string, optional): Filter by category (e.g., 'auth', 'dex', 'graduation', 'theme', 'stats', 'leaderboard', 'admin')
+
+**Available categories**:
+
+- **auth**: Wallet signature-based authentication (nonce, verify, validate)
+- **dex**: DEX management - create, update, delete, deploy, and manage exchanges
+- **graduation**: Graduation system - upgrade from demo to full broker with fee splits
+- **theme**: AI-powered theme generation and CSS customization
+- **stats**: Platform-wide statistics and analytics
+- **leaderboard**: DEX rankings, performance metrics, and leaderboards
+- **admin**: Administrative operations for platform management
+
+**Example**:
+
+```
+# Get overview and authentication flow
+get_orderly_one_api_info
+
+# Get all endpoints in a category
+get_orderly_one_api_info category="dex"
+get_orderly_one_api_info category="graduation"
+
+# Get specific endpoint details
+get_orderly_one_api_info endpoint="verify-tx"
+get_orderly_one_api_info endpoint="/theme/modify"
+```
+
 ## Available Resources
 
 Access comprehensive documentation via resource URIs. All resources support fuzzy search with pagination:
@@ -332,7 +480,8 @@ This MCP server includes embedded data from:
 4. **Contract Addresses**: All deployed contracts across supported chains
 5. **API Specifications**: REST and WebSocket endpoints
 6. **Indexer API**: Trading metrics, account events, volume statistics, and rankings
-7. **Workflow Guides**: Common development task explanations
+7. **Orderly One API**: DEX creation, graduation, and management API documentation
+8. **Workflow Guides**: Common development task explanations
 
 ## Project Structure
 
@@ -349,7 +498,8 @@ orderly-mcp/
 │   │   ├── workflows.ts         # Workflow explanations
 │   │   ├── apiInfo.ts           # API documentation
 │   │   ├── indexerApi.ts        # Indexer API documentation
-│   │   └── componentGuides.ts   # Component building guides
+│   │   ├── componentGuides.ts   # Component building guides
+│   │   └── orderlyOneApi.ts     # Orderly One API documentation
 │   ├── resources/
 │   │   └── index.ts             # Resource handlers
 │   └── data/
@@ -359,6 +509,7 @@ orderly-mcp/
 │       ├── workflows.json       # Workflow explanations
 │       ├── api.json             # API specifications
 │       ├── indexer-api.json     # Indexer API documentation
+│       ├── orderly-one-api.json # Orderly One API documentation
 │       ├── component-guides.json # Component guides
 │       └── resources/
 │           └── overview.md      # Protocol overview
@@ -460,6 +611,7 @@ yarn build
 | **workflows.json**        | Official docs + Telegram chats | `generate_mcp_data.js`                                                                            |
 | **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
 | **indexer-api.json**      | Indexer API OpenAPI spec       | `generate_indexer_api.js`                                                                         |
+| **orderly-one-api.json**  | Orderly One OpenAPI spec       | `generate_orderly_one_api.js`                                                                     |
 | **contracts.json**        | Official docs (llms-full.txt)  | `generate_contracts.js`                                                                           |
 
 ## Contributing

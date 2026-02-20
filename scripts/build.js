@@ -94,7 +94,19 @@ const nodeBuiltins = [
 ];
 
 // Dependencies that should not be bundled (they use dynamic requires)
-const externalDeps = ['express', '@modelcontextprotocol/sdk', 'fuse.js', 'yaml'];
+const externalDeps = [
+  'express',
+  '@modelcontextprotocol/sdk',
+  'fuse.js',
+  'yaml',
+  'commander',
+  'deepmerge',
+  'execa',
+  'fs-extra',
+  'kleur',
+  'prompts',
+  'zod',
+];
 
 // Build configuration for both entry points
 const buildConfigs = [
@@ -122,6 +134,23 @@ const buildConfigs = [
     target: 'node20',
     format: 'esm',
     outfile: path.join(distDir, 'http-server.js'),
+    minify: !isDev,
+    sourcemap: true,
+    external: [...nodeBuiltins, ...externalDeps],
+    banner: {
+      js: '#!/usr/bin/env node\n',
+    },
+    define: {
+      'process.env.NODE_ENV': isDev ? '"development"' : '"production"',
+    },
+  },
+  {
+    entryPoints: [path.join(projectRoot, 'src', 'cli', 'index.ts')],
+    bundle: true,
+    platform: 'node',
+    target: 'node20',
+    format: 'esm',
+    outfile: path.join(distDir, 'cli', 'index.js'),
     minify: !isDev,
     sourcemap: true,
     external: [...nodeBuiltins, ...externalDeps],

@@ -35,6 +35,7 @@ This is a Model Context Protocol (MCP) server that provides Orderly Network docu
 - `apiInfo.ts` - API documentation
 - `indexerApi.ts` - Indexer API documentation
 - `componentGuides.ts` - Component building guides
+- `orderlyOneApi.ts` - Orderly One API documentation
 
 **Data** (`src/data/*.json`):
 
@@ -105,7 +106,8 @@ src/
 │   ├── workflows.ts           # Workflows
 │   ├── apiInfo.ts             # API info
 │   ├── indexerApi.ts          # Indexer API info
-│   └── componentGuides.ts     # Component guides
+│   ├── componentGuides.ts     # Component guides
+│   └── orderlyOneApi.ts       # Orderly One API documentation
 ├── resources/
 │   └── index.ts               # Resource handlers
 ├── data/                       # Static data
@@ -115,6 +117,7 @@ src/
 │   ├── workflows.json         # Workflows
 │   ├── api.json               # API docs
 │   ├── indexer-api.json       # Indexer API docs
+│   ├── orderly-one-api.json   # Orderly One API documentation
 │   ├── component-guides.json   # Component guides
 │   └── resources/
 │       └── overview.md
@@ -397,6 +400,37 @@ Extracts 12 endpoints across 3 categories:
 
 Also extracts 43 schemas for request/response types.
 
+#### `scripts/generate_orderly_one_api.js`
+
+**Purpose:** Generate Orderly One API documentation from local OpenAPI spec  
+**Input:** Local OpenAPI JSON spec (`http://localhost:3001/openapi.json`)  
+**Output:** `src/data/orderly-one-api.json`  
+**Cost:** **FREE** (no AI calls, direct JSON parsing)
+
+Extracts 32 endpoints across 7 categories:
+
+- **Authentication**: Wallet signature-based auth (nonce, verify, validate)
+- **DEX**: DEX management - create, update, deploy, and manage exchanges
+- **Graduation**: Upgrade from demo to full broker with fee splits
+- **Theme**: AI-powered theme generation and customization
+- **Stats**: Platform-wide statistics and analytics
+- **Leaderboard**: DEX rankings and performance metrics
+- **Admin**: Administrative operations
+
+Also extracts 38 schemas for request/response types and includes complete JWT authentication flow documentation.
+
+**Prerequisites:** Orderly One API server must be running on `http://localhost:3001`
+
+**Usage:**
+
+```bash
+# Make sure Orderly One API is running
+cd ../dex-creator/api && yarn dev
+
+# Generate documentation
+node scripts/generate_orderly_one_api.js
+```
+
 ### Cost Management
 
 **Total cost per complete run:** ~$3.50-7.00
@@ -407,6 +441,7 @@ Also extracts 43 schemas for request/response types.
 - Data generation: ~$2.00-4.00
 - API generation: **FREE** (parses OpenAPI specs directly)
 - Indexer API generation: **FREE** (parses OpenAPI spec directly)
+- Orderly One API generation: **FREE** (parses OpenAPI spec directly)
 
 **Money-saving tips:**
 
