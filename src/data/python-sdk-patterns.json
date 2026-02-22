@@ -1,0 +1,227 @@
+{
+  "categories": [
+    {
+      "name": "Quick Start",
+      "patterns": [
+        {
+          "name": "Arthur.from_credentials_file",
+          "description": "Initialize the Arthur client from a JSON credentials file. This is the fastest way to start trading.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Load credentials from a JSON file containing api_key, secret_key, and account_id. Get these from any Orderly-powered DEX (e.g., arthurdex.com).",
+          "example": "from orderly_agent import Arthur\n\nclient = Arthur.from_credentials_file(\"credentials.json\")\nclient.buy(\"ETH\", usd=100)  # Done.",
+          "notes": [
+            "credentials.json format: {\"api_key\": \"ed25519:xxx\", \"secret_key\": \"ed25519:xxx\", \"account_id\": \"0x...\"}",
+            "Get credentials from arthurdex.com or any Orderly-powered DEX",
+            "For testnet: Arthur.from_credentials_file('credentials.json', testnet=True)"
+          ],
+          "related": ["Arthur"]
+        },
+        {
+          "name": "Arthur",
+          "description": "Initialize the Arthur client with credentials directly. Use when credentials are in environment variables or config.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Pass api_key, secret_key, and account_id directly. Optionally include wallet_private_key for withdrawals.",
+          "example": "from orderly_agent import Arthur\n\nclient = Arthur(\n    api_key=\"ed25519:xxx\",\n    secret_key=\"ed25519:xxx\",\n    account_id=\"0x...\",\n    wallet_private_key=\"0x...\",  # Optional, needed for withdrawals\n    chain_id=42161,  # Arbitrum One\n)\n\n# Or from env vars\nimport os\nclient = Arthur(\n    api_key=os.getenv('ORDERLY_API_KEY'),\n    secret_key=os.getenv('ORDERLY_SECRET_KEY'),\n    account_id=os.getenv('ORDERLY_ACCOUNT_ID'),\n)",
+          "notes": [
+            "wallet_private_key is only required for withdrawals and on-chain operations",
+            "chain_id defaults to 42161 (Arbitrum One)",
+            "Use testnet=True for testnet environment"
+          ],
+          "related": ["Arthur.from_credentials_file"]
+        }
+      ]
+    },
+    {
+      "name": "Trading",
+      "patterns": [
+        {
+          "name": "buy",
+          "description": "Open a long position. Specify size in USD value or token quantity. Supports market and limit orders.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Buy by USD value (usd=) or by size (size=). Add price= for limit orders.",
+          "example": "from orderly_agent import Arthur\nclient = Arthur.from_credentials_file(\"credentials.json\")\n\n# Market orders\nclient.buy(\"ETH\", usd=100)       # Buy $100 worth of ETH\nclient.buy(\"BTC\", size=0.01)     # Buy 0.01 BTC\n\n# Limit order\nclient.buy(\"ETH\", size=0.1, price=2000)  # Buy 0.1 ETH at $2000",
+          "notes": [
+            "Short symbol names work: 'ETH' maps to 'PERP_ETH_USDC' automatically",
+            "50+ perpetual markets available: BTC, ETH, SOL, ARB, OP, AVAX, LINK, etc."
+          ],
+          "related": ["sell", "close", "close_all"]
+        },
+        {
+          "name": "sell",
+          "description": "Open a short position. Same interface as buy but opens a short.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Sell by USD value or by size. Add price= for limit orders.",
+          "example": "client.sell(\"BTC\", usd=500)       # Short $500 of BTC\nclient.sell(\"SOL\", size=10)       # Short 10 SOL\nclient.sell(\"ETH\", size=1, price=3000)  # Limit short at $3000",
+          "related": ["buy", "close"]
+        },
+        {
+          "name": "close",
+          "description": "Close an open position for a specific symbol. Supports partial closes.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Close all of a symbol or specify size for partial close.",
+          "example": "client.close(\"ETH\")              # Close entire ETH position\nclient.close(\"ETH\", size=0.05)   # Partial close 0.05 ETH",
+          "related": ["close_all", "positions"]
+        },
+        {
+          "name": "close_all",
+          "description": "Close all open positions at once. Useful for emergency exits or strategy resets.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "No arguments needed. Closes every open position with market orders.",
+          "example": "client.close_all()  # Close everything",
+          "related": ["close", "positions"]
+        }
+      ]
+    },
+    {
+      "name": "Position Management",
+      "patterns": [
+        {
+          "name": "positions",
+          "description": "Get all open positions with entry price, size, side, and unrealized PnL.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns a list of position objects with symbol, side, size, entry_price, unrealized_pnl, and pnl_percent.",
+          "example": "for pos in client.positions():\n    print(f\"{pos.symbol}: {pos.side} {pos.size}\")\n    print(f\"  Entry: ${pos.entry_price}\")\n    print(f\"  PnL: ${pos.unrealized_pnl} ({pos.pnl_percent}%)\")",
+          "related": ["position", "pnl"]
+        },
+        {
+          "name": "position",
+          "description": "Get position info for a specific symbol.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns position details for one symbol, or None if no position.",
+          "example": "eth_pos = client.position(\"ETH\")\nif eth_pos:\n    print(f\"Size: {eth_pos.size}, PnL: ${eth_pos.unrealized_pnl}\")",
+          "related": ["positions"]
+        },
+        {
+          "name": "pnl",
+          "description": "Get total unrealized PnL across all positions.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns total unrealized PnL in USD.",
+          "example": "total_pnl = client.pnl()\nprint(f\"Total unrealized PnL: ${total_pnl}\")",
+          "related": ["positions", "balance"]
+        }
+      ]
+    },
+    {
+      "name": "Account & Market Data",
+      "patterns": [
+        {
+          "name": "balance",
+          "description": "Get available USDC balance for trading.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns available USDC balance as a float.",
+          "example": "balance = client.balance()\nprint(f\"Available: ${balance} USDC\")",
+          "related": ["equity", "summary"]
+        },
+        {
+          "name": "equity",
+          "description": "Get total account equity (balance + unrealized PnL).",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns total account value in USD.",
+          "example": "equity = client.equity()\nprint(f\"Total equity: ${equity}\")",
+          "related": ["balance", "summary"]
+        },
+        {
+          "name": "price",
+          "description": "Get current mark price for a symbol.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Returns current mark price as a float.",
+          "example": "btc_price = client.price(\"BTC\")\nprint(f\"BTC: ${btc_price}\")\n\n# All prices\nprices = client.prices()\nfor symbol, price in prices.items():\n    print(f\"{symbol}: ${price}\")",
+          "related": ["prices"]
+        }
+      ]
+    },
+    {
+      "name": "Risk Management",
+      "patterns": [
+        {
+          "name": "set_leverage",
+          "description": "Set leverage for a specific trading pair.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Set leverage multiplier (1-50x depending on the symbol).",
+          "example": "client.set_leverage(\"ETH\", 10)  # 10x leverage on ETH",
+          "related": ["set_stop_loss"]
+        },
+        {
+          "name": "set_stop_loss",
+          "description": "Set a stop loss on an open position by price or percentage.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Set stop loss by absolute price or percentage from entry.",
+          "example": "# By price\nclient.set_stop_loss(\"ETH\", price=1900)\n\n# By percentage\nclient.set_stop_loss(\"ETH\", pct=5)  # 5% stop loss",
+          "related": ["set_leverage"]
+        }
+      ]
+    },
+    {
+      "name": "Withdrawals",
+      "patterns": [
+        {
+          "name": "withdraw",
+          "description": "Withdraw USDC from Orderly to your wallet. Requires wallet_private_key on initialization.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Withdraw USDC to connected wallet. Optionally specify a different destination chain.",
+          "example": "# Initialize with wallet key\nclient = Arthur(\n    api_key=\"...\", secret_key=\"...\", account_id=\"...\",\n    wallet_private_key=\"0x...\",\n    chain_id=42161,  # Arbitrum\n)\n\n# Withdraw 100 USDC\nresult = client.withdraw(100)\nprint(f\"Withdrawal ID: {result['withdraw_id']}\")\n\n# Withdraw to a different chain\nclient.withdraw(50, to_chain_id=10)  # Optimism",
+          "related": ["balance", "withdrawal_history"]
+        }
+      ]
+    },
+    {
+      "name": "Error Handling",
+      "patterns": [
+        {
+          "name": "error_handling",
+          "description": "Handle trading errors gracefully with specific exception types.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Catch OrderError for general failures and InsufficientFundsError for balance issues.",
+          "example": "from orderly_agent import Arthur, OrderError, InsufficientFundsError\n\ntry:\n    client.buy(\"ETH\", usd=100)\nexcept InsufficientFundsError:\n    print(\"Not enough balance\")\nexcept OrderError as e:\n    print(f\"Order failed: {e}\")",
+          "related": ["buy", "sell"]
+        }
+      ]
+    },
+    {
+      "name": "Strategy Examples",
+      "patterns": [
+        {
+          "name": "rsi_strategy",
+          "description": "RSI-based mean reversion strategy. Buy when oversold, sell when overbought.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Calculate RSI from price data and trade based on overbought/oversold levels.",
+          "example": "from orderly_agent import Arthur\nimport numpy as np\n\nclient = Arthur.from_credentials_file(\"credentials.json\")\n\n# Calculate RSI (simplified)\ndef calc_rsi(prices, period=14):\n    deltas = np.diff(prices)\n    gains = np.where(deltas > 0, deltas, 0)\n    losses = np.where(deltas < 0, -deltas, 0)\n    avg_gain = np.mean(gains[-period:])\n    avg_loss = np.mean(losses[-period:])\n    rs = avg_gain / avg_loss if avg_loss > 0 else 100\n    return 100 - (100 / (1 + rs))\n\nrsi = calc_rsi(price_history)\nif rsi < 30:\n    client.buy(\"ETH\", usd=100)\nelif rsi > 70:\n    client.sell(\"ETH\", usd=100)",
+          "notes": [
+            "This is a simplified example. Production strategies need position sizing, risk limits, and proper backtesting.",
+            "Full example at: github.com/arthur-orderly/agent-trading-sdk/blob/main/examples/rsi_strategy.py"
+          ],
+          "related": ["buy", "sell", "ai_agent_strategy"]
+        },
+        {
+          "name": "ai_agent_strategy",
+          "description": "Let an LLM make trading decisions based on market context. Perfect for AI agent frameworks like LangChain or CrewAI.",
+          "installation": "pip install agent-trading-sdk openai",
+          "usage": "Feed market data to an LLM, parse its decision, and execute via Arthur SDK.",
+          "example": "from orderly_agent import Arthur\nfrom openai import OpenAI\n\nclient = Arthur.from_credentials_file(\"credentials.json\")\nllm = OpenAI()\n\n# Gather context\nbalance = client.balance()\npositions = client.positions()\nbtc_price = client.price(\"BTC\")\n\ncontext = f\"\"\"Balance: ${balance}\nPositions: {positions}\nBTC Price: ${btc_price}\n\"\"\"\n\n# Ask LLM\nresponse = llm.chat.completions.create(\n    model=\"gpt-4o\",\n    messages=[\n        {\"role\": \"system\", \"content\": \"You are a crypto trading agent. Respond with JSON: {action, symbol, usd}\"},\n        {\"role\": \"user\", \"content\": f\"Market context:\\n{context}\\nWhat trade should we make?\"}\n    ]\n)\n\n# Execute\nimport json\ndecision = json.loads(response.choices[0].message.content)\nif decision['action'] == 'buy':\n    client.buy(decision['symbol'], usd=decision['usd'])\nelif decision['action'] == 'sell':\n    client.sell(decision['symbol'], usd=decision['usd'])",
+          "notes": [
+            "Works with any LLM: OpenAI, Anthropic, local models, etc.",
+            "For LangChain integration, see github.com/arthur-orderly/agent-trading-sdk/tree/main/examples",
+            "Add risk guardrails: max position size, max drawdown, allowed symbols"
+          ],
+          "related": ["rsi_strategy", "grid_strategy", "portfolio_rebalance"]
+        },
+        {
+          "name": "grid_strategy",
+          "description": "Grid trading strategy that places orders at fixed price intervals. Profits from sideways markets.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Define a price range and number of grid levels, then place limit orders at each level.",
+          "example": "from orderly_agent import Arthur\n\nclient = Arthur.from_credentials_file(\"credentials.json\")\n\ncurrent_price = client.price(\"ETH\")\ngrid_size = 10  # 10 levels\nspacing = 50    # $50 between levels\nusd_per_level = 50\n\nfor i in range(grid_size):\n    buy_price = current_price - (i + 1) * spacing\n    sell_price = current_price + (i + 1) * spacing\n    client.buy(\"ETH\", usd=usd_per_level, price=buy_price)\n    client.sell(\"ETH\", usd=usd_per_level, price=sell_price)",
+          "related": ["rsi_strategy", "portfolio_rebalance"]
+        },
+        {
+          "name": "portfolio_rebalance",
+          "description": "Maintain target portfolio allocations across multiple assets. Automatically rebalances when weights drift.",
+          "installation": "pip install agent-trading-sdk",
+          "usage": "Define target weights, calculate current weights from positions, and trade to rebalance.",
+          "example": "from orderly_agent import Arthur\n\nclient = Arthur.from_credentials_file(\"credentials.json\")\n\ntargets = {\"BTC\": 50, \"ETH\": 30, \"SOL\": 20}  # % weights\ntotal_equity = client.equity()\n\nfor symbol, target_pct in targets.items():\n    target_usd = total_equity * target_pct / 100\n    pos = client.position(symbol)\n    current_usd = abs(pos.size * client.price(symbol)) if pos else 0\n    diff = target_usd - current_usd\n    if abs(diff) > 10:  # $10 minimum trade\n        if diff > 0:\n            client.buy(symbol, usd=diff)\n        else:\n            client.close(symbol, size=abs(diff) / client.price(symbol))",
+          "related": ["ai_agent_strategy"]
+        }
+      ]
+    }
+  ]
+}
