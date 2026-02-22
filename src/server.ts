@@ -13,6 +13,7 @@ import { getApiInfo } from './tools/apiInfo.js';
 import { getIndexerApiInfo } from './tools/indexerApi.js';
 import { getComponentGuide } from './tools/componentGuides.js';
 import { getOrderlyOneApiInfo } from './tools/orderlyOneApi.js';
+import { getPythonSdkPattern } from './tools/pythonSdk.js';
 import { getResource } from './resources/index.js';
 
 // Common result type for all tools
@@ -201,6 +202,27 @@ export function createMcpServer(): Server {
             },
           },
         },
+        {
+          name: 'get_python_sdk_pattern',
+          description:
+            'Get code examples and patterns for the Orderly Python SDK (agent-trading-sdk / Arthur SDK) for building trading bots and AI agents',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              pattern: {
+                type: 'string',
+                description:
+                  "Pattern or method name (e.g., 'buy', 'positions', 'rsi_strategy', 'ai_agent_strategy', 'Arthur')",
+              },
+              includeExample: {
+                type: 'boolean',
+                description: 'Include full code example (default: true)',
+                default: true,
+              },
+            },
+            required: ['pattern'],
+          },
+        },
       ],
     };
   });
@@ -278,6 +300,13 @@ export function createMcpServer(): Server {
           )) as ToolResult;
           break;
 
+        case 'get_python_sdk_pattern':
+          result = (await getPythonSdkPattern(
+            args.pattern as string,
+            (args.includeExample as boolean) ?? true
+          )) as ToolResult;
+          break;
+
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -347,6 +376,13 @@ export function createMcpServer(): Server {
           name: 'Indexer API Reference',
           description:
             'Indexer API for trading metrics, account events, volume statistics, and rankings',
+          mimeType: 'text/markdown',
+        },
+        {
+          uri: 'orderly://sdk/python',
+          name: 'Python SDK Reference',
+          description:
+            'Python SDK (agent-trading-sdk) for building trading bots and AI agents on Orderly',
           mimeType: 'text/markdown',
         },
       ],
