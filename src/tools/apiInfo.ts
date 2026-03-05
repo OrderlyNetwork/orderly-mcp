@@ -17,7 +17,17 @@ interface ApiEndpoint {
     required: boolean;
     description: string;
   }>;
-  response?: string;
+  requestBody?: {
+    description?: string;
+    contentType?: string;
+    schema?: string;
+    required?: boolean;
+  } | null;
+  responses?: Array<{
+    code: number;
+    description: string;
+    schema: string;
+  }>;
   example?: string;
 }
 
@@ -192,8 +202,20 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       });
     }
 
-    if (match.response) {
-      text += `## Response\n\n\`\`\`json\n${match.response}\n\`\`\`\n\n`;
+    if (match.requestBody && match.requestBody.schema) {
+      text += `## Request Body${match.requestBody.required ? '' : ' (optional)'}\n\n`;
+      if (match.requestBody.description) {
+        text += `${match.requestBody.description}\n\n`;
+      }
+      text += `\`\`\`json\n${match.requestBody.schema}\`\`\`\n\n`;
+    }
+
+    if (match.responses && match.responses.length > 0) {
+      text += `## Response\n\n`;
+      match.responses.forEach((resp) => {
+        text += `**${resp.code}** ${resp.description}\n\n`;
+        text += `\`\`\`json\n${resp.schema}\`\`\`\n\n`;
+      });
     }
 
     if (match.example) {
