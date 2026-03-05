@@ -1786,12 +1786,29 @@
       "keywords": ["java", "authentication", "api", "backend", "enterprise"],
       "source": "Generated from example repositories with AI enhancement",
       "generatedAt": "2026-02-04T19:17:31.267Z"
+    },
+    {
+      "id": "eip712-domain-types",
+      "title": "EIP-712 Domain Types: Off-Chain vs On-Chain",
+      "category": "Authentication",
+      "content": "Orderly Network uses two types of EIP-712 domains depending on the operation. Understanding this distinction is critical for correctly signing messages.\n\n## Off-Chain Domain (Registration, API Keys)\n\nUsed for: Account registration, API key management\n\n```json\n{\n  \"name\": \"Orderly\",\n  \"version\": \"1\",\n  \"chainId\": 421614,\n  \"verifyingContract\": \"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"\n}\n```\n\nThis is a fixed placeholder address used for off-chain operations. The chainId can be 421614 (testnet) or 42161 (mainnet).\n\n## On-Chain Domain (Withdrawals, Transfers, Settle PnL)\n\nUsed for: Withdrawals, internal transfers, settle PnL\n\n```json\n{\n  \"name\": \"Orderly\",\n  \"version\": \"1\",\n  \"chainId\": 42161,\n  \"verifyingContract\": \"0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203\"\n}\n```\n\nThe `verifyingContract` here is the **Ledger contract** on Orderly L2.\n\n### Ledger Contract Addresses (verifyingContract for On-Chain Operations)\n\n| Network | Address |\n|---------|--------|\n| Mainnet | `0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203` |\n| Testnet | `0x1826B75e2ef249173FC735149AE4B8e9ea10abff` |\n\nUse `get_contract_addresses(chain=\"orderlyL2\", contractType=\"Ledger\")` to retrieve these programmatically.\n\n## Important: Ledger vs Vault Contracts\n\n**Ledger Contract:**\n- ONE per network (mainnet/testnet)\n- Lives on Orderly L2 (chain ID 291 mainnet / 4460 testnet)\n- Used as `verifyingContract` for EIP-712 on-chain signatures (withdrawals, transfers, settle PnL)\n\n**Vault Contracts:**\n- ONE per supported EVM chain (Arbitrum, Optimism, Base, etc.)\n- Hold user funds on each chain\n- Used for deposits and withdrawals on that specific chain\n\nThe Ledger contract is NOT the same as Vault contracts. The Ledger verifies EIP-712 signatures for cross-chain operations, while Vaults hold the actual funds on each chain.",
+      "keywords": [
+        "eip-712",
+        "signature",
+        "domain",
+        "verifyingContract",
+        "Ledger",
+        "off-chain",
+        "on-chain"
+      ],
+      "source": "Manual addition to clarify EIP-712 domain types",
+      "generatedAt": "2026-03-05T00:00:00.000Z"
     }
   ],
   "metadata": {
     "version": "3.0.0",
     "lastUpdated": "2026-02-04",
-    "totalChunks": 133,
+    "totalChunks": 134,
     "source": "Generated from 915 Telegram + 2074 Docs Q&A entries",
     "categories": [
       {
@@ -1808,7 +1825,7 @@
       },
       {
         "name": "Authentication",
-        "count": 188
+        "count": 189
       },
       {
         "name": "Wallet",

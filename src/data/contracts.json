@@ -594,11 +594,12 @@
   "orderlyL2": {
     "chainId": 291,
     "testnetChainId": 4460,
+    "description": "Orderly L2 is the internal chain where the Ledger contract lives. The Ledger contract (verifyingContract) is used for EIP-712 signatures for on-chain operations: withdrawals, internal transfers, and settle PnL. There is only ONE Ledger contract per network (mainnet/testnet). Vault contracts are on each supported EVM chain.",
     "contracts": {
-      "LedgerverifyingcontractforEIP-712withdrawmsg": {
+      "Ledger": {
         "mainnet": "0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203",
         "testnet": "0x1826B75e2ef249173FC735149AE4B8e9ea10abff",
-        "description": "Ledger (verifying contract for EIP-712 withdraw msg) contract"
+        "description": "Ledger contract (verifyingContract) for EIP-712 on-chain domain. Used for withdrawals, internal transfers, and settle PnL. Also searchable as 'verifyingContract'."
       },
       "LedgerProxyAdmin": {
         "mainnet": "0xA2eA0a58b083c492AdC91A687FAc8B53AdB7c0Fd",
