@@ -192,7 +192,7 @@ yarn start:http
 
 The server will start on port 3000 (or `PORT` env var):
 
-- MCP endpoint: `http://localhost:3000/mcp`
+- MCP endpoint: `http://localhost:3000/`
 - Health check: `http://localhost:3000/health`
 
 **Docker Deployment:**

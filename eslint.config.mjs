@@ -27,7 +27,6 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'error',
 
       // General best practices
-      'no-console': ['warn', { allow: ['error', 'warn'] }],
       'no-debugger': 'error',
       'no-duplicate-imports': 'error',
       'no-unused-expressions': 'error',
