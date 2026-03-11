@@ -36,7 +36,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
 
-const OPENAPI_URL = 'http://localhost:3001/openapi.json';
+const OPENAPI_URL = 'https://testnet-dex-api.orderly.network/openapi.json';
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'orderly-one-api.json');
 
 // Download OpenAPI spec
@@ -212,7 +212,7 @@ function extractResponses(details, spec) {
 
 // Generate code example
 function generateExample(path, method, details) {
-  const baseUrl = 'https://api.dex.orderly.network';
+  const baseUrl = 'https://dex-api.orderly.network';
 
   if (method === 'GET') {
     return `const url = '${baseUrl}${path}';
@@ -369,8 +369,8 @@ function processOpenAPISpec(spec) {
       spec.info?.description ||
       'Orderly One API - Create and manage your own perpetual DEX using Orderly Network infrastructure',
     baseUrl: {
-      production: 'https://api.dex.orderly.network',
-      development: 'http://localhost:3001',
+      production: 'https://dex-api.orderly.network',
+      development: 'https://testnet-dex-api.orderly.network',
     },
     authentication: {
       type: 'JWT',
@@ -404,7 +404,7 @@ function processOpenAPISpec(spec) {
         },
       ],
       example: `// 1. Get nonce
-const nonceRes = await fetch('https://api.dex.orderly.network/auth/nonce', {
+const nonceRes = await fetch('https://dex-api.orderly.network/auth/nonce', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ address: '0x...' })
@@ -415,7 +415,7 @@ const { message, nonce } = await nonceRes.json();
 const signature = await wallet.signMessage(message);
 
 // 3. Verify and get token
-const verifyRes = await fetch('https://api.dex.orderly.network/auth/verify', {
+const verifyRes = await fetch('https://dex-api.orderly.network/auth/verify', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ address: '0x...', signature })
@@ -423,7 +423,7 @@ const verifyRes = await fetch('https://api.dex.orderly.network/auth/verify', {
 const { token } = await verifyRes.json();
 
 // 4. Use token for authenticated requests
-const dexRes = await fetch('https://api.dex.orderly.network/dex', {
+const dexRes = await fetch('https://dex-api.orderly.network/dex', {
   headers: { 'Authorization': \`Bearer \${token}\` }
 });`,
     },
