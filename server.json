@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.OrderlyNetwork/orderly-mcp",
+  "name": "io.github.orderlynetwork/orderly-mcp",
   "description": "MCP Server for Orderly Network - Documentation and SDK patterns",
   "repository": {
     "url": "https://github.com/OrderlyNetwork/orderly-mcp",
