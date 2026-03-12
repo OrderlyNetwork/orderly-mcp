@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.orderlynetwork/orderly-mcp",
+  "name": "io.github.OrderlyNetwork/orderly-mcp",
   "description": "MCP Server for Orderly Network - Documentation and SDK patterns",
   "repository": {
     "url": "https://github.com/OrderlyNetwork/orderly-mcp",
     "source": "github"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@orderly.network/mcp-server",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "transport": {
         "type": "stdio"
       }
