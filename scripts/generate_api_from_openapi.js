@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
 
 const OPENAPI_URL =
-  'https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/evm.openapi.yaml';
+  'https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/orderly.openapi.yaml';
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'api.json');
 
 // Download OpenAPI spec
