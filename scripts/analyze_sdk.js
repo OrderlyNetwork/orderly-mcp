@@ -13,6 +13,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 import OpenAI from 'openai';
@@ -26,12 +27,17 @@ const projectRoot = path.join(__dirname, '..');
 
 // Config
 const USE_AI = process.env.USE_AI === 'true';
+const FORCE = process.env.FORCE === 'true';
 const SDK_REPO = 'https://github.com/OrderlyNetwork/js-sdk.git';
 const TEMP_DIR = path.join(projectRoot, '.temp-sdk');
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'sdk-patterns.json');
+const COMPONENT_GUIDES_FILE = path.join(projectRoot, 'src', 'data', 'component-guides.json');
 
 console.log('🔍 Orderly SDK Pattern Extractor\n');
 console.log(`Mode: ${USE_AI ? 'AI Enrichment (PAID ~$5-15)' : 'Source Extraction (FREE)'}`);
+console.log(
+  `Incremental: ${FORCE ? 'OFF (FORCE=true, full regeneration)' : 'ON (only enrich new items)'}`
+);
 console.log(`⚠️  Set USE_AI=true to enable AI enrichment\n`);
 
 if (USE_AI && !process.env.NEAR_AI_API_KEY && !process.env.OPENAI_API_KEY) {
@@ -46,7 +52,7 @@ const client = USE_AI
     })
   : null;
 
-const MODEL = 'zai-org/GLM-4.7';
+const MODEL = 'Qwen/Qwen3.5-122B-A10B';
 
 // ==================== PASS 1: EXTRACT HOOKS ====================
 
@@ -289,6 +295,101 @@ console.log(
   `   ✅ Found ${rawComponents.length} components (${componentsWithContext} with context)\n`
 );
 
+// ==================== PASS 4.5: LOAD EXISTING DATA & CLASSIFY ====================
+
+const existingData = FORCE
+  ? {
+      hookMap: {},
+      componentMap: {},
+      guideMap: {},
+      categories: [],
+      guides: [],
+      fingerprints: {},
+      guideFingerprints: {},
+      loaded: false,
+    }
+  : loadExistingData();
+
+const extractedHookNames = new Set(rawHooks.map((h) => h.name));
+const extractedComponentNames = new Set(rawComponents.map((c) => c.name));
+
+// Compute fingerprints for all extracted items
+const hookFingerprints = {};
+for (const hook of rawHooks) {
+  hookFingerprints[hook.name] = computeHookFingerprint(hook);
+}
+const componentFingerprints = {};
+for (const comp of rawComponents) {
+  componentFingerprints[comp.name] = computeComponentFingerprint(comp);
+}
+
+// 3-way classification for hooks
+const newHooks = [];
+const changedHooks = [];
+const unchangedHooks = [];
+
+for (const hook of rawHooks) {
+  const existing = existingData.hookMap[hook.name];
+  if (!existing) {
+    newHooks.push(hook);
+  } else {
+    const storedFp = existingData.fingerprints[hook.name];
+    if (!storedFp || storedFp !== hookFingerprints[hook.name]) {
+      changedHooks.push(hook);
+    } else {
+      unchangedHooks.push(hook);
+    }
+  }
+}
+
+// 3-way classification for components
+const newComponents = [];
+const changedComponents = [];
+const unchangedComponents = [];
+
+for (const comp of rawComponents) {
+  const existing = existingData.componentMap[comp.name];
+  if (!existing) {
+    newComponents.push(comp);
+  } else {
+    const storedFp = existingData.fingerprints[comp.name];
+    if (!storedFp || storedFp !== componentFingerprints[comp.name]) {
+      changedComponents.push(comp);
+    } else {
+      unchangedComponents.push(comp);
+    }
+  }
+}
+
+const removedHookCount = Object.keys(existingData.hookMap).filter(
+  (n) => !extractedHookNames.has(n)
+).length;
+const removedComponentCount = Object.keys(existingData.componentMap).filter(
+  (n) => !extractedComponentNames.has(n)
+).length;
+
+// Items that need AI enrichment (new + changed)
+const hooksToEnrich = [...newHooks, ...changedHooks];
+const componentsToEnrich = [...newComponents, ...changedComponents];
+
+if (existingData.loaded) {
+  console.log(`📊 Incremental Analysis:`);
+  console.log(
+    `   Hooks — ${unchangedHooks.length} unchanged, ${changedHooks.length} changed, ${newHooks.length} new, ${removedHookCount} removed`
+  );
+  console.log(
+    `   Components — ${unchangedComponents.length} unchanged, ${changedComponents.length} changed, ${newComponents.length} new, ${removedComponentCount} removed`
+  );
+  console.log(
+    `   Need enrichment: ${hooksToEnrich.length} hooks, ${componentsToEnrich.length} components\n`
+  );
+}
+
+const allExistingPatternNames = [
+  ...Object.keys(existingData.hookMap),
+  ...Object.keys(existingData.componentMap),
+];
+
 // ==================== PASS 5: AI ENRICHMENT (Optional) ====================
 
 let enrichedHooks = [];
@@ -296,31 +397,59 @@ let enrichedComponents = [];
 
 if (USE_AI) {
   console.log('🤖 Phase 5: AI Enrichment\n');
-  console.log('⚠️  This will cost money. Estimated: ~$10-15\n');
-  console.log('Starting in 3 seconds... (Ctrl+C to cancel)\n');
-  await new Promise((r) => setTimeout(r, 3000));
 
-  // Enrich hooks
-  console.log(`📝 Enriching ${rawHooks.length} hooks...`);
-  enrichedHooks = await enrichHooksWithAI(rawHooks);
-  console.log(`   ✅ Enriched ${enrichedHooks.length} hooks\n`);
+  if (!existingData.loaded || FORCE) {
+    console.log('⚠️  Full generation mode. Estimated cost: ~$10-15\n');
+    console.log('Starting in 3 seconds... (Ctrl+C to cancel)\n');
+    await new Promise((r) => setTimeout(r, 3000));
+  } else if (hooksToEnrich.length + componentsToEnrich.length > 0) {
+    const estCost = (((hooksToEnrich.length + componentsToEnrich.length) / 20) * 3).toFixed(2);
+    console.log(
+      `⚠️  Estimated cost: ~$${estCost} (${hooksToEnrich.length} hooks + ${componentsToEnrich.length} components to enrich)\n`
+    );
+    console.log('Starting in 3 seconds... (Ctrl+C to cancel)\n');
+    await new Promise((r) => setTimeout(r, 3000));
+  } else {
+    console.log('ℹ️  No new or changed items — skipping AI calls\n');
+  }
 
-  // Enrich components
-  console.log(`🧩 Enriching ${rawComponents.length} components...`);
-  enrichedComponents = await enrichComponentsWithAI(rawComponents);
-  console.log(`   ✅ Enriched ${enrichedComponents.length} components\n`);
+  if (hooksToEnrich.length > 0) {
+    console.log(
+      `📝 Enriching ${hooksToEnrich.length} hooks (${newHooks.length} new + ${changedHooks.length} changed)...`
+    );
+    enrichedHooks = await enrichHooksWithAI(hooksToEnrich, allExistingPatternNames);
+    console.log(`   ✅ Enriched ${enrichedHooks.length} hooks\n`);
+  } else {
+    console.log('📝 No hooks to enrich\n');
+  }
 
-  // Generate component guides
+  if (componentsToEnrich.length > 0) {
+    console.log(
+      `🧩 Enriching ${componentsToEnrich.length} components (${newComponents.length} new + ${changedComponents.length} changed)...`
+    );
+    enrichedComponents = await enrichComponentsWithAI(componentsToEnrich, allExistingPatternNames);
+    console.log(`   ✅ Enriched ${enrichedComponents.length} components\n`);
+  } else {
+    console.log('🧩 No components to enrich\n');
+  }
+
   console.log(`📘 Generating component guides...`);
-  await generateComponentGuides(enrichedComponents, enrichedHooks);
+  await generateComponentGuides(
+    componentsToEnrich,
+    enrichedComponents,
+    [...enrichedHooks, ...unchangedHooks],
+    existingData
+  );
   console.log(`   ✅ Component guides generated\n`);
 } else {
   console.log('📄 Skipping AI enrichment (USE_AI not set)\n');
-  enrichedHooks = rawHooks.map((h) => ({
+  const hooksToProcess = existingData.loaded ? hooksToEnrich : rawHooks;
+  const componentsToProcess = existingData.loaded ? componentsToEnrich : rawComponents;
+  enrichedHooks = hooksToProcess.map((h) => ({
     ...h,
     example: generateHookExample(h),
   }));
-  enrichedComponents = rawComponents.map((c) => ({
+  enrichedComponents = componentsToProcess.map((c) => ({
     ...c,
     example: generateComponentExample(c),
   }));
@@ -330,13 +459,23 @@ if (USE_AI) {
 
 console.log('💾 Saving sdk-patterns.json...');
 
-// Build hook categories
 const categoryMap = {};
+
+if (existingData.loaded) {
+  for (const [name, data] of Object.entries(existingData.hookMap)) {
+    // Keep only unchanged hooks still in SDK source
+    if (unchangedHooks.some((h) => h.name === name)) {
+      const catName = data.category;
+      if (!categoryMap[catName]) categoryMap[catName] = [];
+      categoryMap[catName].push(data.pattern);
+    }
+  }
+}
+
+// Add newly enriched hooks (new + changed)
 for (const hook of enrichedHooks) {
   const catName = hook.category || 'General';
-  if (!categoryMap[catName]) {
-    categoryMap[catName] = [];
-  }
+  if (!categoryMap[catName]) categoryMap[catName] = [];
 
   categoryMap[catName].push({
     name: hook.name,
@@ -348,7 +487,8 @@ for (const hook of enrichedHooks) {
       `Provides ${hook.description || 'SDK functionality'}`,
     example: hook.aiExample?.code || hook.example,
     notes: hook.aiExample?.notes || hook.returnInfo?.notes || [],
-    related: hook.aiExample?.related || findRelatedHooks(hook.name, enrichedHooks),
+    related:
+      hook.aiExample?.related || findRelatedHooks(hook.name, [...enrichedHooks, ...unchangedHooks]),
   });
 }
 
@@ -357,20 +497,49 @@ const categories = Object.entries(categoryMap).map(([name, patterns]) => ({
   patterns,
 }));
 
-// Add component category
-if (enrichedComponents.length > 0) {
-  categories.push({
-    name: 'UI Components',
-    patterns: enrichedComponents.map((c) => ({
-      name: c.name,
-      description: c.aiExample?.description || `UI component from ${c.package}`,
-      installation: `npm install ${c.package}`,
-      usage: c.aiExample?.usage || `Import and use ${c.name} in your React components`,
-      example: c.aiExample?.code || c.example,
-      notes: c.aiExample?.notes || [],
-      related: c.aiExample?.related || [],
-    })),
+// Build UI Components: unchanged existing + newly enriched (new + changed)
+const uiPatterns = [];
+
+if (existingData.loaded) {
+  for (const [name, pattern] of Object.entries(existingData.componentMap)) {
+    if (unchangedComponents.some((c) => c.name === name)) {
+      uiPatterns.push(pattern);
+    }
+  }
+}
+
+for (const c of enrichedComponents) {
+  uiPatterns.push({
+    name: c.name,
+    description: c.aiExample?.description || `UI component from ${c.package}`,
+    installation: `npm install ${c.package}`,
+    usage: c.aiExample?.usage || `Import and use ${c.name} in your React components`,
+    example: c.aiExample?.code || c.example,
+    notes: c.aiExample?.notes || [],
+    related: c.aiExample?.related || [],
   });
+}
+
+if (uiPatterns.length > 0) {
+  categories.push({ name: 'UI Components', patterns: uiPatterns });
+}
+
+const totalHooks = unchangedHooks.length + enrichedHooks.length;
+const totalComponents = unchangedComponents.length + enrichedComponents.length;
+
+// Build merged fingerprint map
+const mergedFingerprints = {};
+for (const h of unchangedHooks) {
+  mergedFingerprints[h.name] = hookFingerprints[h.name];
+}
+for (const c of unchangedComponents) {
+  mergedFingerprints[c.name] = componentFingerprints[c.name];
+}
+for (const h of enrichedHooks) {
+  mergedFingerprints[h.name] = hookFingerprints[h.name];
+}
+for (const c of enrichedComponents) {
+  mergedFingerprints[c.name] = componentFingerprints[c.name];
 }
 
 const output = {
@@ -378,11 +547,12 @@ const output = {
   generatedAt: new Date().toISOString(),
   mode: USE_AI ? 'ai-enriched' : 'source-extracted',
   stats: {
-    totalHooks: enrichedHooks.length,
-    totalComponents: enrichedComponents.length,
+    totalHooks,
+    totalComponents,
     componentsWithContext,
     totalCategories: categories.length,
   },
+  _fingerprints: mergedFingerprints,
   categories,
 };
 
@@ -391,8 +561,14 @@ fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
 
 console.log(`   ✅ Saved to ${OUTPUT_FILE}\n`);
 console.log(`   📊 Summary:`);
-console.log(`      - ${enrichedHooks.length} hooks`);
-console.log(`      - ${enrichedComponents.length} components`);
+console.log(
+  `      - ${totalHooks} hooks (${unchangedHooks.length} unchanged + ${enrichedHooks.length} enriched [${newHooks.length} new, ${changedHooks.length} changed])`
+);
+console.log(
+  `      - ${totalComponents} components (${unchangedComponents.length} unchanged + ${enrichedComponents.length} enriched [${newComponents.length} new, ${changedComponents.length} changed])`
+);
+console.log(`      - ${removedHookCount} hooks removed from SDK`);
+console.log(`      - ${removedComponentCount} components removed from SDK`);
 console.log(`      - ${categories.length} categories\n`);
 
 // Cleanup
@@ -404,11 +580,101 @@ try {
 
 console.log('✨ Complete!');
 
+// ==================== EXISTING DATA LOADING ====================
+
+function loadExistingData() {
+  const result = {
+    hookMap: {},
+    componentMap: {},
+    guideMap: {},
+    categories: [],
+    guides: [],
+    fingerprints: {},
+    guideFingerprints: {},
+    loaded: false,
+  };
+
+  try {
+    if (fs.existsSync(OUTPUT_FILE)) {
+      const existing = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf-8'));
+      result.categories = existing.categories || [];
+      result.fingerprints = existing._fingerprints || {};
+
+      for (const category of result.categories) {
+        if (category.name === 'UI Components') continue;
+        for (const pattern of category.patterns) {
+          result.hookMap[pattern.name] = { category: category.name, pattern };
+        }
+      }
+
+      const uiCategory = result.categories.find((c) => c.name === 'UI Components');
+      if (uiCategory) {
+        for (const pattern of uiCategory.patterns) {
+          result.componentMap[pattern.name] = pattern;
+        }
+      }
+
+      result.loaded = true;
+    }
+  } catch (e) {
+    console.log(`   ⚠️  Could not load existing sdk-patterns.json: ${e.message}`);
+  }
+
+  try {
+    if (fs.existsSync(COMPONENT_GUIDES_FILE)) {
+      const existing = JSON.parse(fs.readFileSync(COMPONENT_GUIDES_FILE, 'utf-8'));
+      result.guides = existing.components || [];
+      result.guideFingerprints = existing._fingerprints || {};
+      for (const guide of result.guides) {
+        result.guideMap[guide.name] = guide;
+      }
+    }
+  } catch (e) {
+    console.log(`   ⚠️  Could not load existing component-guides.json: ${e.message}`);
+  }
+
+  return result;
+}
+
+function computeHookFingerprint(hook) {
+  const fingerprintData = {
+    name: hook.name,
+    returnProperties: hook.returnInfo?.properties?.slice().sort() || [],
+    description: hook.description,
+    sourceFile: hook.sourceFile,
+  };
+  return crypto
+    .createHash('md5')
+    .update(JSON.stringify(fingerprintData))
+    .digest('hex')
+    .substring(0, 8);
+}
+
+function computeComponentFingerprint(component) {
+  const fingerprintData = {
+    name: component.name,
+    package: component.package,
+    file: component.file,
+    storyProps: component.stories?.flatMap((s) => s.props?.map((p) => p.name) || []).sort() || [],
+    internalProps: component.internalUsages?.flatMap((u) => u.props?.sort() || []).sort() || [],
+  };
+  return crypto
+    .createHash('md5')
+    .update(JSON.stringify(fingerprintData))
+    .digest('hex')
+    .substring(0, 8);
+}
+
 // ==================== AI ENRICHMENT FUNCTIONS ====================
 
-async function enrichHooksWithAI(hooks) {
+async function enrichHooksWithAI(hooks, existingPatternNames = []) {
   const enriched = [];
   const batchSize = 10;
+
+  const existingContext =
+    existingPatternNames.length > 0
+      ? `\nAlready documented (use these in "related" fields): ${existingPatternNames.join(', ')}\n`
+      : '';
 
   for (let i = 0; i < hooks.length; i += batchSize) {
     const batch = hooks.slice(i, i + batchSize);
@@ -417,7 +683,7 @@ async function enrichHooksWithAI(hooks) {
     console.log(`   Processing hooks ${i + 1}-${endIdx} of ${hooks.length}...`);
 
     const prompt = `Generate clean, practical code examples for these Orderly SDK hooks.
-
+${existingContext}
 Context for each hook:
 ${batch
   .map(
@@ -495,9 +761,14 @@ Return JSON:
   return enriched;
 }
 
-async function enrichComponentsWithAI(components) {
+async function enrichComponentsWithAI(components, existingPatternNames = []) {
   const enriched = [];
   const batchSize = 8;
+
+  const existingContext =
+    existingPatternNames.length > 0
+      ? `\nAlready documented (use these in "related" fields): ${existingPatternNames.join(', ')}\n`
+      : '';
 
   for (let i = 0; i < components.length; i += batchSize) {
     const batch = components.slice(i, i + batchSize);
@@ -506,7 +777,7 @@ async function enrichComponentsWithAI(components) {
     console.log(`   Processing components ${i + 1}-${endIdx} of ${components.length}...`);
 
     const prompt = `Generate clean, practical code examples for these Orderly UI components.
-
+${existingContext}
 Context from SDK:
 ${batch
   .map(
@@ -605,14 +876,16 @@ Return JSON:
 
 // ==================== PASS 6: GENERATE COMPONENT GUIDES ====================
 
-async function generateComponentGuides(components, hooks) {
-  const COMPONENT_GUIDES_FILE = path.join(projectRoot, 'src', 'data', 'component-guides.json');
+async function generateComponentGuides(
+  componentsToEnrich,
+  enrichedComponents,
+  allHooks,
+  existingData
+) {
+  console.log(`   Generating component guides...`);
 
-  console.log(`   Generating component guides for ${components.length} components...`);
-
-  // Build a map of available hooks for cross-referencing
   const hookMap = {};
-  hooks.forEach((h) => {
+  allHooks.forEach((h) => {
     hookMap[h.name] = {
       name: h.name,
       category: h.category,
@@ -620,19 +893,31 @@ async function generateComponentGuides(components, hooks) {
     };
   });
 
-  // Get top 20 most important hooks for cross-referencing
   const topHooks = Object.values(hookMap)
     .slice(0, 20)
     .map((h) => `- ${h.name} (${h.category}): ${h.description.substring(0, 80)}`)
     .join('\n');
 
-  const batchSize = 2; // Reduced from 5 to 2 to prevent JSON truncation
-  const guides = [];
+  // Only generate guides for components that are new or whose fingerprint changed
+  const componentsNeedingGuides = componentsToEnrich.filter((c) => {
+    const existingFp = existingData.guideFingerprints[c.name];
+    const currentFp = componentFingerprints[c.name];
+    return !existingFp || existingFp !== currentFp;
+  });
+
+  const enrichedNames = new Set(enrichedComponents.map((c) => c.name));
+
+  console.log(
+    `   ${componentsNeedingGuides.length} components need new/updated guides (${Object.keys(existingData.guideMap).length} existing guides to check)`
+  );
+
+  const batchSize = 2;
+  const newGuides = [];
   const failedBatches = [];
 
-  for (let i = 0; i < components.length; i += batchSize) {
-    const batch = components.slice(i, i + batchSize);
-    const endIdx = Math.min(i + batchSize, components.length);
+  for (let i = 0; i < componentsNeedingGuides.length; i += batchSize) {
+    const batch = componentsNeedingGuides.slice(i, i + batchSize);
+    const endIdx = Math.min(i + batchSize, componentsNeedingGuides.length);
 
     console.log(`      Processing batch ${i + 1}-${endIdx}...`);
 
@@ -696,7 +981,6 @@ Return: {"guides": [guide1, guide2]}`;
 
     while (retries < maxRetries && !success) {
       try {
-        // Increase max_tokens on retry to handle larger responses
         if (retries > 0) {
           currentMaxTokens = 10_000 + retries * 3000;
           console.log(`      📝 Increasing max_tokens to ${currentMaxTokens} for retry ${retries}`);
@@ -719,7 +1003,6 @@ Return: {"guides": [guide1, guide2]}`;
 
         const content = response.choices[0]?.message?.content;
         if (content) {
-          // Try to parse and validate
           let parsed;
           try {
             parsed = JSON.parse(content);
@@ -732,14 +1015,13 @@ Return: {"guides": [guide1, guide2]}`;
 
           const batchGuides = parsed.guides || [];
 
-          // Validate guides
           for (const guide of batchGuides) {
             if (guide.name && guide.variants && guide.variants.length === 3) {
               guide.variants.forEach((v) => {
                 if (!v.additionalImports) v.additionalImports = [];
                 if (!v.tips) v.tips = [];
               });
-              guides.push(guide);
+              newGuides.push(guide);
             }
           }
 
@@ -760,12 +1042,11 @@ Return: {"guides": [guide1, guide2]}`;
       }
     }
 
-    if (i + batchSize < components.length) {
-      await new Promise((r) => setTimeout(r, 1500)); // Increased delay
+    if (i + batchSize < componentsNeedingGuides.length) {
+      await new Promise((r) => setTimeout(r, 1500));
     }
   }
 
-  // Report any failures
   if (failedBatches.length > 0) {
     console.log(`\n   ⚠️  Failed batches:`);
     failedBatches.forEach((b) => {
@@ -773,22 +1054,40 @@ Return: {"guides": [guide1, guide2]}`;
     });
   }
 
-  // Save component guides
+  // Merge: keep existing guides for unchanged components, add new guides
+  const enrichedComponentNames = new Set(enrichedComponents.map((c) => c.name));
+  const allExtractedNames = new Set(rawComponents.map((c) => c.name));
+  const keptExistingGuides = existingData.guides.filter(
+    (g) => !enrichedComponentNames.has(g.name) && allExtractedNames.has(g.name)
+  );
+  const allGuides = [...keptExistingGuides, ...newGuides];
+
+  // Build merged guide fingerprints
+  const mergedGuideFingerprints = { ...existingData.guideFingerprints };
+  for (const g of newGuides) {
+    if (componentFingerprints[g.name]) {
+      mergedGuideFingerprints[g.name] = componentFingerprints[g.name];
+    }
+  }
+
   const output = {
-    components: guides,
+    components: allGuides,
     metadata: {
       version: '3.0.0',
       generatedAt: new Date().toISOString(),
-      totalComponents: guides.length,
+      totalComponents: allGuides.length,
+      totalNew: newGuides.length,
+      totalKept: keptExistingGuides.length,
       totalFailed: failedBatches.length * batchSize,
       source: 'Generated from SDK source code analysis',
       mode: 'ai-enriched',
     },
+    _fingerprints: mergedGuideFingerprints,
   };
 
   fs.writeFileSync(COMPONENT_GUIDES_FILE, JSON.stringify(output, null, 2));
   console.log(
-    `   ✅ Saved ${guides.length}/${components.length} component guides to ${COMPONENT_GUIDES_FILE}`
+    `   ✅ Saved ${allGuides.length} component guides (${keptExistingGuides.length} kept + ${newGuides.length} new) to ${COMPONENT_GUIDES_FILE}`
   );
 
   if (failedBatches.length > 0) {
