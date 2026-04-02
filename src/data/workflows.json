@@ -403,9 +403,9 @@
         },
         {
           "title": "Place a New Order",
-          "description": "Submit a POST request to create an order. You can specify order types like LIMIT, MARKET, IOC, FOK, or POST_ONLY. Use `client_order_id` for client-side tracking.",
-          "code": "POST /v1/order\n\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"order_type\": \"LIMIT\",\n  \"side\": \"BUY\",\n  \"order_price\": \"1800.00\",\n  \"order_quantity\": \"0.1\",\n  \"client_order_id\": \"my-custom-id-123\"\n}",
-          "important": "Rate limit: 10 requests per second. `client_order_id` must be unique among open orders."
+          "description": "Submit a POST request to create an order. You can specify order types like LIMIT, MARKET, IOC, FOK, or POST_ONLY. Use `client_order_id` for client-side tracking. Include `margin_mode` to trade in ISOLATED margin mode.",
+          "code": "POST /v1/order\n\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"order_type\": \"LIMIT\",\n  \"side\": \"BUY\",\n  \"order_price\": \"1800.00\",\n  \"order_quantity\": \"0.1\",\n  \"client_order_id\": \"my-custom-id-123\"\n  // \"margin_mode\": \"ISOLATED\" // Optional: CROSS (default) or ISOLATED\n}",
+          "important": "Rate limit: 10 requests per second. `client_order_id` must be unique among open orders. If margin_mode is omitted, the symbol's default mode (CROSS) is used."
         },
         {
           "title": "Edit a Pending Order",
@@ -686,8 +686,8 @@
       "steps": [
         {
           "title": "Initialize Order Entry",
-          "description": "Use useOrderEntry to manage the state of the order form (price, quantity, side, type).",
-          "code": "const { submit, setValue, helper, reset } = useOrderEntry(\"PERP_ETH_USDC\", {\n  initialOrder: {\n    side: OrderSide.BUY,\n    order_type: OrderType.LIMIT,\n    price: \"\",\n    order_quantity: \"\",\n  },\n});"
+          "description": "Use useOrderEntry to manage the state of the order form (price, quantity, side, type, margin mode).",
+          "code": "const { submit, setValue, helper, reset } = useOrderEntry(\"PERP_ETH_USDC\", {\n  initialOrder: {\n    side: OrderSide.BUY,\n    order_type: OrderType.LIMIT,\n    price: \"\",\n    order_quantity: \"\",\n    // margin_mode: \"ISOLATED\" // Optional: defaults to CROSS\n  },\n});"
         },
         {
           "title": "Update Order Fields",
@@ -1445,17 +1445,248 @@
       "relatedWorkflows": ["Register New Account", "Generate and Access Orderly Key"],
       "source": "Generated from broker-registration repo",
       "isNew": true
+    },
+    {
+      "name": "Trading with Isolated Margin",
+      "description": "Use Isolated Margin to allocate a fixed amount of margin to a single position, capping maximum loss. Both Cross and Isolated margin modes work simultaneously on standard markets — you can hold a Cross position and an Isolated position on the same symbol at the same time.",
+      "prerequisites": [
+        "Active Orderly Account ID",
+        "Registered Orderly Key with 'trading' scope",
+        "Understanding of Cross vs Isolated margin concepts"
+      ],
+      "steps": [
+        {
+          "title": "Set Leverage for Isolated Mode",
+          "description": "Each symbol maintains independent leverage settings per margin mode. Set leverage specifically for ISOLATED mode.",
+          "code": "POST /v1/client/leverages\n\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"leverage\": 10,\n  \"margin_mode\": \"ISOLATED\"\n}\n\n// Query current leverage:\n// GET /v1/client/leverage?symbol=PERP_ETH_USDC&margin_mode=ISOLATED",
+          "important": "Batch updates (without symbol) only apply to symbols with no active isolated positions or pending orders. Cross mode updates all symbols atomically."
+        },
+        {
+          "title": "Place Order with Margin Mode",
+          "description": "Place an order specifying the margin_mode parameter. If omitted, the symbol's default margin mode is used.",
+          "code": "POST /v1/order\n\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"order_type\": \"LIMIT\",\n  \"side\": \"BUY\",\n  \"order_price\": 2500,\n  \"order_quantity\": 1,\n  \"margin_mode\": \"ISOLATED\"\n}"
+        },
+        {
+          "title": "Adjust Position Margin",
+          "description": "After opening an Isolated position, add or reduce the margin allocated to it. ADD transfers margin from available balance to the position (lowers liquidation price). REDUCE transfers margin back to available balance (raises liquidation price).",
+          "code": "POST /v1/position_margin\n\n// Add margin:\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"amount\": \"100\",\n  \"type\": \"ADD\"\n}\n\n// Reduce margin:\nBody: {\n  \"symbol\": \"PERP_ETH_USDC\",\n  \"amount\": \"50\",\n  \"type\": \"REDUCE\"\n}"
+        },
+        {
+          "title": "Monitor Isolated Position",
+          "description": "Query the position with margin_mode parameter. Key fields include margin, est_liq_price, imr (initial margin ratio), and mmr (maintenance margin ratio).",
+          "code": "GET /v1/position/{symbol}?margin_mode=ISOLATED\n\n// Response key fields:\n// margin: allocated margin amount\n// margin_mode: \"ISOLATED\"\n// leverage: current leverage\n// est_liq_price: estimated liquidation price\n// imr: initial margin ratio\n// mmr: maintenance margin ratio\n// unsettled_pnl: current unsettled PnL\n\n// WebSocket: subscribe to private \"position\" topic for real-time updates\n// Account balance includes: isolated_margin + isolated_order_frozen fields"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Cannot change leverage on a symbol with an open isolated position.",
+          "solution": "Isolated leverage can only be changed on symbols with no active isolated positions or pending isolated orders. Close or cancel existing positions/orders first."
+        },
+        {
+          "issue": "Isolated position liquidated but other positions affected.",
+          "solution": "Isolated margin only loses the margin assigned to that specific position. Other positions (Cross or Isolated) and account balance should remain untouched. Verify this is the case via the account balance endpoint."
+        },
+        {
+          "issue": "Permissionlessly listed markets only support Isolated Margin.",
+          "solution": "This is by design. Permissionlessly listed markets are Isolated-only to limit risk exposure. You cannot use Cross Margin on these markets."
+        }
+      ],
+      "relatedWorkflows": [
+        "Placing and Managing Orders via REST API",
+        "Managing Positions and TP/SL",
+        "Placing and Managing Orders"
+      ]
+    },
+    {
+      "name": "Internal Transfer with Wallet Signature (v2)",
+      "description": "Transfer assets between Orderly accounts using the v2 internal transfer API, which requires an EIP-712 wallet signature for authorization. Supports both EVM and Solana accounts.",
+      "prerequisites": [
+        "Active Orderly Account ID (sender)",
+        "Orderly Key and Secret for API authentication",
+        "Receiver's Orderly Account ID",
+        "EVM or Solana wallet for EIP-712 signing"
+      ],
+      "steps": [
+        {
+          "title": "Obtain Transfer Nonce",
+          "description": "Get a valid transfer nonce using your Orderly API credentials.",
+          "code": "GET /v1/transfer_nonce\nHeaders: orderly-timestamp, orderly-account-id, orderly-key, orderly-signature\n\n// Response:\n{ \"success\": true, \"data\": { \"transfer_nonce\": 1 } }"
+        },
+        {
+          "title": "Sign EIP-712 InternalTransfer Message",
+          "description": "Sign an InternalTransfer message using the ON-CHAIN domain (not the off-chain domain). The receiver must be the Orderly Account ID converted to bytes32 format.",
+          "code": "// EIP-712 Types:\n// InternalTransfer: [\n//   { name: \"receiver\", type: \"bytes32\" },\n//   { name: \"token\", type: \"string\" },\n//   { name: \"amount\", type: \"uint256\" },\n//   { name: \"transferNonce\", type: \"uint64\" }\n// ]\n\n// ON-CHAIN Domain (use Ledger contract address as verifyingContract):\nconst domain = {\n  name: \"Orderly\",\n  version: \"1\",\n  chainId: 42161,\n  verifyingContract: \"0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203\"\n};\n\nconst message = {\n  receiver: \"0x9ff99a5d6cb71a3ef897b0fff5f5801af6dc5f72d8f1608e61409b8fc965bd68\",\n  token: \"USDC\",\n  amount: 1000000n,\n  transferNonce: 1\n};\n\nconst signature = await wallet.signTypedData(domain, types, message);",
+          "important": "This uses the ON-CHAIN domain (verifyingContract = Ledger contract address), NOT the off-chain domain used for registration/key management."
+        },
+        {
+          "title": "Submit Internal Transfer",
+          "description": "Send the signed payload to the v2 endpoint. Include chainType as 'EVM' or 'SOLANA'.",
+          "code": "POST /v2/internal_transfer\nBody: {\n  \"message\": {\n    \"receiver\": \"0x9ff99a...\",\n    \"token\": \"USDC\",\n    \"amount\": \"1000000\",\n    \"transferNonce\": \"1\",\n    \"chainId\": \"42161\",\n    \"chainType\": \"EVM\"\n  },\n  \"signature\": \"0x...\",\n  \"userAddress\": \"0x...\",\n  \"verifyingContract\": \"0x6F7a338F2aA472838dEFD3283eB360d4Dff5D203\"\n}"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Signature verification fails.",
+          "solution": "Ensure you are using the ON-CHAIN domain with the Ledger contract address as verifyingContract, not the off-chain domain. The receiver field must be the bytes32 Account ID, not a wallet address."
+        },
+        {
+          "issue": "Transfer nonce already used.",
+          "solution": "Transfer nonces are sequential per account. Fetch a fresh nonce before each transfer request."
+        }
+      ],
+      "relatedWorkflows": [
+        "Register an Account and Generate API Keys",
+        "Withdraw Funds to EVM Chain"
+      ]
+    },
+    {
+      "name": "Builder Onboarding Flow",
+      "description": "Complete the 6-step builder onboarding process to launch a DEX on Orderly Network, from choosing a launch path to confirming readiness.",
+      "prerequisites": [
+        "Understanding of Orderly's architecture (Asset Layer, Settlement Layer, Engine Layer)",
+        "Target market and user base identified"
+      ],
+      "steps": [
+        {
+          "title": "Choose Your Launch Path",
+          "description": "Select between Orderly One (lower-code, faster launch) or Custom SDK/API integration (full control, more development effort).",
+          "important": "Orderly One is best for builders who want a managed DEX experience. Custom SDK/API is for teams that need full control over their UI and architecture."
+        },
+        {
+          "title": "Contact Orderly and Align Onboarding",
+          "description": "Reach out to the Orderly team to begin the onboarding process. They will help align on requirements, supported chains, and integration specifics.",
+          "code": "// Builder registration tool:\nhttps://github-dev.orderly.network/broker-registration/\n\n// Admin portal (post-setup):\nhttps://admin.orderly.network"
+        },
+        {
+          "title": "Prepare Your Builder Profile",
+          "description": "Provide your broker name, branding assets, supported chains, and any custom requirements (fee structures, domain configuration)."
+        },
+        {
+          "title": "Review Fee Model and Builder Tiering",
+          "description": "Review the Builder Staking Programme tiers and fee model. Higher tiers offer better fee rates based on staked $ORDER/esORDER.",
+          "code": "// Trading fees reference:\n// https://orderly.network/docs/introduction/trade-on-orderly/trading-basics/trading-fees\n// Builder Staking Programme tiers on the Trading Fees page"
+        },
+        {
+          "title": "Register Your Admin Account",
+          "description": "For Orderly One builders: use the DEX creator tool to set up. For Custom SDK/API builders: register via the broker-registration tool and set up the admin wallet.",
+          "code": "// Orderly One: Use the DEX creator at https://orderly.network\n// Custom SDK: Use https://github-dev.orderly.network/broker-registration/"
+        },
+        {
+          "title": "Confirm Readiness and Move to Implementation",
+          "description": "Verify your setup: test account registration, deposit/withdrawal flows, and order placement on testnet before going live.",
+          "important": "Estimated total timeline: 3-5 business days from initial contact to implementation readiness."
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Admin wallet not recognized.",
+          "solution": "Ensure the wallet address has been shared with Orderly support to be enabled as the admin account in the backend. Registration alone is not sufficient."
+        },
+        {
+          "issue": "Unsure which launch path to choose.",
+          "solution": "Orderly One is recommended for most builders. Choose Custom SDK/API if you need non-React frameworks, mobile apps, or very specific architectural control."
+        }
+      ],
+      "relatedWorkflows": [
+        "Setting Up Broker Admin Wallet and Fee Configuration",
+        "Configuring Orderly One Custom Domain and SSL"
+      ]
+    },
+    {
+      "name": "Strategy Vault (OmniVault) Operations",
+      "description": "Deposit into and withdraw from Orderly OmniVault as a liquidity provider, and monitor vault performance, positions, and statistics.",
+      "prerequisites": [
+        "Active Orderly Account ID",
+        "USDC balance in your Orderly account",
+        "Understanding of strategy vault mechanics (shares, PnL distribution)"
+      ],
+      "steps": [
+        {
+          "title": "Get Vault Info",
+          "description": "Retrieve current vault details including TVL, share price, and performance metrics.",
+          "code": "GET /v1/public/strategy_vault/vault/info\n\n// Related endpoints:\n// GET /v1/public/strategy_vault/vault/overall_info — Overall statistics\n// GET /v1/public/strategy_vault/vault/performance — Vault performance\n// GET /v1/public/strategy_vault/vault/performance_chart — TVL/PnL history"
+        },
+        {
+          "title": "Deposit into Vault",
+          "description": "Request a deposit into the strategy vault. This mints vault shares proportional to your contribution.",
+          "code": "// 1. Get nonce\nGET /v1/public/sv_nonce\n\n// 2. Submit deposit request\nPOST /v1/sv_operation_request\nBody: { \"amount\": <amount>, \"operation\": \"DEPOSIT\" }"
+        },
+        {
+          "title": "Withdraw from Vault",
+          "description": "Request a withdrawal. The amount is in vault shares. Withdrawal may be subject to lock-up periods.",
+          "code": "// 1. Get nonce\nGET /v1/public/sv_nonce\n\n// 2. Submit withdrawal request\nPOST /v1/sv_operation_request\nBody: { \"amount\": <shares>, \"operation\": \"WITHDRAW\" }"
+        },
+        {
+          "title": "Monitor Vault Positions and Performance",
+          "description": "Track the vault's open positions, orders, trade history, and your personal LP statistics.",
+          "code": "// Vault positions:\nGET /v1/public/strategy_vault/vault/positions\n\n// Vault open orders:\nGET /v1/public/strategy_vault/vault/open_orders\n\n// Vault trade history:\nGET /v1/public/strategy_vault/vault/trade_history\n\n// Your LP stats:\nGET /v1/public/strategy_vault/user/overall_info\nGET /v1/public/strategy_vault/lp/info\nGET /v1/public/strategy_vault/lp/performance"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Withdrawal request rejected.",
+          "solution": "Check if your shares are within a lock-up period. Also verify you have sufficient shares for the requested withdrawal amount."
+        },
+        {
+          "issue": "Vault shares not reflecting after deposit.",
+          "solution": "Share minting may take time to process. Check your transaction history via GET /v1/account_sv_transaction_history."
+        }
+      ],
+      "relatedWorkflows": ["Deposit USDC via EVM Vault", "Depositing Funds"]
+    },
+    {
+      "name": "Managing Multi-Collateral Deposits",
+      "description": "Deposit non-USDC collateral tokens (YUSD, WBTC, USD1) on Ethereum into your Orderly account. These tokens have specific deposit caps and discount rates that affect their collateral value.",
+      "prerequisites": [
+        "Active Orderly Account ID",
+        "Target token balance in your EVM wallet (on Ethereum mainnet)",
+        "Understanding of collateral discount rates and deposit caps"
+      ],
+      "steps": [
+        {
+          "title": "Check Supported Collateral Tokens",
+          "description": "Retrieve the list of supported collateral tokens, their deposit caps, and discount rates. Multi-collateral is currently available on Ethereum mainnet.",
+          "code": "// Supported tokens on Ethereum mainnet:\n// USDC — standard stablecoin collateral\n// USDT — standard stablecoin collateral\n// YUSD — yield-bearing stablecoin\n// WBTC — wrapped Bitcoin\n// USD1 — alternative stablecoin\n\n// Check collateral info:\nGET /v1/public/token"
+        },
+        {
+          "title": "Approve Token Spending",
+          "description": "Approve the Vault contract to spend the specific token. Use the correct token contract address for the target token.",
+          "code": "// Token addresses on Ethereum mainnet:\n// YUSD: 0x4274cd7277c7bb0806bd5fe84b9adae466a8da0a\n// WBTC: 0x2260fac5e5542a773aa44fbcfedf7c193bc2c599\n// USD1: 0x8d0d000ee44948fc98c9b98a4fa4921476f08b0d\n\nconst tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, wallet);\nconst tx = await tokenContract.approve(vaultAddress, amount);\nawait tx.wait();"
+        },
+        {
+          "title": "Execute Deposit",
+          "description": "Deposit using the standard Vault deposit flow, but with the non-USDC token hash. The token will be valued at a discount rate when calculating collateral.",
+          "code": "const tokenHash = ethers.keccak256(new TextEncoder().encode(\"YUSD\"));\n\nconst depositInput = {\n  accountId: orderlyAccountId,\n  brokerHash: brokerHash,\n  tokenHash: tokenHash,\n  tokenAmount: depositAmount\n};\n\nconst tx = await vaultContract.deposit(depositInput, { value: depositFee });",
+          "important": "Non-USDC tokens have discount rates applied. For example, WBTC may be valued at 90% of market price. Check current rates via the collateral info endpoint."
+        },
+        {
+          "title": "Monitor Collateral Value",
+          "description": "Check your account balance to see the effective collateral value after discount rates are applied.",
+          "code": "GET /v1/client/holding\nGET /v1/client/info\n\n// The collateral value reflects discount-adjusted token values"
+        }
+      ],
+      "commonIssues": [
+        {
+          "issue": "Deposit rejected with 'deposit cap exceeded'.",
+          "solution": "Each non-USDC token has a maximum deposit cap. Check the current cap and utilization via the collateral info endpoint before depositing."
+        },
+        {
+          "issue": "Collateral value lower than expected.",
+          "solution": "Non-USDC tokens have discount rates applied to their market value. A 10% discount means $100 worth of token counts as $90 collateral."
+        }
+      ],
+      "relatedWorkflows": ["Deposit USDC via EVM Vault", "Depositing Funds"]
     }
   ],
   "metadata": {
-    "totalWorkflows": 33,
+    "totalWorkflows": 38,
     "generatedFrom": 1430,
-    "lastUpdated": "2026-02-04",
-    "enrichedAt": "2026-02-04T19:17:31.312Z",
+    "lastUpdated": "2026-04-02",
+    "enrichedAt": "2026-04-02T09:30:00.000Z",
     "enrichedFrom": "OrderlyNetwork/examples and OrderlyNetwork/broker-registration repos",
     "enrichmentStats": {
-      "enhancedWorkflows": 5,
-      "newWorkflows": 1
+      "enhancedWorkflows": 7,
+      "newWorkflows": 6
     }
   }
 }
