@@ -575,10 +575,13 @@ node scripts/generate_api_from_openapi.js
 # 9. Generate Indexer API docs from OpenAPI spec
 node scripts/generate_indexer_api.js
 
-# 10. Generate contract addresses
+# 10. Generate Orderly One API docs from OpenAPI spec
+node scripts/generate_orderly_one_api.js
+
+# 11. Generate contract addresses
 node scripts/generate_contracts.js
 
-# 11. Build and test
+# 12. Build and test
 yarn build && yarn test:run
 ```
 
