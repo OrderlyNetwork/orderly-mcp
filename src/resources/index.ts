@@ -771,6 +771,95 @@ export async function getResource(uri: string) {
         };
       }
 
+      case 'orderly://sdk/python': {
+        const pythonPatterns = JSON.parse(
+          fs.readFileSync(path.join(__dirname, '..', 'data', 'python-sdk-patterns.json'), 'utf-8')
+        );
+
+        if (!searchQuery) {
+          let text = '# Orderly Python SDK (agent-trading-sdk)\n\n';
+          text += 'The easiest way for AI agents to trade crypto perpetuals on Orderly Network.\n\n';
+          text += '## Installation\n```bash\npip install agent-trading-sdk\n```\n\n';
+          text += '## Quick Start\n```python\nfrom orderly_agent import Arthur\n';
+          text += 'client = Arthur.from_credentials_file("credentials.json")\n';
+          text += 'client.buy("ETH", usd=100)  # Done.\n```\n\n';
+          text += '## Categories\n\n';
+          for (const cat of pythonPatterns.categories) {
+            text += `### ${cat.name}\n`;
+            for (const p of cat.patterns) {
+              text += `- **${p.name}**: ${p.description}\n`;
+            }
+            text += '\n';
+          }
+          text += '## Search\n```\norderly://sdk/python?search=buy\norderly://sdk/python?search=ai_agent\norderly://sdk/python?search=positions\n```\n';
+          text += '\n**Links:** [PyPI](https://pypi.org/project/agent-trading-sdk/) | [GitHub](https://github.com/arthur-orderly/agent-trading-sdk) | [Arthur DEX](https://arthurdex.com)\n';
+
+          return {
+            contents: [{ uri, mimeType: 'text/markdown', text }],
+          };
+        }
+
+        const allPyPatterns: Array<{
+          id: string;
+          name: string;
+          description: string;
+          category: string;
+          installation?: string;
+          usage: string;
+          example?: string;
+          notes?: string[];
+          related?: string[];
+        }> = [];
+
+        for (const cat of pythonPatterns.categories) {
+          for (const p of cat.patterns) {
+            allPyPatterns.push({
+              id: p.name,
+              name: p.name,
+              description: p.description,
+              category: cat.name,
+              installation: p.installation,
+              usage: p.usage,
+              example: p.example,
+              notes: p.notes,
+              related: p.related,
+            });
+          }
+        }
+
+        const fuse = createFuseSearch(allPyPatterns, [
+          { name: 'name', weight: 0.5 },
+          { name: 'description', weight: 0.3 },
+          { name: 'category', weight: 0.2 },
+        ]);
+
+        const result = searchWithPagination(fuse, { query: searchQuery, page, limit });
+
+        const text = formatSearchResults(result, 'Python SDK Patterns', (item) => {
+          let itemText = `### ${item.name} (${item.category})\n\n`;
+          itemText += `${item.description}\n\n`;
+          if (item.installation) {
+            itemText += `**Install:** \`${item.installation}\`\n\n`;
+          }
+          itemText += `**Usage:** ${item.usage}\n\n`;
+          if (item.example) {
+            itemText += `**Example:**\n\`\`\`python\n${item.example}\n\`\`\`\n\n`;
+          }
+          if (item.notes && item.notes.length > 0) {
+            itemText += `**Notes:**\n${item.notes.map((n: string) => `- ${n}`).join('\n')}\n\n`;
+          }
+          if (item.related && item.related.length > 0) {
+            itemText += `**Related:** ${item.related.join(', ')}\n\n`;
+          }
+          itemText += '---\n';
+          return itemText;
+        });
+
+        return {
+          contents: [{ uri, mimeType: 'text/markdown', text }],
+        };
+      }
+
       default:
         return {
           contents: [
