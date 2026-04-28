@@ -32,8 +32,14 @@ RUN yarn install --production --frozen-lockfile
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
 
+# Ensure app dir is owned by node user
+RUN chown -R node:node /app
+
 # Expose port
 EXPOSE 3000
+
+# Run as non-root user
+USER node
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

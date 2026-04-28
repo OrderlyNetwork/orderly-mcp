@@ -8,17 +8,19 @@ import { createMcpServer } from './server.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MAX_SESSIONS = parseInt(process.env.MAX_SESSIONS || '1000', 10);
+const SESSION_TTL_MS = parseInt(process.env.SESSION_TTL_MS || String(30 * 60 * 1000), 10);
 
-// Parse JSON bodies
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
-// Enable CORS for public access
-app.use((req, res, next) => {
+app.use((_req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Mcp-Session-Id');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
 
-  if (req.method === 'OPTIONS') {
+  if (_req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
@@ -32,7 +34,44 @@ app.get('/health', (req, res) => {
 });
 
 // Session management - map to store transports by session ID
-const transports = new Map<string, StreamableHTTPServerTransport>();
+const transports = new Map<string, { transport: StreamableHTTPServerTransport; createdAt: number }>();
+
+const evictExpiredSessions = () => {
+  const now = Date.now();
+  for (const [sessionId, entry] of transports.entries()) {
+    if (now - entry.createdAt > SESSION_TTL_MS) {
+      console.log(`Evicting expired session: ${sessionId}`);
+      try {
+        void entry.transport.close().catch(() => {});
+      } catch {
+        // transport may already be closed
+      }
+      transports.delete(sessionId);
+    }
+  }
+};
+
+setInterval(evictExpiredSessions, 60_000);
+
+const evictOldestSession = () => {
+  let oldestId: string | null = null;
+  let oldestTime = Infinity;
+  for (const [sessionId, entry] of transports.entries()) {
+    if (entry.createdAt < oldestTime) {
+      oldestTime = entry.createdAt;
+      oldestId = sessionId;
+    }
+  }
+  if (oldestId) {
+    console.log(`Evicting oldest session to make room: ${oldestId}`);
+    try {
+      void transports.get(oldestId)!.transport.close().catch(() => {});
+    } catch {
+      // transport may already be closed
+    }
+    transports.delete(oldestId);
+  }
+};
 
 // Factory function to create a new server+transport pair per session
 const createSession = () => {
@@ -42,7 +81,7 @@ const createSession = () => {
     sessionIdGenerator: () => sessionId,
     onsessioninitialized: (id) => {
       console.log(`Session initialized with ID: ${id}`);
-      transports.set(id, transport);
+      transports.set(id, { transport, createdAt: Date.now() });
     },
   });
 
@@ -69,11 +108,12 @@ app.post('/', async (req, res) => {
     let transport: StreamableHTTPServerTransport | undefined;
 
     if (sessionId && transports.has(sessionId)) {
-      // Reuse existing transport for this session
-      transport = transports.get(sessionId);
+      transport = transports.get(sessionId)!.transport;
     } else if (!sessionId && isInitializeRequest(req.body)) {
-      // New initialization request - create new transport/server
       console.log('Creating new session for initialize request');
+      if (transports.size >= MAX_SESSIONS) {
+        evictOldestSession();
+      }
       const { server, transport: newTransport } = createSession();
       transport = newTransport;
       await server.connect(transport);
@@ -129,8 +169,8 @@ app.get('/', async (req, res) => {
   }
 
   console.log(`Establishing SSE stream for session: ${sessionId}`);
-  const transport = transports.get(sessionId);
-  await transport!.handleRequest(req, res);
+  const transport = transports.get(sessionId)!.transport;
+  await transport.handleRequest(req, res);
 });
 
 // DELETE handler - for session termination
@@ -145,7 +185,7 @@ app.delete('/', async (req, res) => {
   console.log(`Received session termination request for session: ${sessionId}`);
 
   try {
-    const transport = transports.get(sessionId);
+    const transport = transports.get(sessionId)!.transport;
     await transport!.handleRequest(req, res);
   } catch (error) {
     console.error('Error handling session termination:', error);
@@ -160,15 +200,16 @@ app.listen(PORT, () => {
   console.log(`Orderly Network MCP Server running on HTTP`);
   console.log(`Endpoint: http://localhost:${PORT}/`);
   console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Config: max_sessions=${MAX_SESSIONS}, session_ttl=${SESSION_TTL_MS / 1000}s`);
 });
 
 // Graceful shutdown - close all active sessions
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
-  for (const [sessionId, transport] of transports.entries()) {
+  for (const [sessionId, entry] of transports.entries()) {
     try {
       console.log(`Closing transport for session ${sessionId}`);
-      await transport.close();
+      await entry.transport.close();
     } catch (error) {
       console.error(`Error closing transport for session ${sessionId}:`, error);
     }
@@ -179,10 +220,10 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
-  for (const [sessionId, transport] of transports.entries()) {
+  for (const [sessionId, entry] of transports.entries()) {
     try {
       console.log(`Closing transport for session ${sessionId}`);
-      await transport.close();
+      await entry.transport.close();
     } catch (error) {
       console.error(`Error closing transport for session ${sessionId}:`, error);
     }
