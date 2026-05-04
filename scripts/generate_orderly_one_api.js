@@ -36,7 +36,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
 
-const OPENAPI_URL = 'https://testnet-dex-api.orderly.network/openapi.json';
+const OPENAPI_URL = 'https://dex-api.orderly.network/openapi.json';
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'orderly-one-api.json');
 
 // Download OpenAPI spec
