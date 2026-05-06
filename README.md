@@ -104,6 +104,28 @@ yarn install
 yarn build
 ```
 
+### Hosted Server
+
+A publicly hosted instance is available at **`https://mcp.orderly.network`**.
+
+**Health check:**
+
+```bash
+curl https://mcp.orderly.network/health
+```
+
+**Use in MCP client config (Streamable HTTP):**
+
+```json
+{
+  "mcpServers": {
+    "orderly": {
+      "url": "https://mcp.orderly.network/mcp"
+    }
+  }
+}
+```
+
 ### Running the Server
 
 The MCP server supports two modes:
@@ -182,7 +204,7 @@ command = "npx"
 args = ["@orderly.network/mcp-server@latest"]
 ```
 
-#### 2. HTTP Mode (for hosted deployments)
+#### 2. HTTP Mode (for self-hosted deployments)
 
 Run as an HTTP server for remote access:
 
@@ -194,6 +216,8 @@ The server will start on port 3000 (or `PORT` env var):
 
 - MCP endpoint: `http://localhost:3000/`
 - Health check: `http://localhost:3000/health`
+
+> **Note:** A public instance is already deployed at `https://mcp.orderly.network` - see [Hosted Server](#hosted-server) above.
 
 **Docker Deployment:**
 
