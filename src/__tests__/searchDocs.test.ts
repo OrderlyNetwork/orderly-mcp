@@ -258,4 +258,29 @@ describe('searchOrderlyDocs', () => {
     expect(text).toContain('⚠️');
     expect(text).toContain('deprecated');
   });
+
+  // --- Fee-tier data correctness in search results --------------------------
+  // Regression guard for the August 2026 stale-fee bug: searching for builder
+  // staking / fee tiers must return CURRENT values, not the retired programme.
+  it('should return current fee tier thresholds when searching "builder staking"', async () => {
+    const result = await searchOrderlyDocs('builder staking fee tiers', 5);
+    const text = result.content[0].text;
+    expect(text).toContain('Search Results');
+    // Must include the corrected Platinum/Diamond volume thresholds
+    expect(text).toContain('$750M');
+    expect(text).toContain('$2B');
+    // Must NOT contain the old retired thresholds
+    expect(text).not.toContain('$10B');
+    expect(text).not.toContain('$1B 30-day');
+  });
+
+  it('should return correct staking amounts when searching "staking tier"', async () => {
+    const result = await searchOrderlyDocs('ORDER staking tier requirements', 5);
+    const text = result.content[0].text;
+    expect(text).toContain('Search Results');
+    // Gold should show 300K, not 250K
+    expect(text).not.toMatch(/250,000/);
+    // Platinum should show 3M, not 2M
+    expect(text).not.toMatch(/\b2M\s+(?:\$?ORDER)\s+staked/);
+  });
 });
