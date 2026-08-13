@@ -1,4 +1,4 @@
-name: build
+name: release
 
 on:
   push:
@@ -6,7 +6,46 @@ on:
       - 'v*'
 
 jobs:
-  build:
+  verify:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn typecheck
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test:run
+      - run: yarn build
+
+  publish-npm:
+    needs: verify
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: yarn
+          registry-url: 'https://registry.npmjs.org'
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Show published version
+        run: |
+          echo "Published: ${GITHUB_REF_NAME}"
+          echo "Published: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
+
+  publish-docker:
+    needs: verify
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
