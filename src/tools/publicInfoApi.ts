@@ -263,7 +263,7 @@ function renderOverview(): string {
   text += `- **Weight budget:** ${overview.rateLimits.weightPerMinute}/min per IP (rolling 1-minute window)\n\n`;
 
   text += `### Quick start\n\n`;
-  text += `\`\`\`bash\n# Market snapshot (weight 1)\ncurl -s -XPOST -H "Content-Type: application/json" \\ \n  ${endpoint.url} -d '{"type":"marketSummary"}'\n\n# Account state by address (weight 5)\ncurl -s -XPOST -H "Content-Type: application/json" \\ \n  ${endpoint.url} -d '{"type":"accountState","address":"0x1234..."}'\n\n# Free quota check (weight 0)\ncurl -s -XPOST -H "Content-Type: application/json" \\ \n  ${endpoint.url} -d '{"type":"rateLimitStatus"}'\n\`\`\`\n\n`;
+  text += `\`\`\`bash\n# Market snapshot (weight 1)\ncurl -s -XPOST -H "Content-Type: application/json" \\\n  ${endpoint.url} -d '{"type":"marketSummary"}'\n\n# Account state by address (weight 5)\ncurl -s -XPOST -H "Content-Type: application/json" \\\n  ${endpoint.url} -d '{"type":"accountState","address":"0x1234..."}'\n\n# Free quota check (weight 0)\ncurl -s -XPOST -H "Content-Type: application/json" \\\n  ${endpoint.url} -d '{"type":"rateLimitStatus"}'\n\`\`\`\n\n`;
 
   text += `## Weight per query type\n\n`;
   text += `| Weight | Query types |\n| --- | --- |\n`;

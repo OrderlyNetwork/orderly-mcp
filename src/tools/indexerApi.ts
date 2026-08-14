@@ -184,7 +184,7 @@ export async function getIndexerApiInfo(
 
     text += `## How to Navigate This API\n\n`;
     text += `### 1. Browse by Category\n\n`;
-    text += `Use the \\"category\\" parameter to see all endpoints in a specific area:\n\n`;
+    text += `Use the "category" parameter to see all endpoints in a specific area:\n\n`;
     text += `\`\`\`\n`;
     text += `get_indexer_api_info category="trading_metrics"\n`;
     text += `get_indexer_api_info category="events::events_api"\n`;
@@ -192,7 +192,7 @@ export async function getIndexerApiInfo(
     text += `\`\`\`\n\n`;
 
     text += `### 2. Search by Endpoint\n\n`;
-    text += `Use the \\"endpoint\\" parameter to find specific endpoints:\n\n`;
+    text += `Use the "endpoint" parameter to find specific endpoints:\n\n`;
     text += `\`\`\`\n`;
     text += `get_indexer_api_info endpoint="/daily_volume"\n`;
     text += `get_indexer_api_info endpoint="events_v2"\n`;
@@ -201,25 +201,25 @@ export async function getIndexerApiInfo(
 
     text += `### 3. Common Use Cases\n\n`;
     text += `**For Trading Dashboards:**\n`;
-    text += `- \\"/daily_volume\\" - Daily trading volume over time\n`;
-    text += `- \\"/daily_trading_fee\\" - Fee statistics\n`;
-    text += `- \\"/daily_orderly_perp\\" - Comprehensive perp trading metrics\n\n`;
+    text += `- "/daily_volume" - Daily trading volume over time\n`;
+    text += `- "/daily_trading_fee" - Fee statistics\n`;
+    text += `- "/daily_orderly_perp" - Comprehensive perp trading metrics\n\n`;
 
     text += `**For User Account History:**\n`;
-    text += `- \\"/events_v2\\" - All account events with pagination\n`;
+    text += `- "/events_v2" - All account events with pagination\n`;
     text += `  - Event types: PERPTRADE, SETTLEMENT, LIQUIDATION, TRANSACTION, ADL\n`;
     text += `  - Filter by account_id, time range, event type\n\n`;
 
     text += `**For Leaderboards/Rankings:**\n`;
-    text += `- \\"/ranking/positions\\" - Top positions by holding value\n`;
-    text += `- \\"/ranking/realized_pnl\\" - Top traders by realized PnL\n`;
-    text += `- \\"/ranking/trading_volume\\" - Top traders by volume\n`;
-    text += `- \\"/ranking/deposit\\" - Top depositors\n`;
-    text += `- \\"/ranking/withdraw\\" - Top withdrawals\n\n`;
+    text += `- "/ranking/positions" - Top positions by holding value\n`;
+    text += `- "/ranking/realized_pnl" - Top traders by realized PnL\n`;
+    text += `- "/ranking/trading_volume" - Top traders by volume\n`;
+    text += `- "/ranking/deposit" - Top depositors\n`;
+    text += `- "/ranking/withdraw" - Top withdrawals\n\n`;
 
     text += `**For Volume Statistics:**\n`;
-    text += `- \\"/get_account_volume_statistic\\" - Volume stats for a specific account\n`;
-    text += `- \\"/get_broker_volume_statistic\\" - Volume stats for a broker\n\n`;
+    text += `- "/get_account_volume_statistic" - Volume stats for a specific account\n`;
+    text += `- "/get_broker_volume_statistic" - Volume stats for a broker\n\n`;
 
     text += `## Available Categories\n\n`;
     data.categories.forEach((cat) => {
@@ -251,7 +251,7 @@ export async function getIndexerApiInfo(
     text += `1. **No Authentication Required**: Unlike the trading API, you don't need API keys\n`;
     text += `2. **Pagination**: The /events_v2 endpoint supports pagination via cursors\n`;
     text += `3. **Time Ranges**: Most endpoints accept from_day/end_day or from_time/to_time parameters\n`;
-    text += `4. **Query Parameters**: GET endpoints use a \\"param\\" query parameter with JSON-encoded values\n`;
+    text += `4. **Query Parameters**: GET endpoints use a "param" query parameter with JSON-encoded values\n`;
     text += `5. **Rate Limits**: More permissive than trading API, but still apply\n`;
 
     return {

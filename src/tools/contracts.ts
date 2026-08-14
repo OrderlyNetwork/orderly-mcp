@@ -53,7 +53,7 @@ export async function getContractAddresses(
   const chainData = chains[normalizedChain];
 
   if (!chainData) {
-    const availableChains = Object.keys(contractData).join(', ');
+    const availableChains = Object.keys(chains).join(', ');
     return {
       content: [
         {
