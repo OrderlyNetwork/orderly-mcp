@@ -280,7 +280,7 @@
             {
               "code": 200,
               "description": "Success",
-              "schema": "{\n  \"allOf\": [\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"meta\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"total\": {\n                  \"type\": \"number\",\n                  \"example\": 9\n                },\n                \"records_per_page\": {\n                  \"type\": \"number\",\n                  \"example\": 25\n                },\n                \"current_page\": {\n                  \"type\": \"number\",\n                  \"description\": \"start from 1\",\n                  \"example\": 1\n                }\n              }\n            },\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"exchange\": {\n                    \"type\": \"string\",\n                    \"example\": \"orderly\"\n                  },\n                  \"order_id\": {\n                    \"type\": \"number\",\n                    \"example\": 78151\n                  },\n                  \"created_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1653563963000\n                  },\n                  \"updated_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1653564213000\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"LIMIT\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_WOO_USDC\"\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"BUY\"\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"amount\": {\n                    \"type\": \"number\",\n                    \"example\": 10\n                  },\n                  \"executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"total_executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"average_executed_price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"NEW\"\n                  },\n                  \"is_triggered\": {\n                    \"type\": \"string\",\n                    \"example\": \"false\"\n                  },\n                  \"child_orders\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\"\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+              "schema": "{\n  \"allOf\": [\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"success\",\n        \"timestamp\",\n        \"data\"\n      ],\n      \"properties\": {\n        \"timestamp\": {\n          \"type\": \"integer\",\n          \"format\": \"int64\",\n          \"description\": \"Response timestamp in Unix milliseconds.\",\n          \"example\": 1702989203989\n        },\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"meta\",\n            \"rows\"\n          ],\n          \"properties\": {\n            \"meta\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"records_per_page\",\n                \"current_page\",\n                \"total\"\n              ],\n              \"properties\": {\n                \"total\": {\n                  \"type\": \"number\",\n                  \"example\": 9\n                },\n                \"records_per_page\": {\n                  \"type\": \"number\",\n                  \"example\": 25\n                },\n                \"current_page\": {\n                  \"type\": \"number\",\n                  \"description\": \"start from 1\",\n                  \"example\": 1\n                }\n              }\n            },\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"order_id\",\n                  \"created_time\",\n                  \"updated_time\",\n                  \"type\",\n                  \"symbol\",\n                  \"side\",\n                  \"quantity\",\n                  \"price\",\n                  \"executed_quantity\",\n                  \"total_executed_quantity\",\n                  \"average_executed_price\",\n                  \"status\",\n                  \"is_triggered\",\n                  \"exchange\",\n                  \"child_orders\"\n                ],\n                \"properties\": {\n                  \"order_id\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 78151\n                  },\n                  \"created_time\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 1653563963000\n                  },\n                  \"updated_time\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 1653564213000\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"LIMIT\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_WOO_USDC\"\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"BUY\"\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"total_executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"average_executed_price\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"NEW\"\n                  },\n                  \"is_triggered\": {\n                    \"type\": \"boolean\",\n                    \"example\": false\n                  },\n                  \"exchange\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"orderly\",\n                      \"binance\"\n                    ],\n                    \"example\": \"orderly\"\n                  },\n                  \"child_orders\": {\n                    \"description\": \"Child orders, each using the same structure as the parent order.\",\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"$ref\": \"#/components/schemas/VaultOpenOrder\"\n                    },\n                    \"example\": []\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
             }
           ],
           "example": "const url = 'https://api.orderly.org/v1/public/strategy_vault/vault/open_orders';\nfetch(url).then(res => res.json()).then(console.log);"
@@ -1729,7 +1729,7 @@
         {
           "code": 200,
           "description": "Success",
-          "schema": "{\n  \"allOf\": [\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"meta\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"total\": {\n                  \"type\": \"number\",\n                  \"example\": 9\n                },\n                \"records_per_page\": {\n                  \"type\": \"number\",\n                  \"example\": 25\n                },\n                \"current_page\": {\n                  \"type\": \"number\",\n                  \"description\": \"start from 1\",\n                  \"example\": 1\n                }\n              }\n            },\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"exchange\": {\n                    \"type\": \"string\",\n                    \"example\": \"orderly\"\n                  },\n                  \"order_id\": {\n                    \"type\": \"number\",\n                    \"example\": 78151\n                  },\n                  \"created_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1653563963000\n                  },\n                  \"updated_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1653564213000\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"LIMIT\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_WOO_USDC\"\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"BUY\"\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"amount\": {\n                    \"type\": \"number\",\n                    \"example\": 10\n                  },\n                  \"executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"total_executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"average_executed_price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"NEW\"\n                  },\n                  \"is_triggered\": {\n                    \"type\": \"string\",\n                    \"example\": \"false\"\n                  },\n                  \"child_orders\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\"\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+          "schema": "{\n  \"allOf\": [\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"success\",\n        \"timestamp\",\n        \"data\"\n      ],\n      \"properties\": {\n        \"timestamp\": {\n          \"type\": \"integer\",\n          \"format\": \"int64\",\n          \"description\": \"Response timestamp in Unix milliseconds.\",\n          \"example\": 1702989203989\n        },\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"meta\",\n            \"rows\"\n          ],\n          \"properties\": {\n            \"meta\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"records_per_page\",\n                \"current_page\",\n                \"total\"\n              ],\n              \"properties\": {\n                \"total\": {\n                  \"type\": \"number\",\n                  \"example\": 9\n                },\n                \"records_per_page\": {\n                  \"type\": \"number\",\n                  \"example\": 25\n                },\n                \"current_page\": {\n                  \"type\": \"number\",\n                  \"description\": \"start from 1\",\n                  \"example\": 1\n                }\n              }\n            },\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"order_id\",\n                  \"created_time\",\n                  \"updated_time\",\n                  \"type\",\n                  \"symbol\",\n                  \"side\",\n                  \"quantity\",\n                  \"price\",\n                  \"executed_quantity\",\n                  \"total_executed_quantity\",\n                  \"average_executed_price\",\n                  \"status\",\n                  \"is_triggered\",\n                  \"exchange\",\n                  \"child_orders\"\n                ],\n                \"properties\": {\n                  \"order_id\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 78151\n                  },\n                  \"created_time\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 1653563963000\n                  },\n                  \"updated_time\": {\n                    \"type\": \"integer\",\n                    \"format\": \"int64\",\n                    \"example\": 1653564213000\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"LIMIT\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_WOO_USDC\"\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"BUY\"\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 20\n                  },\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 0.67772\n                  },\n                  \"executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"total_executed_quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"average_executed_price\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"NEW\"\n                  },\n                  \"is_triggered\": {\n                    \"type\": \"boolean\",\n                    \"example\": false\n                  },\n                  \"exchange\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"orderly\",\n                      \"binance\"\n                    ],\n                    \"example\": \"orderly\"\n                  },\n                  \"child_orders\": {\n                    \"description\": \"Child orders, each using the same structure as the parent order.\",\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"$ref\": \"#/components/schemas/VaultOpenOrder\"\n                    },\n                    \"example\": []\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
         }
       ],
       "example": "const url = 'https://api.orderly.org/v1/public/strategy_vault/vault/open_orders';\nfetch(url).then(res => res.json()).then(console.log);"
@@ -2292,6 +2292,168 @@
       "required": []
     },
     {
+      "name": "VaultOpenOrder",
+      "description": "",
+      "type": "object",
+      "properties": [
+        {
+          "name": "order_id",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": 78151,
+          "enum": null,
+          "format": "int64"
+        },
+        {
+          "name": "created_time",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": 1653563963000,
+          "enum": null,
+          "format": "int64"
+        },
+        {
+          "name": "updated_time",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": 1653564213000,
+          "enum": null,
+          "format": "int64"
+        },
+        {
+          "name": "type",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": "LIMIT",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "symbol",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": "PERP_WOO_USDC",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "side",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": "BUY",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "quantity",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": 20,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "price",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": 0.67772,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "executed_quantity",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "total_executed_quantity",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "average_executed_price",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "status",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": "NEW",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "is_triggered",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "exchange",
+          "type": "object",
+          "description": "",
+          "required": true,
+          "example": "orderly",
+          "enum": [
+            "orderly",
+            "binance"
+          ],
+          "format": null
+        },
+        {
+          "name": "child_orders",
+          "type": "object",
+          "description": "Child orders, each using the same structure as the parent order.",
+          "required": true,
+          "example": [],
+          "enum": null,
+          "format": null
+        }
+      ],
+      "required": [
+        "order_id",
+        "created_time",
+        "updated_time",
+        "type",
+        "symbol",
+        "side",
+        "quantity",
+        "price",
+        "executed_quantity",
+        "total_executed_quantity",
+        "average_executed_price",
+        "status",
+        "is_triggered",
+        "exchange",
+        "child_orders"
+      ]
+    },
+    {
       "name": "VaultTradeHistoryResponse",
       "description": "",
       "type": "object",
@@ -2371,10 +2533,10 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-07-13T07:52:14.280Z",
+    "generatedAt": "2026-09-30T07:14:11.264Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/sv.openapi.yaml",
     "version": "1.0.0",
     "totalEndpoints": 23,
-    "totalSchemas": 24
+    "totalSchemas": 25
   }
 }

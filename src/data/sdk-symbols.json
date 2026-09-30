@@ -1,25 +1,26 @@
 {
   "metadata": {
     "sourcePackage": "@orderly.network/sdk-docs",
-    "sourceVersion": "1.1.7",
+    "sourceVersion": "1.2.1",
+    "source": "npm-tarball",
     "schemaVersion": "1",
-    "gitSha": "cfaddc8247bd70f86431178b220018dfc2149499",
-    "generatedAt": "2026-07-28T10:02:47.248Z",
+    "gitSha": "eaf6a24f2d576e01464cf01930b7c69e34e55b82",
+    "generatedAt": "2026-09-17T07:15:42.535Z",
     "counts": {
       "raw": {
-        "hook": 649,
-        "type": 1558,
-        "component": 892,
-        "function": 1032
+        "hook": 654,
+        "type": 1611,
+        "component": 900,
+        "function": 1124
       },
       "kept": {
-        "hook": 564,
-        "type": 114,
-        "component": 95,
-        "function": 195
+        "hook": 568,
+        "type": 118,
+        "component": 104,
+        "function": 222
       }
     },
-    "totalSymbols": 968
+    "totalSymbols": 1012
   },
   "symbols": [
     {
@@ -325,13 +326,13 @@
         "Script",
         "affiliate"
       ],
-      "searchText": "useReferralInfoScript\nuseReferralInfoScript(): { onEdit: (focusField?: ReferralCodeFormField | undefined) => void; referralCode: any; referralLink: string; multiLevelRebateInfo: any; directTradesRate: any; indirectTradesRate: any; showIndirectTrades: boolean; directBonusRebateRate: any; }",
+      "searchText": "useReferralInfoScript\nuseReferralInfoScript(): { onEdit: (focusField?: ReferralCodeFormField | undefined) => void; referralCode: any; referralLink: string; multiLevelRebateInfo: any; directTradesRate: any; indirectTradesRate: any; showIndirectTrades: boolean; showConfigureButton: boolean; directBonusRebateRate: any; }",
       "record": {
         "name": "useReferralInfoScript",
         "package": "@orderly.network/affiliate",
         "sourcePath": "packages/affiliate/src/pages/multiLevel/affiliate/referralInfo/referralInfo.script.tsx",
         "params": [],
-        "returns": "{ onEdit: (focusField?: ReferralCodeFormField | undefined) => void; referralCode: any; referralLink: string; multiLevelRebateInfo: any; directTradesRate: any; indirectTradesRate: any; showIndirectTrades: boolean; directBonusRebateRate: any; }"
+        "returns": "{ onEdit: (focusField?: ReferralCodeFormField | undefined) => void; referralCode: any; referralLink: string; multiLevelRebateInfo: any; directTradesRate: any; indirectTradesRate: any; showIndirectTrades: boolean; showConfigureButton: boolean; directBonusRebateRate: any; }"
       }
     },
     {
@@ -1093,6 +1094,30 @@
         "sourcePath": "packages/hooks/src/provider/store/testTokenStore.ts",
         "params": [],
         "returns": "DataStoreState<Token> & DataStoreActions<Token>"
+      }
+    },
+    {
+      "id": "hook.useSwapSupportStore",
+      "name": "useSwapSupportStore",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/provider/store/swapSupportStore.ts",
+      "keywords": [
+        "useSwapSupportStore",
+        "use",
+        "Swap",
+        "Support",
+        "Store",
+        "hooks"
+      ],
+      "searchText": "useSwapSupportStore\nuseSwapSupportStore(): SwapSupport & SwapSupportActions",
+      "record": {
+        "name": "useSwapSupportStore",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/provider/store/swapSupportStore.ts",
+        "params": [],
+        "returns": "SwapSupport & SwapSupportActions"
       }
     },
     {
@@ -1956,6 +1981,30 @@
       }
     },
     {
+      "id": "hook.useConvertThreshold",
+      "name": "useConvertThreshold",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/useConvertThreshold.ts",
+      "keywords": [
+        "useConvertThreshold",
+        "use",
+        "Convert",
+        "Threshold",
+        "hooks"
+      ],
+      "searchText": "useConvertThreshold\nFetches the auto-convert thresholds from `/v1/public/auto_convert_threshold`.\n\nFields are returned raw; `ltv_threshold` is a ratio (e.g. `0.9` means 90%),\nmultiply by 100 at the consumer when a percentage is needed. While loading\nor on request failure the fields are `undefined`.\nuseConvertThreshold(): { readonly ltv_threshold: number | undefined; readonly negative_usdc_threshold: number | undefined; readonly isLoading: boolean; readonly error: any; }",
+      "record": {
+        "name": "useConvertThreshold",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/useConvertThreshold.ts",
+        "jsDoc": "Fetches the auto-convert thresholds from `/v1/public/auto_convert_threshold`.\n\nFields are returned raw; `ltv_threshold` is a ratio (e.g. `0.9` means 90%),\nmultiply by 100 at the consumer when a percentage is needed. While loading\nor on request failure the fields are `undefined`.",
+        "params": [],
+        "returns": "{ readonly ltv_threshold: number | undefined; readonly negative_usdc_threshold: number | undefined; readonly isLoading: boolean; readonly error: any; }"
+      }
+    },
+    {
       "id": "hook.useLazyQuery",
       "name": "useLazyQuery",
       "kind": "hook",
@@ -2730,30 +2779,6 @@
       }
     },
     {
-      "id": "hook.useSwapSupportStore",
-      "name": "useSwapSupportStore",
-      "kind": "hook",
-      "category": "SDK Hook",
-      "package": "@orderly.network/hooks",
-      "sourcePath": "packages/hooks/src/provider/store/swapSupportStore.ts",
-      "keywords": [
-        "useSwapSupportStore",
-        "use",
-        "Swap",
-        "Support",
-        "Store",
-        "hooks"
-      ],
-      "searchText": "useSwapSupportStore\nuseSwapSupportStore(): SwapSupport & SwapSupportActions",
-      "record": {
-        "name": "useSwapSupportStore",
-        "package": "@orderly.network/hooks",
-        "sourcePath": "packages/hooks/src/provider/store/swapSupportStore.ts",
-        "params": [],
-        "returns": "SwapSupport & SwapSupportActions"
-      }
-    },
-    {
       "id": "hook.useSymbolStore",
       "name": "useSymbolStore",
       "kind": "hook",
@@ -3496,26 +3521,32 @@
       }
     },
     {
-      "id": "hook.useOdosQuote",
-      "name": "useOdosQuote",
+      "id": "hook.useSwapQuote",
+      "name": "useSwapQuote",
       "kind": "hook",
       "category": "SDK Hook",
-      "package": "@orderly.network/hooks",
-      "sourcePath": "packages/hooks/src/orderly/useOdosQuote.ts",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/depositForm/swap/useSwapQuote.ts",
       "keywords": [
-        "useOdosQuote",
+        "useSwapQuote",
         "use",
-        "Odos",
+        "Swap",
         "Quote",
-        "hooks"
+        "ui-transfer"
       ],
-      "searchText": "useOdosQuote\nuseOdosQuote(): readonly [PickFunction<(data: Record<string, any> | null) => Promise<any>>, { readonly data: any; readonly error: unknown; readonly reset: () => void; readonly isMutating: boolean; }]",
+      "searchText": "useSwapQuote\nuseSwapQuote(options: { sourceToken?: TokenInfo | undefined; targetToken?: TokenInfo | undefined; quantity: string; chainId?: number | undefined; slippage: number; }): { swapData: SwapQuoteData | undefined; swapPrice: number | undefined; swapMinReceived: string | undefined; swapQuantity: string | undefined; swapPriceRevalidating: boolean; error: string | undefined; }",
       "record": {
-        "name": "useOdosQuote",
-        "package": "@orderly.network/hooks",
-        "sourcePath": "packages/hooks/src/orderly/useOdosQuote.ts",
-        "params": [],
-        "returns": "readonly [PickFunction<(data: Record<string, any> | null) => Promise<any>>, { readonly data: any; readonly error: unknown; readonly reset: () => void; readonly isMutating: boolean; }]"
+        "name": "useSwapQuote",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/depositForm/swap/useSwapQuote.ts",
+        "params": [
+          {
+            "name": "options",
+            "type": "{ sourceToken?: TokenInfo | undefined; targetToken?: TokenInfo | undefined; quantity: string; chainId?: number | undefined; slippage: number; }",
+            "optional": false
+          }
+        ],
+        "returns": "{ swapData: SwapQuoteData | undefined; swapPrice: number | undefined; swapMinReceived: string | undefined; swapQuantity: string | undefined; swapPriceRevalidating: boolean; error: string | undefined; }"
       }
     },
     {
@@ -4414,7 +4445,7 @@
         "Convert",
         "hooks"
       ],
-      "searchText": "useConvert\nuseConvert(options: ConvertOptions): { maxAmount: number; convert: (inputs: { amount: number; slippage: number; }) => Promise<any>; }",
+      "searchText": "useConvert\nuseConvert(options: ConvertOptions): { maxAmount: number; convert: (inputs: { amount: number; slippage: number; receivedAsset?: string | undefined; }) => Promise<any>; }",
       "record": {
         "name": "useConvert",
         "package": "@orderly.network/hooks",
@@ -4426,7 +4457,7 @@
             "optional": false
           }
         ],
-        "returns": "{ maxAmount: number; convert: (inputs: { amount: number; slippage: number; }) => Promise<any>; }"
+        "returns": "{ maxAmount: number; convert: (inputs: { amount: number; slippage: number; receivedAsset?: string | undefined; }) => Promise<any>; }"
       }
     },
     {
@@ -6142,6 +6173,29 @@
       }
     },
     {
+      "id": "hook.usePortfolioActions",
+      "name": "usePortfolioActions",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/orderly/usePortfolio/usePortfolioStore.ts",
+      "keywords": [
+        "usePortfolioActions",
+        "use",
+        "Portfolio",
+        "Actions",
+        "hooks"
+      ],
+      "searchText": "usePortfolioActions\nusePortfolioActions(): PortfolioActions",
+      "record": {
+        "name": "usePortfolioActions",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/orderly/usePortfolio/usePortfolioStore.ts",
+        "params": [],
+        "returns": "PortfolioActions"
+      }
+    },
+    {
       "id": "hook.useOrderlyStoreContext",
       "name": "useOrderlyStoreContext",
       "kind": "hook",
@@ -6742,6 +6796,32 @@
       }
     },
     {
+      "id": "hook.useLowVolumeMarketFilter",
+      "name": "useLowVolumeMarketFilter",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/markets",
+      "sourcePath": "packages/markets/src/components/shared/lowVolumeMarketFilter.ts",
+      "keywords": [
+        "useLowVolumeMarketFilter",
+        "use",
+        "Low",
+        "Volume",
+        "Market",
+        "Filter",
+        "markets"
+      ],
+      "searchText": "useLowVolumeMarketFilter\nGlobal show-low-volume preference backed by localStorage.\nNo Provider needed — all callers share the same key and sync via storage events.\nuseLowVolumeMarketFilter(): LowVolumeMarketFilterState",
+      "record": {
+        "name": "useLowVolumeMarketFilter",
+        "package": "@orderly.network/markets",
+        "sourcePath": "packages/markets/src/components/shared/lowVolumeMarketFilter.ts",
+        "jsDoc": "Global show-low-volume preference backed by localStorage.\nNo Provider needed — all callers share the same key and sync via storage events.",
+        "params": [],
+        "returns": "LowVolumeMarketFilterState"
+      }
+    },
+    {
       "id": "hook.useFavoritesDropdownMenuScript",
       "name": "useFavoritesDropdownMenuScript",
       "kind": "hook",
@@ -6822,7 +6902,7 @@
         "Script",
         "markets"
       ],
-      "searchText": "useMarketsListScript\nuseMarketsListScript(options: MarketsListWidgetProps): { loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; isFavoritesList: boolean; }",
+      "searchText": "useMarketsListScript\nuseMarketsListScript(options: MarketsListWidgetProps): { loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; isFavoritesList: boolean; }",
       "record": {
         "name": "useMarketsListScript",
         "package": "@orderly.network/markets",
@@ -6834,7 +6914,7 @@
             "optional": false
           }
         ],
-        "returns": "{ loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; isFavoritesList: boolean; }"
+        "returns": "{ loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; isFavoritesList: boolean; }"
       }
     },
     {
@@ -7053,7 +7133,7 @@
         "Script",
         "markets"
       ],
-      "searchText": "useMarketsListFullScript\nuseMarketsListFullScript(options: MarketsListFullWidgetProps): { loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; pagination: any; initialSort: TableSort; }",
+      "searchText": "useMarketsListFullScript\nuseMarketsListFullScript(options: MarketsListFullWidgetProps): { loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; pagination: any; initialSort: TableSort; }",
       "record": {
         "name": "useMarketsListFullScript",
         "package": "@orderly.network/markets",
@@ -7065,7 +7145,7 @@
             "optional": false
           }
         ],
-        "returns": "{ loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; pagination: any; initialSort: TableSort; }"
+        "returns": "{ loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; pagination: any; initialSort: TableSort; }"
       }
     },
     {
@@ -7084,13 +7164,13 @@
         "Script",
         "markets"
       ],
-      "searchText": "useFavoritesListFullScript\nuseFavoritesListFullScript(): { loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; pagination: any; }",
+      "searchText": "useFavoritesListFullScript\nuseFavoritesListFullScript(): { loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; pagination: any; }",
       "record": {
         "name": "useFavoritesListFullScript",
         "package": "@orderly.network/markets",
         "sourcePath": "packages/markets/src/components/favoritesListFull/favoritesListFull.script.ts",
         "params": [],
-        "returns": "{ loading: boolean; dataSource: any[]; favorite: any; onSort: (options?: any) => void; pagination: any; }"
+        "returns": "{ loading: boolean; dataSource: any[]; isHiddenByLowVolumeFilter: boolean; favorite: any; onSort: (options?: any) => void; pagination: any; }"
       }
     },
     {
@@ -8957,7 +9037,7 @@
         "Handle",
         "react-app"
       ],
-      "searchText": "useWalletStateHandle\nuseWalletStateHandle(options: { currentChainId?: number | undefined; }): { connectWallet: () => Promise<{ wallet?: WalletState | undefined; status?: AccountStatusEnum | undefined; wrongNetwork?: boolean | undefined; } | null>; wrongNetwork: boolean; }",
+      "searchText": "useWalletStateHandle\nuseWalletStateHandle(options: { currentChainId?: number | undefined; }): { connectWallet: () => Promise<WalletConnectResult | null>; wrongNetwork: boolean; }",
       "record": {
         "name": "useWalletStateHandle",
         "package": "@orderly.network/react-app",
@@ -8969,7 +9049,7 @@
             "optional": false
           }
         ],
-        "returns": "{ connectWallet: () => Promise<{ wallet?: WalletState | undefined; status?: AccountStatusEnum | undefined; wrongNetwork?: boolean | undefined; } | null>; wrongNetwork: boolean; }"
+        "returns": "{ connectWallet: () => Promise<WalletConnectResult | null>; wrongNetwork: boolean; }"
       }
     },
     {
@@ -9899,13 +9979,19 @@
         "Script",
         "trading-next"
       ],
-      "searchText": "useChainScript\nuseChainScript(): { currentChainId: number | undefined; setCurrentChainId: (chainId: number | undefined) => void; networkId: string; wrongNetwork: boolean; }",
+      "searchText": "useChainScript\nuseChainScript(options?: UseChainScriptOptions): { currentChainId: number | undefined; setCurrentChainId: (chainId: number | undefined) => void; networkId: string; wrongNetwork: boolean; onChainChangeBefore: any; onChainChangeAfter: any; }",
       "record": {
         "name": "useChainScript",
         "package": "@orderly.network/trading-next",
         "sourcePath": "packages/trading-next/src/components/mobile/bottomNavBar/chain/chain.script.tsx",
-        "params": [],
-        "returns": "{ currentChainId: number | undefined; setCurrentChainId: (chainId: number | undefined) => void; networkId: string; wrongNetwork: boolean; }"
+        "params": [
+          {
+            "name": "options",
+            "type": "UseChainScriptOptions",
+            "optional": true
+          }
+        ],
+        "returns": "{ currentChainId: number | undefined; setCurrentChainId: (chainId: number | undefined) => void; networkId: string; wrongNetwork: boolean; onChainChangeBefore: any; onChainChangeAfter: any; }"
       }
     },
     {
@@ -11064,7 +11150,7 @@
         "Script",
         "ui-chain-selector"
       ],
-      "searchText": "useChainSelectorScript\nuseChainSelectorScript(options: UseChainSelectorScriptOptions): { recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; ... 4 more ...; showTestnet: boolean; }",
+      "searchText": "useChainSelectorScript\nuseChainSelectorScript(options: UseChainSelectorScriptOptions): { recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; ... 5 more ...; showTestnet: boolean; }",
       "record": {
         "name": "useChainSelectorScript",
         "package": "@orderly.network/ui-chain-selector",
@@ -11076,7 +11162,7 @@
             "optional": false
           }
         ],
-        "returns": "{ recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; ... 4 more ...; showTestnet: boolean; }"
+        "returns": "{ recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; ... 5 more ...; showTestnet: boolean; }"
       }
     },
     {
@@ -11132,6 +11218,83 @@
           }
         ],
         "returns": "boolean"
+      }
+    },
+    {
+      "id": "hook.useWalletConnectValidation",
+      "name": "useWalletConnectValidation",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/ui-connector",
+      "sourcePath": "packages/ui-connector/src/hooks/useWalletConnectValidation.ts",
+      "keywords": [
+        "useWalletConnectValidation",
+        "use",
+        "Wallet",
+        "Connect",
+        "Validation",
+        "ui-connector"
+      ],
+      "searchText": "useWalletConnectValidation\nuseWalletConnectValidation(): { readonly waitForValidation: (handler: ValidationHandler) => () => void; readonly clearValidation: () => void; }",
+      "record": {
+        "name": "useWalletConnectValidation",
+        "package": "@orderly.network/ui-connector",
+        "sourcePath": "packages/ui-connector/src/hooks/useWalletConnectValidation.ts",
+        "params": [],
+        "returns": "{ readonly waitForValidation: (handler: ValidationHandler) => () => void; readonly clearValidation: () => void; }"
+      }
+    },
+    {
+      "id": "hook.useChainChangeValidation",
+      "name": "useChainChangeValidation",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/ui-connector",
+      "sourcePath": "packages/ui-connector/src/hooks/useChainChangeValidation.ts",
+      "keywords": [
+        "useChainChangeValidation",
+        "use",
+        "Chain",
+        "Change",
+        "Validation",
+        "ui-connector"
+      ],
+      "searchText": "useChainChangeValidation\nuseChainChangeValidation(options?: UseChainChangeValidationOptions): { readonly onChainChangeBefore: (chainId: number) => void; readonly onChainChangeAfter: (_chainId: number, result: WalletChainChangeState) => void; }",
+      "record": {
+        "name": "useChainChangeValidation",
+        "package": "@orderly.network/ui-connector",
+        "sourcePath": "packages/ui-connector/src/hooks/useChainChangeValidation.ts",
+        "params": [
+          {
+            "name": "options",
+            "type": "UseChainChangeValidationOptions",
+            "optional": true
+          }
+        ],
+        "returns": "{ readonly onChainChangeBefore: (chainId: number) => void; readonly onChainChangeAfter: (_chainId: number, result: WalletChainChangeState) => void; }"
+      }
+    },
+    {
+      "id": "hook.useOnboardingModal",
+      "name": "useOnboardingModal",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/ui-connector",
+      "sourcePath": "packages/ui-connector/src/hooks/useOnboardingModal.tsx",
+      "keywords": [
+        "useOnboardingModal",
+        "use",
+        "Onboarding",
+        "Modal",
+        "ui-connector"
+      ],
+      "searchText": "useOnboardingModal\nuseOnboardingModal(): { readonly openOnboardingModal: (status: AccountStatusEnum) => Promise<void>; readonly handleAccountStatus: (status?: AccountStatusEnum | undefined) => void; }",
+      "record": {
+        "name": "useOnboardingModal",
+        "package": "@orderly.network/ui-connector",
+        "sourcePath": "packages/ui-connector/src/hooks/useOnboardingModal.tsx",
+        "params": [],
+        "returns": "{ readonly openOnboardingModal: (status: AccountStatusEnum) => Promise<void>; readonly handleAccountStatus: (status?: AccountStatusEnum | undefined) => void; }"
       }
     },
     {
@@ -11541,7 +11704,7 @@
         "Script",
         "ui-order-entry"
       ],
-      "searchText": "useOrderEntryScript\nuseOrderEntryScript(inputs: OrderEntryScriptInputs): { slPriceError: OrderValidationResult | undefined; side: OrderSide; type: OrderType; level: OrderLevel; formattedOrder: Partial<...>; ... 47 more ...; markPrice?: number | undefined; }",
+      "searchText": "useOrderEntryScript\nuseOrderEntryScript(inputs: OrderEntryScriptInputs): { slPriceError: OrderValidationResult | undefined; side: OrderSide; type: OrderType; level: OrderLevel; formattedOrder: Partial<...>; ... 48 more ...; markPrice?: number | undefined; }",
       "record": {
         "name": "useOrderEntryScript",
         "package": "@orderly.network/ui-order-entry",
@@ -11553,7 +11716,7 @@
             "optional": false
           }
         ],
-        "returns": "{ slPriceError: OrderValidationResult | undefined; side: OrderSide; type: OrderType; level: OrderLevel; formattedOrder: Partial<...>; ... 47 more ...; markPrice?: number | undefined; }"
+        "returns": "{ slPriceError: OrderValidationResult | undefined; side: OrderSide; type: OrderType; level: OrderLevel; formattedOrder: Partial<...>; ... 48 more ...; markPrice?: number | undefined; }"
       }
     },
     {
@@ -11858,35 +12021,6 @@
       }
     },
     {
-      "id": "hook.useTPSLOrderPrice",
-      "name": "useTPSLOrderPrice",
-      "kind": "hook",
-      "category": "SDK Hook",
-      "package": "@orderly.network/ui-orders",
-      "sourcePath": "packages/ui-orders/src/components/orderList/desktop/tpslPrice.tsx",
-      "keywords": [
-        "useTPSLOrderPrice",
-        "use",
-        "TPSLOrder",
-        "Price",
-        "ui-orders"
-      ],
-      "searchText": "useTPSLOrderPrice\nuseTPSLOrderPrice(order: any): { tpTriggerPrice: string | undefined; slTriggerPrice: string | undefined; }",
-      "record": {
-        "name": "useTPSLOrderPrice",
-        "package": "@orderly.network/ui-orders",
-        "sourcePath": "packages/ui-orders/src/components/orderList/desktop/tpslPrice.tsx",
-        "params": [
-          {
-            "name": "order",
-            "type": "any",
-            "optional": false
-          }
-        ],
-        "returns": "{ tpTriggerPrice: string | undefined; slTriggerPrice: string | undefined; }"
-      }
-    },
-    {
       "id": "hook.useOrderColumn",
       "name": "useOrderColumn",
       "kind": "hook",
@@ -12111,7 +12245,7 @@
         "Script",
         "ui-orders"
       ],
-      "searchText": "useEditSheetScript\nuseEditSheetScript(props: { state: { symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; origin: SymbolExt; ... 6 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }; position?: PositionTPSLExt | undefined; editAlgoOrder: (id: ...): { markPrice: number; isStopMarket: boolean; isTrailingStop: boolean; showTriggerPrice: boolean; formattedOrder: { symbol: string; side: OrderSide; reduce_only: boolean; order_type: OrderType; ... 6 more ...; callback_rate: number | undefined; }; ... 28 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefine...",
+      "searchText": "useEditSheetScript\nuseEditSheetScript(props: { state: { symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; origin: SymbolExt; ... 6 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }; position?: PositionTPSLExt | undefined; editAlgoOrder: (id: ...): { markPrice: number; isStopMarket: boolean; isTrailingStop: boolean; showTriggerPrice: boolean; formattedOrder: { symbol: string; parent_algo_type: AlgoOrderRootType; ... 11 more ...; callback_rate: number | undefined; }; ... 28 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }",
       "record": {
         "name": "useEditSheetScript",
         "package": "@orderly.network/ui-orders",
@@ -12123,7 +12257,7 @@
             "optional": false
           }
         ],
-        "returns": "{ markPrice: number; isStopMarket: boolean; isTrailingStop: boolean; showTriggerPrice: boolean; formattedOrder: { symbol: string; side: OrderSide; reduce_only: boolean; order_type: OrderType; ... 6 more ...; callback_rate: number | undefined; }; ... 28 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefine..."
+        "returns": "{ markPrice: number; isStopMarket: boolean; isTrailingStop: boolean; showTriggerPrice: boolean; formattedOrder: { symbol: string; parent_algo_type: AlgoOrderRootType; ... 11 more ...; callback_rate: number | undefined; }; ... 28 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }"
       }
     },
     {
@@ -12141,7 +12275,7 @@
         "Script",
         "ui-orders"
       ],
-      "searchText": "useEditBtnScript\nuseEditBtnScript(props: { state: { symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; origin: SymbolExt; ... 6 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }; }): { onShowEditSheet: () => void; symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; ... 7 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }",
+      "searchText": "useEditBtnScript\nuseEditBtnScript(props: { state: { symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; origin: SymbolExt; ... 6 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }; }): { onShowEditSheet: () => void; tpslSheetMounted: boolean; tpslSheetOpen: boolean; setTPSLSheetOpen: Dispatch<SetStateAction<boolean>>; sheetMounted: boolean; ... 21 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }",
       "record": {
         "name": "useEditBtnScript",
         "package": "@orderly.network/ui-orders",
@@ -12153,7 +12287,7 @@
             "optional": false
           }
         ],
-        "returns": "{ onShowEditSheet: () => void; symbolInfo: SymbolContextState; base_dp: number; quote_dp: number; base_tick: number; quote_tick: number; base: string; quote: string; symbol: string; ... 7 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }"
+        "returns": "{ onShowEditSheet: () => void; tpslSheetMounted: boolean; tpslSheetOpen: boolean; setTPSLSheetOpen: Dispatch<SetStateAction<boolean>>; sheetMounted: boolean; ... 21 more ...; onSymbolChange?: ((symbol: Symbol) => void) | undefined; }"
       }
     },
     {
@@ -12947,12 +13081,18 @@
         "Script",
         "ui-scaffold"
       ],
-      "searchText": "useChainMenuScript\nuseChainMenuScript(): { isConnected: boolean; currentChainId: number | undefined; wrongNetwork: boolean; disabledConnect: boolean; accountStatus: AccountStatusEnum; networkId: NetworkId; ... 6 more ...; setCurrentChainId: (chainId: number | undefined) => void; }",
+      "searchText": "useChainMenuScript\nuseChainMenuScript(options?: UseChainMenuScriptOptions): { isConnected: boolean; currentChainId: number | undefined; wrongNetwork: boolean; disabledConnect: boolean; accountStatus: AccountStatusEnum; networkId: NetworkId; ... 6 more ...; setCurrentChainId: (chainId: number | undefined) => void; }",
       "record": {
         "name": "useChainMenuScript",
         "package": "@orderly.network/ui-scaffold",
         "sourcePath": "packages/ui-scaffold/src/components/chainMenu/chainMenu.script.ts",
-        "params": [],
+        "params": [
+          {
+            "name": "options",
+            "type": "UseChainMenuScriptOptions",
+            "optional": true
+          }
+        ],
         "returns": "{ isConnected: boolean; currentChainId: number | undefined; wrongNetwork: boolean; disabledConnect: boolean; accountStatus: AccountStatusEnum; networkId: NetworkId; ... 6 more ...; setCurrentChainId: (chainId: number | undefined) => void; }"
       }
     },
@@ -13209,7 +13349,7 @@
         "Script",
         "ui-tpsl"
       ],
-      "searchText": "useTPSLInputRowScript\nuseTPSLInputRowScript(props: Props): { roi: number | null; disableOrderTypeSelector?: boolean | undefined; type: \"tp\" | \"sl\"; quote_dp: number; positionType: PositionType; errors: OrderValidationResult | null; ... 9 more ...; marginMode?: MarginMode | undefined; }",
+      "searchText": "useTPSLInputRowScript\nuseTPSLInputRowScript(props: Props): { roi: number | null; disableOrderTypeSelector?: boolean | undefined; disableTriggerEditing?: boolean | undefined; type: \"tp\" | \"sl\"; quote_dp: number; positionType: PositionType; ... 9 more ...; marginMode?: MarginMode | undefined; }",
       "record": {
         "name": "useTPSLInputRowScript",
         "package": "@orderly.network/ui-tpsl",
@@ -13221,7 +13361,7 @@
             "optional": false
           }
         ],
-        "returns": "{ roi: number | null; disableOrderTypeSelector?: boolean | undefined; type: \"tp\" | \"sl\"; quote_dp: number; positionType: PositionType; errors: OrderValidationResult | null; ... 9 more ...; marginMode?: MarginMode | undefined; }"
+        "returns": "{ roi: number | null; disableOrderTypeSelector?: boolean | undefined; disableTriggerEditing?: boolean | undefined; type: \"tp\" | \"sl\"; quote_dp: number; positionType: PositionType; ... 9 more ...; marginMode?: MarginMode | undefined; }"
       }
     },
     {
@@ -13267,7 +13407,7 @@
         "TPSLBuilder",
         "ui-tpsl"
       ],
-      "searchText": "useTPSLBuilder\nuseTPSLBuilder(options: TPSLBuilderOptions & PropsWithTriggerPrice): { readonly isEditing: boolean | undefined; readonly symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 14 more ...; readonly setValues: (values: Partial<...>) => void; }",
+      "searchText": "useTPSLBuilder\nuseTPSLBuilder(options: TPSLBuilderOptions & PropsWithTriggerPrice): { readonly isEditing: boolean | undefined; readonly disableTPOrderTypeSelector: boolean; readonly disableSLOrderTypeSelector: boolean; readonly disableTPTriggerEditing: boolean; ... 18 more ...; readonly setValues: (values: Partial<...>) => void; }",
       "record": {
         "name": "useTPSLBuilder",
         "package": "@orderly.network/ui-tpsl",
@@ -13279,7 +13419,7 @@
             "optional": false
           }
         ],
-        "returns": "{ readonly isEditing: boolean | undefined; readonly symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 14 more ...; readonly setValues: (values: Partial<...>) => void; }"
+        "returns": "{ readonly isEditing: boolean | undefined; readonly disableTPOrderTypeSelector: boolean; readonly disableSLOrderTypeSelector: boolean; readonly disableTPTriggerEditing: boolean; ... 18 more ...; readonly setValues: (values: Partial<...>) => void; }"
       }
     },
     {
@@ -13323,7 +13463,7 @@
         "TPSLDetail",
         "ui-tpsl"
       ],
-      "searchText": "useTPSLDetail\nuseTPSLDetail(props: TPSLDetailProps): { symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 8 more ...; addTPSLOrder: (positionType: PositionType) => void; }",
+      "searchText": "useTPSLDetail\nuseTPSLDetail(props: TPSLDetailProps): { symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 12 more ...; onTPSLEditOpenChange: (open: boolean) => void; }",
       "record": {
         "name": "useTPSLDetail",
         "package": "@orderly.network/ui-tpsl",
@@ -13335,7 +13475,7 @@
             "optional": false
           }
         ],
-        "returns": "{ symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 8 more ...; addTPSLOrder: (positionType: PositionType) => void; }"
+        "returns": "{ symbolInfo: (<Key extends keyof _orderly_network_types.API.SymbolExt>(key: Key, defaultValue?: SymbolExt[Key] | undefined) => SymbolExt[Key]) & (() => SymbolExt); ... 12 more ...; onTPSLEditOpenChange: (open: boolean) => void; }"
       }
     },
     {
@@ -13405,7 +13545,7 @@
         "Order",
         "ui-tpsl"
       ],
-      "searchText": "useEditBracketOrder\nuseEditBracketOrder(props: { order: AlgoOrderExt; }): { symbol: string; symbolInfo: SymbolExt; slPriceError: OrderValidationResult | null; estLiqPrice: number | null; side: OrderSide | undefined; ... 6 more ...; isPriceChanged: boolean; }",
+      "searchText": "useEditBracketOrder\nuseEditBracketOrder(props: { order: AlgoOrderExt; }): { symbol: string; symbolInfo: SymbolExt; slPriceError: OrderValidationResult | null; estLiqPrice: number | null; side: OrderSide | undefined; ... 8 more ...; disableSLOrderTypeSelector: boolean; }",
       "record": {
         "name": "useEditBracketOrder",
         "package": "@orderly.network/ui-tpsl",
@@ -13417,7 +13557,7 @@
             "optional": false
           }
         ],
-        "returns": "{ symbol: string; symbolInfo: SymbolExt; slPriceError: OrderValidationResult | null; estLiqPrice: number | null; side: OrderSide | undefined; ... 6 more ...; isPriceChanged: boolean; }"
+        "returns": "{ symbol: string; symbolInfo: SymbolExt; slPriceError: OrderValidationResult | null; estLiqPrice: number | null; side: OrderSide | undefined; ... 8 more ...; disableSLOrderTypeSelector: boolean; }"
       }
     },
     {
@@ -13742,29 +13882,6 @@
           }
         ],
         "returns": "{ collateralRatio: number; collateralContributionQuantity: number; currentLTV: number; nextLTV: number; }"
-      }
-    },
-    {
-      "id": "hook.useConvertThreshold",
-      "name": "useConvertThreshold",
-      "kind": "hook",
-      "category": "SDK Hook",
-      "package": "@orderly.network/ui-transfer",
-      "sourcePath": "packages/ui-transfer/src/components/depositForm/hooks/useConvertThreshold.ts",
-      "keywords": [
-        "useConvertThreshold",
-        "use",
-        "Convert",
-        "Threshold",
-        "ui-transfer"
-      ],
-      "searchText": "useConvertThreshold\nuseConvertThreshold(): { ltv_threshold: number | undefined; negative_usdc_threshold: number | undefined; isLoading: boolean; error: any; }",
-      "record": {
-        "name": "useConvertThreshold",
-        "package": "@orderly.network/ui-transfer",
-        "sourcePath": "packages/ui-transfer/src/components/depositForm/hooks/useConvertThreshold.ts",
-        "params": [],
-        "returns": "{ ltv_threshold: number | undefined; negative_usdc_threshold: number | undefined; isLoading: boolean; error: any; }"
       }
     },
     {
@@ -14097,35 +14214,6 @@
       }
     },
     {
-      "id": "hook.useSwapQuote",
-      "name": "useSwapQuote",
-      "kind": "hook",
-      "category": "SDK Hook",
-      "package": "@orderly.network/ui-transfer",
-      "sourcePath": "packages/ui-transfer/src/components/depositForm/swap/useSwapQuote.ts",
-      "keywords": [
-        "useSwapQuote",
-        "use",
-        "Swap",
-        "Quote",
-        "ui-transfer"
-      ],
-      "searchText": "useSwapQuote\nuseSwapQuote(options: { sourceToken?: TokenInfo | undefined; targetToken?: TokenInfo | undefined; quantity: string; chainId?: number | undefined; slippage: number; }): { swapData: SwapQuoteData | undefined; swapPrice: number | undefined; swapMinReceived: string | undefined; swapQuantity: string | undefined; swapPriceRevalidating: boolean; error: string | undefined; }",
-      "record": {
-        "name": "useSwapQuote",
-        "package": "@orderly.network/ui-transfer",
-        "sourcePath": "packages/ui-transfer/src/components/depositForm/swap/useSwapQuote.ts",
-        "params": [
-          {
-            "name": "options",
-            "type": "{ sourceToken?: TokenInfo | undefined; targetToken?: TokenInfo | undefined; quantity: string; chainId?: number | undefined; slippage: number; }",
-            "optional": false
-          }
-        ],
-        "returns": "{ swapData: SwapQuoteData | undefined; swapPrice: number | undefined; swapMinReceived: string | undefined; swapQuantity: string | undefined; swapPriceRevalidating: boolean; error: string | undefined; }"
-      }
-    },
-    {
       "id": "hook.useSwapDeposit",
       "name": "useSwapDeposit",
       "kind": "hook",
@@ -14314,7 +14402,7 @@
         "Token",
         "ui-transfer"
       ],
-      "searchText": "useWithdrawToken\nuseWithdrawToken(params: { currentChain?: CurrentChain | null | undefined; withdrawTo: WithdrawTo; }): { sourceToken: TokenInfo | undefined; onSourceTokenChange: Dispatch<SetStateAction<TokenInfo | undefined>>; sourceTokens: TokenInfo[]; isTokenSupportedOnChain: PickFunction<...>; } | { ...; }",
+      "searchText": "useWithdrawToken\nuseWithdrawToken(params: { currentChain?: CurrentChain | null | undefined; withdrawTo: WithdrawTo; }): { sourceToken: TokenInfo | undefined; onSourceTokenChange: Dispatch<SetStateAction<TokenInfo | undefined>>; sourceTokens: TokenInfo[]; isTokenSupportedOnChain: PickFunction<...>; } | { ...; } | { ...; }",
       "record": {
         "name": "useWithdrawToken",
         "package": "@orderly.network/ui-transfer",
@@ -14326,7 +14414,7 @@
             "optional": false
           }
         ],
-        "returns": "{ sourceToken: TokenInfo | undefined; onSourceTokenChange: Dispatch<SetStateAction<TokenInfo | undefined>>; sourceTokens: TokenInfo[]; isTokenSupportedOnChain: PickFunction<...>; } | { ...; }"
+        "returns": "{ sourceToken: TokenInfo | undefined; onSourceTokenChange: Dispatch<SetStateAction<TokenInfo | undefined>>; sourceTokens: TokenInfo[]; isTokenSupportedOnChain: PickFunction<...>; } | { ...; } | { ...; }"
       }
     },
     {
@@ -14344,7 +14432,7 @@
         "Script",
         "ui-transfer"
       ],
-      "searchText": "useWithdrawFormScript\nuseWithdrawFormScript(options: WithdrawFormScriptOptions): { withdrawTo: WithdrawTo; setWithdrawTo: Dispatch<SetStateAction<WithdrawTo>>; currentLTV: number; nextLTV: number; warningMessage: string; ... 50 more ...; vaultBalanceList: VaultBalance[]; }",
+      "searchText": "useWithdrawFormScript\nuseWithdrawFormScript(options: WithdrawFormScriptOptions): { withdrawTo: WithdrawTo; setWithdrawTo: Dispatch<SetStateAction<WithdrawTo>>; currentLTV: number; nextLTV: number; warningMessage: string; ... 52 more ...; vaultBalanceList: VaultBalance[]; }",
       "record": {
         "name": "useWithdrawFormScript",
         "package": "@orderly.network/ui-transfer",
@@ -14356,7 +14444,7 @@
             "optional": false
           }
         ],
-        "returns": "{ withdrawTo: WithdrawTo; setWithdrawTo: Dispatch<SetStateAction<WithdrawTo>>; currentLTV: number; nextLTV: number; warningMessage: string; ... 50 more ...; vaultBalanceList: VaultBalance[]; }"
+        "returns": "{ withdrawTo: WithdrawTo; setWithdrawTo: Dispatch<SetStateAction<WithdrawTo>>; currentLTV: number; nextLTV: number; warningMessage: string; ... 52 more ...; vaultBalanceList: VaultBalance[]; }"
       }
     },
     {
@@ -14387,6 +14475,61 @@
           }
         ],
         "returns": "{ toAccountId: string; setToAccountId: (val: string) => void; onTransfer: () => void; internalWithdrawSubmitting: boolean; toAccountIdInputStatus: InputStatus; toAccountIdHintMessage: string | undefined; toAccountInfo: AccountInfo | null; toAccountInfoDropdownOpen: boolean; setToAccountInfoDropdownOpen: Dispatch<......"
+      }
+    },
+    {
+      "id": "hook.useConvertFormScript",
+      "name": "useConvertFormScript",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
+      "keywords": [
+        "useConvertFormScript",
+        "use",
+        "Convert",
+        "Form",
+        "Script",
+        "ui-transfer"
+      ],
+      "searchText": "useConvertFormScript\nuseConvertFormScript(options: ConvertFormScriptOptions): { reverseAllowed: boolean; currentLTV: number; nextLTV: number; walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; ... 24 more ...; onRefreshConvertStatus: () => void; }",
+      "record": {
+        "name": "useConvertFormScript",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
+        "params": [
+          {
+            "name": "options",
+            "type": "ConvertFormScriptOptions",
+            "optional": false
+          }
+        ],
+        "returns": "{ reverseAllowed: boolean; currentLTV: number; nextLTV: number; walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; ... 24 more ...; onRefreshConvertStatus: () => void; }"
+      }
+    },
+    {
+      "id": "hook.useReverseConvertScript",
+      "name": "useReverseConvertScript",
+      "kind": "hook",
+      "category": "SDK Hook",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/reverseConvert/reverseConvert.script.tsx",
+      "keywords": [
+        "useReverseConvertScript",
+        "use",
+        "Reverse",
+        "Convert",
+        "Script",
+        "ui-transfer"
+      ],
+      "searchText": "useReverseConvertScript\nReverse convert reuses the forward convert session and pending recovery.\nAn account can have only one pending convert at a time, whether it is\ncollateral → USDC or USDC → USDG.\nuseReverseConvertScript(): { reverseAllowed: boolean; currentLTV: number; nextLTV: number; walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; ... 24 more ...; onRefreshConvertStatus: () => void; }",
+      "record": {
+        "name": "useReverseConvertScript",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/reverseConvert/reverseConvert.script.tsx",
+        "jsDoc": "Reverse convert reuses the forward convert session and pending recovery.\nAn account can have only one pending convert at a time, whether it is\ncollateral → USDC or USDC → USDG.",
+        "params": [],
+        "returns": "{ reverseAllowed: boolean; currentLTV: number; nextLTV: number; walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; ... 24 more ...; onRefreshConvertStatus: () => void; }"
       }
     },
     {
@@ -14446,36 +14589,6 @@
           }
         ],
         "returns": "{ networkId: NetworkId; onTransfer: () => void; quantity: string; amount: number; onQuantityChange: Dispatch<SetStateAction<string>>; maxQuantity: number; ... 18 more ...; isMainAccount: boolean; }"
-      }
-    },
-    {
-      "id": "hook.useConvertFormScript",
-      "name": "useConvertFormScript",
-      "kind": "hook",
-      "category": "SDK Hook",
-      "package": "@orderly.network/ui-transfer",
-      "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
-      "keywords": [
-        "useConvertFormScript",
-        "use",
-        "Convert",
-        "Form",
-        "Script",
-        "ui-transfer"
-      ],
-      "searchText": "useConvertFormScript\nuseConvertFormScript(options: ConvertFormScriptOptions): { walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; token: ConvertTokenInfo | undefined; ... 20 more ...; targetChainInfo: { ...; } | undefined; }",
-      "record": {
-        "name": "useConvertFormScript",
-        "package": "@orderly.network/ui-transfer",
-        "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
-        "params": [
-          {
-            "name": "options",
-            "type": "ConvertFormScriptOptions",
-            "optional": false
-          }
-        ],
-        "returns": "{ walletName: string | undefined; address: string | undefined; quantity: string; onQuantityChange: (qty: string) => void; token: ConvertTokenInfo | undefined; ... 20 more ...; targetChainInfo: { ...; } | undefined; }"
       }
     },
     {
@@ -15609,13 +15722,13 @@
         "Wallet",
         "wallet-connector-privy"
       ],
-      "searchText": "useWallet\nuseWallet(): { connect: (params: ConnectProps) => void; wallet: WalletState | null; connectedChain: any; setChain: (chain: { chainId: string | number; }) => Promise<boolean | undefined>; namespace: ChainNamespace | null; switchWallet: (walletType: WalletType) => void; disconnect: (walletType: WalletConnectType) => Promise<...>; ...",
+      "searchText": "useWallet\nuseWallet(): { connect: (params: ConnectProps) => void; wallet: WalletState | null; walletType: WalletConnectType | null; connectedChain: any; ... 5 more ...; restoreConnectorState: (previousConnectorKey?: string | undefined, previousChainId?: number | undefined) => void; }",
       "record": {
         "name": "useWallet",
         "package": "@orderly.network/wallet-connector-privy",
         "sourcePath": "packages/wallet-connector-privy/src/hooks/useWallet.tsx",
         "params": [],
-        "returns": "{ connect: (params: ConnectProps) => void; wallet: WalletState | null; connectedChain: any; setChain: (chain: { chainId: string | number; }) => Promise<boolean | undefined>; namespace: ChainNamespace | null; switchWallet: (walletType: WalletType) => void; disconnect: (walletType: WalletConnectType) => Promise<...>; ..."
+        "returns": "{ connect: (params: ConnectProps) => void; wallet: WalletState | null; walletType: WalletConnectType | null; connectedChain: any; ... 5 more ...; restoreConnectorState: (previousConnectorKey?: string | undefined, previousChainId?: number | undefined) => void; }"
       }
     },
     {
@@ -15775,6 +15888,51 @@
         "sourcePath": "packages/core/src/contract.ts",
         "jsDoc": "Orderly contracts information",
         "typeText": "OrderlyContracts"
+      }
+    },
+    {
+      "id": "type.IndexedDBMetadataConfig",
+      "name": "IndexedDBMetadataConfig",
+      "kind": "type",
+      "category": "SDK Type",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+      "keywords": [
+        "IndexedDBMetadataConfig",
+        "Indexed",
+        "DBMetadata",
+        "Config",
+        "hooks"
+      ],
+      "searchText": "IndexedDBMetadataConfig\nConfiguration for IndexedDB storage\nIndexedDBMetadataConfig",
+      "record": {
+        "name": "IndexedDBMetadataConfig",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+        "jsDoc": "Configuration for IndexedDB storage",
+        "typeText": "IndexedDBMetadataConfig"
+      }
+    },
+    {
+      "id": "type.IndexedDBStorage",
+      "name": "IndexedDBStorage",
+      "kind": "type",
+      "category": "SDK Type",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+      "keywords": [
+        "IndexedDBStorage",
+        "Indexed",
+        "DBStorage",
+        "hooks"
+      ],
+      "searchText": "IndexedDBStorage\nIndexedDB storage interface for array-based data operations\nIndexedDBStorage<T>",
+      "record": {
+        "name": "IndexedDBStorage",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+        "jsDoc": "IndexedDB storage interface for array-based data operations",
+        "typeText": "IndexedDBStorage<T>"
       }
     },
     {
@@ -15982,6 +16140,52 @@
       }
     },
     {
+      "id": "type.MarketReferencePriceContext",
+      "name": "MarketReferencePriceContext",
+      "kind": "type",
+      "category": "SDK Type",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/utils/order/orderPrice.ts",
+      "keywords": [
+        "MarketReferencePriceContext",
+        "Market",
+        "Reference",
+        "Price",
+        "Context",
+        "hooks"
+      ],
+      "searchText": "MarketReferencePriceContext\nContext required to price MARKET orders the same way the backend risk\nengine does (mark price +/- symbol price range instead of Ask1/Bid1).\nMarketReferencePriceContext",
+      "record": {
+        "name": "MarketReferencePriceContext",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/utils/order/orderPrice.ts",
+        "jsDoc": "Context required to price MARKET orders the same way the backend risk\nengine does (mark price +/- symbol price range instead of Ask1/Bid1).",
+        "typeText": "MarketReferencePriceContext"
+      }
+    },
+    {
+      "id": "type.IValidationStrategy",
+      "name": "IValidationStrategy",
+      "kind": "type",
+      "category": "SDK Type",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/services/orderCreator/validators/IValidationStrategy.ts",
+      "keywords": [
+        "IValidationStrategy",
+        "IValidation",
+        "Strategy",
+        "hooks"
+      ],
+      "searchText": "IValidationStrategy\nStrategy interface for validation operations\nImplements Strategy Pattern to allow different validation algorithms\nto be interchangeable\nIValidationStrategy<T>",
+      "record": {
+        "name": "IValidationStrategy",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/services/orderCreator/validators/IValidationStrategy.ts",
+        "jsDoc": "Strategy interface for validation operations\nImplements Strategy Pattern to allow different validation algorithms\nto be interchangeable",
+        "typeText": "IValidationStrategy<T>"
+      }
+    },
+    {
       "id": "type.CollateralOutputs",
       "name": "CollateralOutputs",
       "kind": "type",
@@ -16048,28 +16252,6 @@
         "sourcePath": "packages/hooks/src/orderly/useMarginRatio.ts",
         "jsDoc": "The return type of useMarginRatio hook",
         "typeText": "MarginRatioReturn"
-      }
-    },
-    {
-      "id": "type.IValidationStrategy",
-      "name": "IValidationStrategy",
-      "kind": "type",
-      "category": "SDK Type",
-      "package": "@orderly.network/hooks",
-      "sourcePath": "packages/hooks/src/services/orderCreator/validators/IValidationStrategy.ts",
-      "keywords": [
-        "IValidationStrategy",
-        "IValidation",
-        "Strategy",
-        "hooks"
-      ],
-      "searchText": "IValidationStrategy\nStrategy interface for validation operations\nImplements Strategy Pattern to allow different validation algorithms\nto be interchangeable\nIValidationStrategy<T>",
-      "record": {
-        "name": "IValidationStrategy",
-        "package": "@orderly.network/hooks",
-        "sourcePath": "packages/hooks/src/services/orderCreator/validators/IValidationStrategy.ts",
-        "jsDoc": "Strategy interface for validation operations\nImplements Strategy Pattern to allow different validation algorithms\nto be interchangeable",
-        "typeText": "IValidationStrategy<T>"
       }
     },
     {
@@ -16826,6 +17008,29 @@
         "sourcePath": "packages/layout-split/src/plugin.tsx",
         "jsDoc": "Plugin registration options",
         "typeText": "LayoutSplitPluginOptions"
+      }
+    },
+    {
+      "id": "type.IsolatedPendingOrder",
+      "name": "IsolatedPendingOrder",
+      "kind": "type",
+      "category": "SDK Type",
+      "package": "@orderly.network/perp",
+      "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+      "keywords": [
+        "IsolatedPendingOrder",
+        "Isolated",
+        "Pending",
+        "Order",
+        "perp"
+      ],
+      "searchText": "IsolatedPendingOrder\nPending isolated order input for the risk-engine frozen simulation.\nIsolatedPendingOrder",
+      "record": {
+        "name": "IsolatedPendingOrder",
+        "package": "@orderly.network/perp",
+        "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+        "jsDoc": "Pending isolated order input for the risk-engine frozen simulation.",
+        "typeText": "IsolatedPendingOrder"
       }
     },
     {
@@ -18306,7 +18511,7 @@
         "Provider",
         "react-app"
       ],
-      "searchText": "OrderlyAppProvider\nProps: appIcons?: Partial<{ main: Logo; secondary: Logo; }>; dateFormatting?: string; plugins?: (OrderlyPlugin | PluginRegistrationFn)[]; components?: ({ [x: string]: ComponentType; } & { [x: string]: ComponentType; }); enableSwapDeposit?: boolean; customChains?: { testnet: Chain[]; mainnet: Chain[]; }; dataAdapter?: { chainsList?: ((chains: Chain[]) => Chain[]); symbolList?: ((data: MarketInfoExt[], context: { rwaSymbolsInfo: Record<string, RwaSymbol>; }) => any[]) | undefined; announcementList?: ((data: any[] | readonly any[]) => any[]) | undefined; } | undefined; notification?: { orderFilled?: { media?: string; defaultOpen?: boolean; displayInOrderEntry?: boolean | undefined; soundOptions?: { label: string; value: string; media: string; }[] | undefined; defaultSoundValue?: string | undefined; } | undefined; } | undefined; amplitudeConfig?: { amplitudeId: string; serverZone?: \"EU\" | \"US\"; }; orderMetadata?: OrderMetadataConfig; keyStore?: OrderlyKeyStore; contracts?: IContract; walletAdapters?: WalletAdapter<any>[]; chainFilter?: ChainFilter; orderbookDefaultTickSizes?: Record<string, string>; orderbookDefaultSymbolDepths?: Record<PropertyKey, number[]>; brokerId?: string; brokerName?: string; networkId?: enum; configStore?: ConfigStore; defaultChain?: DefaultChain; restrictedInfo?: RestrictedInfoOptions; onChainChanged?: ((chainId: number, state: { isTestnet: boolean; isWalletConnected: boolean; }) => void); onRouteChange?: ((option: RouteOption) => void); widgetConfigs?: WidgetConfigs; overrides?: Partial<ComponentOverrides>; themes?: ThemeConfig[]; currentThemeId?: string; currentTheme?: ThemeConfig; setCurrentThemeId?: ((id: string) => void)\nplugins — Plugins for the new interceptor system (registerPlugin descriptors or registration fns)\nenableSwapDeposit — enable swap deposit, default is false\ncustomChains — custom chains, please include all chain information, otherwise there will be problems\ndataAdapter — when use this, please keep the reference stable, otherwise it will cause unnecessary renders\nchainFilter — filter chains, only show chains in the filter\norderbookDefaultTickSizes — Custom orderbook default tick sizes.\norderbookDefaultSymbolDepths — Custom orderbook default symbol depths.",
+      "searchText": "OrderlyAppProvider\nProps: appIcons?: Partial<{ main: Logo; secondary: Logo; }>; dateFormatting?: string; plugins?: (OrderlyPlugin | PluginRegistrationFn)[]; components?: ({ [x: string]: ComponentType; } & { [x: string]: ComponentType; }); enableSwapDeposit?: boolean; customChains?: { testnet: Chain[]; mainnet: Chain[]; }; dataAdapter?: { chainsList?: ((chains: Chain[]) => Chain[]); symbolList?: ((data: MarketInfoExt[], context: { rwaSymbolsInfo: Record<string, RwaSymbol>; }) => any[]) | undefined; announcementList?: ((data: any[] | readonly any[]) => any[]) | undefined; } | undefined; notification?: { orderFilled?: { media?: string; defaultOpen?: boolean; displayInOrderEntry?: boolean | undefined; soundOptions?: { label: string; value: string; media: string; }[] | undefined; defaultSoundValue?: string | undefined; } | undefined; } | undefined; amplitudeConfig?: { amplitudeId: string; serverZone?: \"EU\" | \"US\"; }; orderMetadata?: OrderMetadataConfig; keyStore?: OrderlyKeyStore; contracts?: IContract; walletAdapters?: WalletAdapter<any>[]; chainFilter?: ChainFilter; orderbookDefaultTickSizes?: Record<string, string>; orderbookDefaultSymbolDepths?: Record<PropertyKey, number[]>; brokerId?: string; brokerName?: string; networkId?: enum; configStore?: ConfigStore; defaultChain?: DefaultChain; restrictedInfo?: RestrictedInfoOptions; onChainChanged?: ((chainId: number, state: WalletChainChangeState) => void); onRouteChange?: ((option: RouteOption) => void); widgetConfigs?: WidgetConfigs; overrides?: Partial<ComponentOverrides>; themes?: ThemeConfig[]; currentThemeId?: string; currentTheme?: ThemeConfig; setCurrentThemeId?: ((id: string) => void)\nplugins — Plugins for the new interceptor system (registerPlugin descriptors or registration fns)\nenableSwapDeposit — enable swap deposit, default is false\ncustomChains — custom chains, please include all chain information, otherwise there will be problems\ndataAdapter — when use this, please keep the reference stable, otherwise it will cause unnecessary renders\nchainFilter — filter chains, only show chains in the filter\norderbookDefaultTickSizes — Custom orderbook default tick sizes.\norderbookDefaultSymbolDepths — Custom orderbook default symbol depths.",
       "record": {
         "name": "OrderlyAppProvider",
         "package": "@orderly.network/react-app",
@@ -18432,7 +18637,7 @@
           },
           {
             "name": "onChainChanged",
-            "type": "((chainId: number, state: { isTestnet: boolean; isWalletConnected: boolean; }) => void)",
+            "type": "((chainId: number, state: WalletChainChangeState) => void)",
             "required": false
           },
           {
@@ -19461,6 +19666,85 @@
           {
             "name": "rowSpan",
             "type": "enum",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui.packages_ui_src_listView_listView.tsx.ListView",
+      "name": "ListView",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui",
+      "sourcePath": "packages/ui/src/listView/listView.tsx",
+      "keywords": [
+        "ListView",
+        "List",
+        "View",
+        "ui"
+      ],
+      "searchText": "ListView\nProps: dataSource: T[] | null | undefined; renderItem: (item: T, index: number, extraData?: D | undefined) => ReactNode; keyExtractor?: ((item: T, index: number) => Key); className?: string; contentClassName?: string; isLoading?: boolean; loadMore?: (() => void); style?: CSSProperties; extraData?: D; emptyView?: ReactNode; ref?: ForwardedRef<{ scroll: (direction: { x: number; y: number; }) => void; }>\nkeyExtractor — Extract a stable key from each item. Must be unique among items and\nstable across reorders/removals; defaults to the array index, which is\nonly safe for static or append-only lists.",
+      "record": {
+        "name": "ListView",
+        "package": "@orderly.network/ui",
+        "sourcePath": "packages/ui/src/listView/listView.tsx",
+        "displayName": "ListView",
+        "props": [
+          {
+            "name": "dataSource",
+            "type": "T[] | null | undefined",
+            "required": true
+          },
+          {
+            "name": "renderItem",
+            "type": "(item: T, index: number, extraData?: D | undefined) => ReactNode",
+            "required": true
+          },
+          {
+            "name": "keyExtractor",
+            "type": "((item: T, index: number) => Key)",
+            "required": false,
+            "description": "Extract a stable key from each item. Must be unique among items and\nstable across reorders/removals; defaults to the array index, which is\nonly safe for static or append-only lists."
+          },
+          {
+            "name": "className",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "contentClassName",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "isLoading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "loadMore",
+            "type": "(() => void)",
+            "required": false
+          },
+          {
+            "name": "style",
+            "type": "CSSProperties",
+            "required": false
+          },
+          {
+            "name": "extraData",
+            "type": "D",
+            "required": false
+          },
+          {
+            "name": "emptyView",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "ref",
+            "type": "ForwardedRef<{ scroll: (direction: { x: number; y: number; }) => void; }>",
             "required": false
           }
         ]
@@ -22545,7 +22829,7 @@
         "Selector",
         "ui-chain-selector"
       ],
-      "searchText": "ChainSelector\nProps: isWrongNetwork?: boolean; variant?: enum; className?: string; recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; selectChainId: number | undefined; onChainClick: (chain: TChainItem) => Promise<void>; selectedTab: enum; onTabChange: (tab: ChainType) => void; showTestnet: boolean\nvariant — wide: This represents the wide screen (desktop) UI mode\ncompact: This indicates a compact (mobile) UI pattern.",
+      "searchText": "ChainSelector\nProps: isWrongNetwork?: boolean; variant?: enum; className?: string; recentChains: TChainItem[]; chains: { mainnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; testnet: { name: string; id: number; lowestFee: boolean | undefined; isTestnet: boolean; }[]; }; selectChainId: number | undefined; onChainClick: (chain: TChainItem) => Promise<void>; selectedTab: enum; onTabChange: (tab: ChainType) => void; showMainnet: boolean; showTestnet: boolean\nvariant — wide: This represents the wide screen (desktop) UI mode\ncompact: This indicates a compact (mobile) UI pattern.",
       "record": {
         "name": "ChainSelector",
         "package": "@orderly.network/ui-chain-selector",
@@ -22599,6 +22883,11 @@
             "required": true
           },
           {
+            "name": "showMainnet",
+            "type": "boolean",
+            "required": true
+          },
+          {
             "name": "showTestnet",
             "type": "boolean",
             "required": true
@@ -22620,7 +22909,7 @@
         "Widget",
         "ui-chain-selector"
       ],
-      "searchText": "ChainSelectorWidget\nProps: networkId?: enum; bridgeLessOnly?: boolean; close?: (() => void); resolve?: ((isSuccess: boolean) => void); reject?: (() => void); onChainChangeBefore?: ((chainId: number, state: { isTestnet: boolean; }) => void); onChainChangeAfter?: ((chainId: number, state: { isTestnet: boolean; isWalletConnected: boolean; }) => void); isWrongNetwork?: boolean; variant?: enum; className?: string\nvariant — wide: This represents the wide screen (desktop) UI mode\ncompact: This indicates a compact (mobile) UI pattern.",
+      "searchText": "ChainSelectorWidget\nProps: networkId?: enum; bridgeLessOnly?: boolean; close?: (() => void); resolve?: ((result: ChainSelectorResult) => void); reject?: ((reason?: unknown) => void); onChainChangeBefore?: ((chainId: number, state: { isTestnet: boolean; }) => void); onChainChangeAfter?: ((chainId: number, state: WalletChainChangeState) => void); isWrongNetwork?: boolean; variant?: enum; className?: string\nvariant — wide: This represents the wide screen (desktop) UI mode\ncompact: This indicates a compact (mobile) UI pattern.",
       "record": {
         "name": "ChainSelectorWidget",
         "package": "@orderly.network/ui-chain-selector",
@@ -22644,12 +22933,12 @@
           },
           {
             "name": "resolve",
-            "type": "((isSuccess: boolean) => void)",
+            "type": "((result: ChainSelectorResult) => void)",
             "required": false
           },
           {
             "name": "reject",
-            "type": "(() => void)",
+            "type": "((reason?: unknown) => void)",
             "required": false
           },
           {
@@ -22659,7 +22948,7 @@
           },
           {
             "name": "onChainChangeAfter",
-            "type": "((chainId: number, state: { isTestnet: boolean; isWalletConnected: boolean; }) => void)",
+            "type": "((chainId: number, state: WalletChainChangeState) => void)",
             "required": false
           },
           {
@@ -23229,7 +23518,7 @@
         "Entry",
         "ui-order-entry"
       ],
-      "searchText": "OrderEntry\nProps: slPriceError: OrderValidationResult | undefined; side: enum; type: enum; level: enum; formattedOrder: Partial<OrderlyOrder>; setOrderValue: PickFunction<(key: string, value: unknown, options?: { shouldUpdateLastChangedField?: boolean | undefined; } | undefined) => void>; manualSetOrderValue: PickFunction<(key: string, value: unknown, options?: { shouldUpdateLastChangedField?: boolean | undefined; } | undefined) => void>; setOrderValues: (values: Partial<OrderlyOrder>) => void; setOrderValuesRaw: (values: Partial<OrderlyOrder>) => void; currentLeverage: number | null; symbolLeverage: number | undefined; marginMode: enum; tpslSwitch: any; setTpslSwitch: (state: boolean) => void; symbolInfo: SymbolExt; onFocus: PickFunction<(type: InputType) => (_: FocusEvent<Element, Element>) => void>; onBlur: PickFunction<(type: InputType) => (_: FocusEvent<Element, Element>) => void>; priceInputRef: MutableRefObject<HTMLInputElement | null>; priceInputContainerRef: MutableRefObject<HTMLDivElement | null>; priceInputContainerWidth: number; triggerPriceInputRef: MutableRefObject<HTMLInputElement | null>; activatedPriceInputRef: MutableRefObject<HTMLInputElement | null>; lastQuantityInputType: MutableRefObject<InputType>; canTrade: boolean; bboStatus: enum; bboType: any; onBBOChange: (value: BBOOrderType) => void; toggleBBO: () => void; currentLtv: number; fillMiddleValue: () => void; symbol: string; soundAlert: any; setSoundAlert: (value: boolean) => void; currentFocusInput: MutableRefObject<InputType>; walletAddress: string | undefined; isPermissionlessListing: boolean; isSymbolPostOnly: boolean; submit: (options?: { resetOnSuccess?: boolean | undefined; } | undefined) => Promise<{ success: boolean; data: Record<string, any>; timestamp: number; }>; reset: () => void; resetErrors: () => void; resetMetaState: () => void; maxQty: number; maxQtys: { maxBuy: number; maxSell: number; }; estLiqPrice: number | null; currentPosition: number; estLiqPriceDistance: number | null; estLeverage: number | null; estSlippage: number | null; helper: { validator: () => Promise<OrderValidationResult | null>; validate: (otherErrors?: OrderValidationResult | undefined) => Promise<...>; }; freeCollateral: number; metaState: { dirty: { symbol?: boolean | undefined; order_type?: boolean | undefined; margin_mode?: boolean | undefined; order_type_ext?: boolean | undefined; order_price?: boolean | undefined; ... 44 more ...; sl_order_type?: boolean | undefined; }; submitted: boolean; validated: boolean; errors: OrderValidationResult | null; }; isMutating: boolean; markPrice?: number; containerRef?: RefObject<HTMLDivElement>; disableFeatures?: (\"slippageSetting\" | \"feesInfo\")[]\nestLiqPrice — The estimated liquidation price.\ncurrentPosition — Current position quantity for the symbol (signed: positive=Long, negative=Short).\nestLiqPriceDistance — The estimated liquidation price distance.\nestLeverage — The estimated leverage after order creation.\nmetaState — Meta state including validation and submission status.\nisMutating — Indicates if a mutation (order creation) is in progress.",
+      "searchText": "OrderEntry\nProps: slPriceError: OrderValidationResult | undefined; side: enum; type: enum; level: enum; formattedOrder: Partial<OrderlyOrder>; setOrderValue: PickFunction<(key: string, value: unknown, options?: { shouldUpdateLastChangedField?: boolean | undefined; } | undefined) => void>; manualSetOrderValue: PickFunction<(key: string, value: unknown, options?: { shouldUpdateLastChangedField?: boolean | undefined; } | undefined) => void>; setOrderValues: (values: Partial<OrderlyOrder>) => void; setOrderValuesRaw: (values: Partial<OrderlyOrder>) => void; currentLeverage: number | null; symbolLeverage: number | undefined; marginMode: enum; tpslSwitch: any; setTpslSwitch: (state: boolean) => void; symbolInfo: SymbolExt; onFocus: PickFunction<(type: InputType) => (_: FocusEvent<Element, Element>) => void>; onBlur: PickFunction<(type: InputType) => (_: FocusEvent<Element, Element>) => void>; priceInputRef: MutableRefObject<HTMLInputElement | null>; priceInputContainerRef: MutableRefObject<HTMLDivElement | null>; priceInputContainerWidth: number; triggerPriceInputRef: MutableRefObject<HTMLInputElement | null>; activatedPriceInputRef: MutableRefObject<HTMLInputElement | null>; lastQuantityInputType: MutableRefObject<InputType>; canTrade: boolean; bboStatus: enum; bboType: any; onBBOChange: (value: BBOOrderType) => void; toggleBBO: () => void; currentLtv: number; usdcBorrowLimit: number; fillMiddleValue: () => void; symbol: string; soundAlert: any; setSoundAlert: (value: boolean) => void; currentFocusInput: MutableRefObject<InputType>; walletAddress: string | undefined; isPermissionlessListing: boolean; isSymbolPostOnly: boolean; submit: (options?: SubmitOrderOptions | undefined) => Promise<{ success: boolean; data: Record<string, any>; timestamp: number; }>; reset: () => void; resetErrors: () => void; resetMetaState: () => void; maxQty: number; maxQtys: { maxBuy: number; maxSell: number; }; estLiqPrice: number | null; currentPosition: number; estLiqPriceDistance: number | null; estLeverage: number | null; estSlippage: number | null; helper: { validator: () => Promise<OrderlyOrder>; validate: (otherErrors?: OrderValidationResult | undefined) => Promise<OrderlyOrder>; getProjectedUSDCBorrow: (order: Partial<...>) => number | null; }; freeCollateral: number; metaState: { dirty: { symbol?: boolean | undefined; order_type?: boolean | undefined; margin_mode?: boolean | undefined; order_type_ext?: boolean | undefined; order_price?: boolean | undefined; ... 44 more ...; sl_order_type?: boolean | undefined; }; submitted: boolean; validated: boolean; errors: OrderValidationResult | null; }; isMutating: boolean; markPrice?: number; containerRef?: RefObject<HTMLDivElement>; disableFeatures?: (\"slippageSetting\" | \"feesInfo\")[]\nestLiqPrice — The estimated liquidation price.\ncurrentPosition — Current position quantity for the symbol (signed: positive=Long, negative=Short).\nestLiqPriceDistance — The estimated liquidation price distance.\nestLeverage — The estimated leverage after order creation.\nmetaState — Meta state including validation and submission status.\nisMutating — Indicates if a mutation (order creation) is in progress.",
       "record": {
         "name": "OrderEntry",
         "package": "@orderly.network/ui-order-entry",
@@ -23382,6 +23671,11 @@
             "required": true
           },
           {
+            "name": "usdcBorrowLimit",
+            "type": "number",
+            "required": true
+          },
+          {
             "name": "fillMiddleValue",
             "type": "() => void",
             "required": true
@@ -23423,7 +23717,7 @@
           },
           {
             "name": "submit",
-            "type": "(options?: { resetOnSuccess?: boolean | undefined; } | undefined) => Promise<{ success: boolean; data: Record<string, any>; timestamp: number; }>",
+            "type": "(options?: SubmitOrderOptions | undefined) => Promise<{ success: boolean; data: Record<string, any>; timestamp: number; }>",
             "required": true
           },
           {
@@ -23482,7 +23776,7 @@
           },
           {
             "name": "helper",
-            "type": "{ validator: () => Promise<OrderValidationResult | null>; validate: (otherErrors?: OrderValidationResult | undefined) => Promise<...>; }",
+            "type": "{ validator: () => Promise<OrderlyOrder>; validate: (otherErrors?: OrderValidationResult | undefined) => Promise<OrderlyOrder>; getProjectedUSDCBorrow: (order: Partial<...>) => number | null; }",
             "required": true
           },
           {
@@ -23645,6 +23939,31 @@
             "required": false
           }
         ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-positions.packages_ui-positions_src_components_positions_adjustMargin_adjustMargin.widget.tsx.AdjustMarginDialogId",
+      "name": "AdjustMarginDialogId",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-positions",
+      "sourcePath": "packages/ui-positions/src/components/positions/adjustMargin/adjustMargin.widget.tsx",
+      "keywords": [
+        "AdjustMarginDialogId",
+        "Adjust",
+        "Margin",
+        "Dialog",
+        "Id",
+        "ui-positions"
+      ],
+      "searchText": "AdjustMarginDialogId\nLegacy global registration of the adjust-margin dialog/sheet, kept for\nbackward compatibility with external consumers that open it via\n`modal.show(AdjustMarginDialogId | AdjustMarginSheetId)`.\n\nInternal code no longer uses this path: the desktop/mobile position tables\nrender `AdjustMarginButton` instead, which wraps the same script/UI in a\nlocally controlled `SimpleDialog`/`SimpleSheet`. Keep both paths in sync\nwhen changing dialog options or the widget's props.",
+      "record": {
+        "name": "AdjustMarginDialogId",
+        "package": "@orderly.network/ui-positions",
+        "sourcePath": "packages/ui-positions/src/components/positions/adjustMargin/adjustMargin.widget.tsx",
+        "jsDoc": "Legacy global registration of the adjust-margin dialog/sheet, kept for\nbackward compatibility with external consumers that open it via\n`modal.show(AdjustMarginDialogId | AdjustMarginSheetId)`.\n\nInternal code no longer uses this path: the desktop/mobile position tables\nrender `AdjustMarginButton` instead, which wraps the same script/UI in a\nlocally controlled `SimpleDialog`/`SimpleSheet`. Keep both paths in sync\nwhen changing dialog options or the widget's props.",
+        "displayName": "AdjustMarginDialogId",
+        "props": []
       }
     },
     {
@@ -25436,7 +25755,7 @@
         "TPSLQuantity",
         "ui-tpsl"
       ],
-      "searchText": "TPSLQuantity\nProps: maxQty: number; baseTick: number; base_dp: number; base: string; onQuantityChange?: ((value: string | number) => void); quantity: string | number; isEditing?: boolean; errorMsg?: string\nquantity — Raw form state while editing may be string (e.g. \"\", \"0.\").",
+      "searchText": "TPSLQuantity\nProps: maxQty: number; baseTick: number; base_dp: number; base: string; onQuantityChange?: ((value: string | number) => void); quantity: string | number; isEditing?: boolean; disabled?: boolean; errorMsg?: string\nquantity — Raw form state while editing may be string (e.g. \"\", \"0.\").",
       "record": {
         "name": "TPSLQuantity",
         "package": "@orderly.network/ui-tpsl",
@@ -25476,6 +25795,11 @@
           },
           {
             "name": "isEditing",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "disabled",
             "type": "boolean",
             "required": false
           },
@@ -26199,6 +26523,232 @@
       }
     },
     {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_availableQuantity_index.tsx.AvailableQuantity",
+      "name": "AvailableQuantity",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/availableQuantity/index.tsx",
+      "keywords": [
+        "AvailableQuantity",
+        "Available",
+        "Quantity",
+        "ui-transfer"
+      ],
+      "searchText": "AvailableQuantity\nProps: token?: Partial<TokenInfo>; quantity?: string | number; maxQuantity?: string | number; onClick?: (() => void); loading?: boolean; tooltipContent?: ReactNode; notional?: number; showDisplayName?: boolean\nshowDisplayName — Token label display mode.\n- `false` (default): platform-side Orderly account assets — symbol only\n- `true`: wallet-side chain assets — `display_name || symbol`",
+      "record": {
+        "name": "AvailableQuantity",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/availableQuantity/index.tsx",
+        "displayName": "AvailableQuantity",
+        "props": [
+          {
+            "name": "token",
+            "type": "Partial<TokenInfo>",
+            "required": false
+          },
+          {
+            "name": "quantity",
+            "type": "string | number",
+            "required": false
+          },
+          {
+            "name": "maxQuantity",
+            "type": "string | number",
+            "required": false
+          },
+          {
+            "name": "onClick",
+            "type": "(() => void)",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "tooltipContent",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "notional",
+            "type": "number",
+            "required": false
+          },
+          {
+            "name": "showDisplayName",
+            "type": "boolean",
+            "required": false,
+            "description": "Token label display mode.\n- `false` (default): platform-side Orderly account assets — symbol only\n- `true`: wallet-side chain assets — `display_name || symbol`"
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_convertForm_convertForm.script.tsx.useConvertFormScript",
+      "name": "useConvertFormScript",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
+      "keywords": [
+        "useConvertFormScript",
+        "use",
+        "Convert",
+        "Form",
+        "Script",
+        "ui-transfer"
+      ],
+      "searchText": "useConvertFormScript\nProps: token?: string; reverse?: boolean; close?: (() => void)\nreverse — Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account.",
+      "record": {
+        "name": "useConvertFormScript",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.script.tsx",
+        "displayName": "useConvertFormScript",
+        "props": [
+          {
+            "name": "token",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "reverse",
+            "type": "boolean",
+            "required": false,
+            "description": "Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account."
+          },
+          {
+            "name": "close",
+            "type": "(() => void)",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_convertForm_convertForm.widget.tsx.ConvertFormWidget",
+      "name": "ConvertFormWidget",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.widget.tsx",
+      "keywords": [
+        "ConvertFormWidget",
+        "Convert",
+        "Form",
+        "Widget",
+        "ui-transfer"
+      ],
+      "searchText": "ConvertFormWidget\nProps: token?: string; reverse?: boolean; close?: (() => void)\nreverse — Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account.",
+      "record": {
+        "name": "ConvertFormWidget",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/convertForm.widget.tsx",
+        "displayName": "ConvertFormWidget",
+        "props": [
+          {
+            "name": "token",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "reverse",
+            "type": "boolean",
+            "required": false,
+            "description": "Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account."
+          },
+          {
+            "name": "close",
+            "type": "(() => void)",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_convertForm_index.tsx.ConvertFormWidget",
+      "name": "ConvertFormWidget",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/index.tsx",
+      "keywords": [
+        "ConvertFormWidget",
+        "Convert",
+        "Form",
+        "Widget",
+        "ui-transfer"
+      ],
+      "searchText": "ConvertFormWidget\nProps: token?: string; reverse?: boolean; close?: (() => void)\nreverse — Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account.",
+      "record": {
+        "name": "ConvertFormWidget",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/index.tsx",
+        "displayName": "ConvertFormWidget",
+        "props": [
+          {
+            "name": "token",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "reverse",
+            "type": "boolean",
+            "required": false,
+            "description": "Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account."
+          },
+          {
+            "name": "close",
+            "type": "(() => void)",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_convertForm_index.tsx.useConvertFormScript",
+      "name": "useConvertFormScript",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/index.tsx",
+      "keywords": [
+        "useConvertFormScript",
+        "use",
+        "Convert",
+        "Form",
+        "Script",
+        "ui-transfer"
+      ],
+      "searchText": "useConvertFormScript\nProps: token?: string; reverse?: boolean; close?: (() => void)\nreverse — Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account.",
+      "record": {
+        "name": "useConvertFormScript",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/index.tsx",
+        "displayName": "useConvertFormScript",
+        "props": [
+          {
+            "name": "token",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "reverse",
+            "type": "boolean",
+            "required": false,
+            "description": "Internal fixed-direction form used by the Robinhood withdrawal entry.\nStill shares the same tracked convert session as the forward form because\nonly one pending convert is allowed per account."
+          },
+          {
+            "name": "close",
+            "type": "(() => void)",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
       "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_depositAndWithdraw_installDeposit.tsx.installDeposit",
       "name": "installDeposit",
       "kind": "component",
@@ -26218,6 +26768,220 @@
         "sourcePath": "packages/ui-transfer/src/components/depositAndWithdraw/installDeposit.tsx",
         "jsDoc": "no need to use this function, because swap deposit is merged into deposit form",
         "displayName": "installDeposit",
+        "props": []
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_quantityInput_index.tsx.QuantityInput",
+      "name": "QuantityInput",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/quantityInput/index.tsx",
+      "keywords": [
+        "QuantityInput",
+        "Quantity",
+        "Input",
+        "ui-transfer"
+      ],
+      "searchText": "QuantityInput\nProps: token?: TokenInfo; tokens?: TokenInfo[]; label?: string; status?: enum; hintMessage?: string; hintSuffix?: ReactNode; onValueChange?: ((value: string) => void); onTokenChange?: ((token: any) => void); loading?: boolean; testId?: string; formatters?: InputFormatter[]; vaultBalanceList?: VaultBalance[]; displayType?: enum; tokenValueFormatter?: ((value: string) => ReactNode); tokenShowCaret?: boolean; balancesRevalidating?: boolean; showBalance?: boolean; showDisplayName?: boolean; disabled?: boolean; classNames?: { input?: string; root?: string; additional?: string | undefined; clearButton?: string | undefined; prefix?: string | undefined; suffix?: string | undefined; } | undefined; color?: \"warning\" | \"success\" | \"default\" | \"danger\" | { initial?: \"warning\" | \"success\" | \"default\" | \"danger\"; md?: \"warning\" | \"success\" | \"default\" | \"danger\"; lg?: \"warning\" | ... 3 more ... | undefined; } | undefined; size?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\" | { initial?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\"; md?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\"; lg?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\" | undefined; } | undefined; prefix?: ReactNode; inputMode?: enum; pl?: boolean | { initial?: boolean; md?: boolean; lg?: boolean | undefined; } | undefined; pr?: boolean | { initial?: boolean; md?: boolean; lg?: boolean | undefined; } | undefined; fullWidth?: boolean; align?: \"center\" | \"left\" | \"right\" | { initial?: \"center\" | \"left\" | \"right\"; md?: \"center\" | \"left\" | \"right\"; lg?: \"center\" | \"left\" | \"right\" | undefined; } | undefined; clearable?: boolean; onClean?: (() => void); fixClassName?: string; helpText?: string; containerClassName?: string\nshowDisplayName — Token label display mode.\n- `false` (default): platform-side Orderly account assets — symbol only\n- `true`: wallet-side chain assets — `display_name || symbol`",
+      "record": {
+        "name": "QuantityInput",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/quantityInput/index.tsx",
+        "displayName": "QuantityInput",
+        "props": [
+          {
+            "name": "token",
+            "type": "TokenInfo",
+            "required": false
+          },
+          {
+            "name": "tokens",
+            "type": "TokenInfo[]",
+            "required": false
+          },
+          {
+            "name": "label",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "status",
+            "type": "enum",
+            "required": false
+          },
+          {
+            "name": "hintMessage",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "hintSuffix",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "onValueChange",
+            "type": "((value: string) => void)",
+            "required": false
+          },
+          {
+            "name": "onTokenChange",
+            "type": "((token: any) => void)",
+            "required": false
+          },
+          {
+            "name": "loading",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "testId",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "formatters",
+            "type": "InputFormatter[]",
+            "required": false
+          },
+          {
+            "name": "vaultBalanceList",
+            "type": "VaultBalance[]",
+            "required": false
+          },
+          {
+            "name": "displayType",
+            "type": "enum",
+            "required": false
+          },
+          {
+            "name": "tokenValueFormatter",
+            "type": "((value: string) => ReactNode)",
+            "required": false
+          },
+          {
+            "name": "tokenShowCaret",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "balancesRevalidating",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showBalance",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "showDisplayName",
+            "type": "boolean",
+            "required": false,
+            "description": "Token label display mode.\n- `false` (default): platform-side Orderly account assets — symbol only\n- `true`: wallet-side chain assets — `display_name || symbol`"
+          },
+          {
+            "name": "disabled",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "classNames",
+            "type": "{ input?: string; root?: string; additional?: string | undefined; clearButton?: string | undefined; prefix?: string | undefined; suffix?: string | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "color",
+            "type": "\"warning\" | \"success\" | \"default\" | \"danger\" | { initial?: \"warning\" | \"success\" | \"default\" | \"danger\"; md?: \"warning\" | \"success\" | \"default\" | \"danger\"; lg?: \"warning\" | ... 3 more ... | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "size",
+            "type": "\"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\" | { initial?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\"; md?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\"; lg?: \"md\" | \"lg\" | \"sm\" | \"xl\" | \"xs\" | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "prefix",
+            "type": "ReactNode",
+            "required": false
+          },
+          {
+            "name": "inputMode",
+            "type": "enum",
+            "required": false
+          },
+          {
+            "name": "pl",
+            "type": "boolean | { initial?: boolean; md?: boolean; lg?: boolean | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "pr",
+            "type": "boolean | { initial?: boolean; md?: boolean; lg?: boolean | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "fullWidth",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "align",
+            "type": "\"center\" | \"left\" | \"right\" | { initial?: \"center\" | \"left\" | \"right\"; md?: \"center\" | \"left\" | \"right\"; lg?: \"center\" | \"left\" | \"right\" | undefined; } | undefined",
+            "required": false
+          },
+          {
+            "name": "clearable",
+            "type": "boolean",
+            "required": false
+          },
+          {
+            "name": "onClean",
+            "type": "(() => void)",
+            "required": false
+          },
+          {
+            "name": "fixClassName",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "helpText",
+            "type": "string",
+            "required": false
+          },
+          {
+            "name": "containerClassName",
+            "type": "string",
+            "required": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "component._orderly.network_ui-transfer.packages_ui-transfer_src_components_reverseConvert_reverseConvert.script.tsx.useReverseConvertScript",
+      "name": "useReverseConvertScript",
+      "kind": "component",
+      "category": "SDK Component",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/reverseConvert/reverseConvert.script.tsx",
+      "keywords": [
+        "useReverseConvertScript",
+        "use",
+        "Reverse",
+        "Convert",
+        "Script",
+        "ui-transfer"
+      ],
+      "searchText": "useReverseConvertScript\nReverse convert reuses the forward convert session and pending recovery.\nAn account can have only one pending convert at a time, whether it is\ncollateral → USDC or USDC → USDG.",
+      "record": {
+        "name": "useReverseConvertScript",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/reverseConvert/reverseConvert.script.tsx",
+        "jsDoc": "Reverse convert reuses the forward convert session and pending recovery.\nAn account can have only one pending convert at a time, whether it is\ncollateral → USDC or USDC → USDG.",
+        "displayName": "useReverseConvertScript",
         "props": []
       }
     },
@@ -26535,7 +27299,7 @@
       "kind": "function",
       "category": "SDK Function",
       "package": "@orderly.network/core",
-      "sourcePath": "node_modules/.pnpm/ethers@6.16.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/ethers/lib.commonjs/utils/units.d.ts",
+      "sourcePath": "node_modules/.pnpm/ethers@6.17.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/ethers/lib.commonjs/utils/units.d.ts",
       "keywords": [
         "parseUnits",
         "parse",
@@ -26546,7 +27310,7 @@
       "record": {
         "name": "parseUnits",
         "package": "@orderly.network/core",
-        "sourcePath": "node_modules/.pnpm/ethers@6.16.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/ethers/lib.commonjs/utils/units.d.ts",
+        "sourcePath": "node_modules/.pnpm/ethers@6.17.0_bufferutil@4.0.9_utf-8-validate@5.0.10/node_modules/ethers/lib.commonjs/utils/units.d.ts",
         "jsDoc": "Converts the //decimal string// %%value%% to a BigInt, assuming\n%%unit%% decimal places. The %%unit%% may the number of decimal places\nor the name of a unit (e.g. ``\"gwei\"`` for 9 decimal places).",
         "params": [
           {
@@ -26881,6 +27645,139 @@
       }
     },
     {
+      "id": "function.sanitizeChainInfoData",
+      "name": "sanitizeChainInfoData",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/provider/store/chainInfoValidation.ts",
+      "keywords": [
+        "sanitizeChainInfoData",
+        "sanitize",
+        "Chain",
+        "Info",
+        "Data",
+        "hooks"
+      ],
+      "searchText": "sanitizeChainInfoData\nDrops chain rows that miss the runtime shape required by chain consumers\nand wallet providers, keeping the valid ones. Returns null only when no row\nsurvives. The chain mix is not constrained: a broker may legitimately expose\nSolana-only (or EVM-only) chains, and wallet connectors derive their\nsupported wallet types from whatever survives.\nsanitizeChainInfoData(data: unknown): Chain[] | null",
+      "record": {
+        "name": "sanitizeChainInfoData",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/provider/store/chainInfoValidation.ts",
+        "jsDoc": "Drops chain rows that miss the runtime shape required by chain consumers\nand wallet providers, keeping the valid ones. Returns null only when no row\nsurvives. The chain mix is not constrained: a broker may legitimately expose\nSolana-only (or EVM-only) chains, and wallet connectors derive their\nsupported wallet types from whatever survives.",
+        "params": [
+          {
+            "name": "data",
+            "type": "unknown",
+            "optional": false
+          }
+        ],
+        "returns": "Chain[] | null"
+      }
+    },
+    {
+      "id": "function.readAttributedIndexedDBState",
+      "name": "readAttributedIndexedDBState",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+      "keywords": [
+        "readAttributedIndexedDBState",
+        "read",
+        "Attributed",
+        "Indexed",
+        "DBState",
+        "hooks"
+      ],
+      "searchText": "readAttributedIndexedDBState\nSplits the reserved metadata record from data rows. A missing metadata record\nis treated as a cache miss so legacy, unattributed data is never published.\nreadAttributedIndexedDBState(indexedDBStorage: IndexedDBStorage<T>, config: IndexedDBMetadataConfig): Promise<AttributedIndexedDBState<T, M> | null>",
+      "record": {
+        "name": "readAttributedIndexedDBState",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+        "jsDoc": "Splits the reserved metadata record from data rows. A missing metadata record\nis treated as a cache miss so legacy, unattributed data is never published.",
+        "params": [
+          {
+            "name": "indexedDBStorage",
+            "type": "IndexedDBStorage<T>",
+            "optional": false
+          },
+          {
+            "name": "config",
+            "type": "IndexedDBMetadataConfig",
+            "optional": false
+          }
+        ],
+        "returns": "Promise<AttributedIndexedDBState<T, M> | null>"
+      }
+    },
+    {
+      "id": "function.createIndexedDBStorage",
+      "name": "createIndexedDBStorage",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+      "keywords": [
+        "createIndexedDBStorage",
+        "create",
+        "Indexed",
+        "DBStorage",
+        "hooks"
+      ],
+      "searchText": "createIndexedDBStorage\nCreates an IndexedDB storage instance using simple connection manager\ncreateIndexedDBStorage(config: IndexedDBStorageConfig): IndexedDBStorage<T>",
+      "record": {
+        "name": "createIndexedDBStorage",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+        "jsDoc": "Creates an IndexedDB storage instance using simple connection manager",
+        "params": [
+          {
+            "name": "config",
+            "type": "IndexedDBStorageConfig",
+            "optional": false
+          }
+        ],
+        "returns": "IndexedDBStorage<T>"
+      }
+    },
+    {
+      "id": "function.adaptToStateStorage",
+      "name": "adaptToStateStorage",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+      "keywords": [
+        "adaptToStateStorage",
+        "adapt",
+        "To",
+        "State",
+        "Storage",
+        "hooks"
+      ],
+      "searchText": "adaptToStateStorage\nAdapts IndexedDBStorage to Zustand's StateStorage interface\nadaptToStateStorage(indexedDBStorage: IndexedDBStorage<T>, metadataConfig?: IndexedDBMetadataConfig | undefined): StateStorage",
+      "record": {
+        "name": "adaptToStateStorage",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/middleware/persistIndexedDB.ts",
+        "jsDoc": "Adapts IndexedDBStorage to Zustand's StateStorage interface",
+        "params": [
+          {
+            "name": "indexedDBStorage",
+            "type": "IndexedDBStorage<T>",
+            "optional": false
+          },
+          {
+            "name": "metadataConfig",
+            "type": "IndexedDBMetadataConfig | undefined",
+            "optional": true
+          }
+        ],
+        "returns": "StateStorage"
+      }
+    },
+    {
       "id": "function.persistIndexedDB",
       "name": "persistIndexedDB",
       "kind": "function",
@@ -26915,6 +27812,51 @@
           }
         ],
         "returns": "StateCreator<T, Mps, [[\"zustand/persist\", U], ...Mcs]>"
+      }
+    },
+    {
+      "id": "function.resolveFallbackData",
+      "name": "resolveFallbackData",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/provider/store/createDataStore.fallback.ts",
+      "keywords": [
+        "resolveFallbackData",
+        "resolve",
+        "Fallback",
+        "Data",
+        "hooks"
+      ],
+      "searchText": "resolveFallbackData\nResolves data on fetch failure: in-memory cache → IndexedDB → fallback.\n\nAlways returns the original array reference (never a copy) so callers can\nattribute the result by identity. `sanitizeData` is used as a gate only:\ndata reaching this point was already sanitized when it was committed or\nhydrated, and re-filtering here would break identity attribution.\nresolveFallbackData(currentData: T[] | null, fallbackData: T[] | null | undefined, indexedDBStorage: IndexedDBStorageLike<T>, sanitizeData?: DataSanitizer<T>): Promise<T[] | null>",
+      "record": {
+        "name": "resolveFallbackData",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/provider/store/createDataStore.fallback.ts",
+        "jsDoc": "Resolves data on fetch failure: in-memory cache → IndexedDB → fallback.\n\nAlways returns the original array reference (never a copy) so callers can\nattribute the result by identity. `sanitizeData` is used as a gate only:\ndata reaching this point was already sanitized when it was committed or\nhydrated, and re-filtering here would break identity attribution.",
+        "params": [
+          {
+            "name": "currentData",
+            "type": "T[] | null",
+            "optional": false
+          },
+          {
+            "name": "fallbackData",
+            "type": "T[] | null | undefined",
+            "optional": false
+          },
+          {
+            "name": "indexedDBStorage",
+            "type": "IndexedDBStorageLike<T>",
+            "optional": false
+          },
+          {
+            "name": "sanitizeData",
+            "type": "DataSanitizer<T>",
+            "optional": true
+          }
+        ],
+        "returns": "Promise<T[] | null>"
       }
     },
     {
@@ -26982,6 +27924,41 @@
           }
         ],
         "returns": "Record<string, <Key extends K>(key: Key, defaultValue?: T[Key] | undefined) => T[Key]> & Record<string, () => T> & Nil"
+      }
+    },
+    {
+      "id": "function.mergeHoldingBalance",
+      "name": "mergeHoldingBalance",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/utils/mergeHoldingBalance.ts",
+      "keywords": [
+        "mergeHoldingBalance",
+        "merge",
+        "Holding",
+        "Balance",
+        "hooks"
+      ],
+      "searchText": "mergeHoldingBalance\nNormalize REST snake_case and WebSocket camelCase balance fields.\nmergeHoldingBalance(holding: Holding, update: BalanceUpdate): Holding",
+      "record": {
+        "name": "mergeHoldingBalance",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/utils/mergeHoldingBalance.ts",
+        "jsDoc": "Normalize REST snake_case and WebSocket camelCase balance fields.",
+        "params": [
+          {
+            "name": "holding",
+            "type": "Holding",
+            "optional": false
+          },
+          {
+            "name": "update",
+            "type": "BalanceUpdate",
+            "optional": false
+          }
+        ],
+        "returns": "Holding"
       }
     },
     {
@@ -27332,36 +28309,6 @@
       }
     },
     {
-      "id": "function.getMinNotional",
-      "name": "getMinNotional",
-      "kind": "function",
-      "category": "SDK Function",
-      "package": "@orderly.network/hooks",
-      "sourcePath": "packages/hooks/src/utils/createOrder.ts",
-      "keywords": [
-        "getMinNotional",
-        "get",
-        "Min",
-        "Notional",
-        "hooks"
-      ],
-      "searchText": "getMinNotional\nget the min notional for the order\ngetMinNotional(props: { base_tick?: number | undefined; price?: string | number | undefined; qty?: string | number | undefined; min_notional?: number | undefined; quote_dp?: number | undefined; base_dp?: number | undefined; quote_tick?: number | undefined; }): string | undefined",
-      "record": {
-        "name": "getMinNotional",
-        "package": "@orderly.network/hooks",
-        "sourcePath": "packages/hooks/src/utils/createOrder.ts",
-        "jsDoc": "get the min notional for the order",
-        "params": [
-          {
-            "name": "props",
-            "type": "{ base_tick?: number | undefined; price?: string | number | undefined; qty?: string | number | undefined; min_notional?: number | undefined; quote_dp?: number | undefined; base_dp?: number | undefined; quote_tick?: number | undefined; }",
-            "optional": false
-          }
-        ],
-        "returns": "string | undefined"
-      }
-    },
-    {
       "id": "function.getOrderPrice",
       "name": "getOrderPrice",
       "kind": "function",
@@ -27413,7 +28360,7 @@
         "Order",
         "hooks"
       ],
-      "searchText": "getOrderReferencePriceFromOrder\nAdapter to calculate reference price directly from an `OrderlyOrder`\nand the best bid / ask prices from orderbook.\ngetOrderReferencePriceFromOrder(order: Partial<OrderlyOrder>, askAndBid: number[]): number | null\nPartial order entity (side / type / price fields)\n`[Ask1, Bid1]` tuple",
+      "searchText": "getOrderReferencePriceFromOrder\nAdapter to calculate reference price directly from an `OrderlyOrder`\nand the best bid / ask prices from orderbook.\ngetOrderReferencePriceFromOrder(order: Partial<OrderlyOrder>, askAndBid: number[], marketContext?: MarketReferencePriceContext | undefined): number | null\nPartial order entity (side / type / price fields)\n`[Ask1, Bid1]` tuple\nMark price / price range context for backend-aligned\nMARKET reference pricing; when omitted MARKET falls back to Ask1/Bid1",
       "record": {
         "name": "getOrderReferencePriceFromOrder",
         "package": "@orderly.network/hooks",
@@ -27431,6 +28378,12 @@
             "type": "number[]",
             "optional": false,
             "description": "`[Ask1, Bid1]` tuple"
+          },
+          {
+            "name": "marketContext",
+            "type": "MarketReferencePriceContext | undefined",
+            "optional": true,
+            "description": "Mark price / price range context for backend-aligned\nMARKET reference pricing; when omitted MARKET falls back to Ask1/Bid1"
           }
         ],
         "returns": "number | null"
@@ -27451,16 +28404,16 @@
         "Price",
         "hooks"
       ],
-      "searchText": "getOrderReferencePrice\nCalculate reference price for a **new order** based on business rules.\n\nThe reference price is used by risk / margin formulas as the effective\nexecution price when the user is preparing a new order.\n\nBusiness rules (simplified):\n\n- LIMIT\n  - BUY:   `reference = limit_price`\n  - SELL:  `reference = max(limit_price, Bid1)`\n  - If `limit_price` is not provided: same as MARKET\n\n- MARKET\n  - BUY:   `reference = Ask1`\n  - SELL:  `reference = Bid1`\n\n- STOP MARKET\n  - If `stop_price` provided: `reference = stop_price`\n  - Else: same as MARKET\n\n- STOP LIMIT\n  - If `limit_price` provided: `reference = limit_price`\n  - Else: same as MARKET\n\n- TRAILING STOP\n  - If `trigger_price` provided: `reference = trigger_price`\n  - Else: same as MARKET\n\n- BBO (LIMIT with ASK / BID as `orderTypeExt`)\n  - BUY + ASK  => `reference = Ask1`\n  - SELL + BID => `reference = Bid1`\n  - BUY + BID  => `reference = Bid1`\n  - SELL + ASK => `reference = Ask1`\ngetOrderReferencePrice(order: { orderType: OrderType; orderTypeExt?: OrderType | undefined; side: OrderSide; limitPrice?: number | undefined; triggerPrice?: number | undefined; }, askPrice: number, bidPrice: number): number | null\nLightweight description of the new order\nAsk1 price from orderbook\nBid1 price from orderbook",
+      "searchText": "getOrderReferencePrice\nCalculate reference price for a **new order** based on business rules.\n\nThe reference price is used by risk / margin formulas as the effective\nexecution price when the user is preparing a new order.\n\nBusiness rules (simplified):\n\n- LIMIT\n  - BUY:   `reference = limit_price`\n  - SELL:  `reference = max(limit_price, Bid1)`\n  - If `limit_price` is not provided: same as MARKET\n\n- MARKET\n  - With `markPrice` + `priceRange`: backend-aligned freezing price, i.e.\n    `BUY = floor(markPrice * (1 + priceRange))`,\n    `SELL = ceil(markPrice * (1 - priceRange))`\n  - Otherwise (legacy fallback): `BUY = Ask1`, `SELL = Bid1`\n\n- STOP MARKET\n  - If `stop_price` provided: `reference = stop_price`\n  - Else: same as MARKET\n\n- STOP LIMIT\n  - If `limit_price` provided: `reference = limit_price`\n  - Else: same as MARKET\n\n- TRAILING STOP\n  - If `trigger_price` provided: `reference = trigger_price`\n  - Else: same as MARKET\n\n- BBO (LIMIT with ASK / BID as `orderTypeExt`)\n  - BUY + ASK  => `reference = Ask1`\n  - SELL + BID => `reference = Bid1`\n  - BUY + BID  => `reference = Bid1`\n  - SELL + ASK => `reference = Ask1`\ngetOrderReferencePrice(order: { orderType: OrderType; orderTypeExt?: OrderType | undefined; side: OrderSide; limitPrice?: number | undefined; triggerPrice?: number | undefined; markPrice?: number | undefined; priceRange?: number | undefined; pricePrecision?: number | undefined; }, askPrice: number, bidPrice: number): number | null\nLightweight description of the new order\nAsk1 price from orderbook\nBid1 price from orderbook",
       "record": {
         "name": "getOrderReferencePrice",
         "package": "@orderly.network/hooks",
         "sourcePath": "packages/hooks/src/utils/order/orderPrice.ts",
-        "jsDoc": "Calculate reference price for a **new order** based on business rules.\n\nThe reference price is used by risk / margin formulas as the effective\nexecution price when the user is preparing a new order.\n\nBusiness rules (simplified):\n\n- LIMIT\n  - BUY:   `reference = limit_price`\n  - SELL:  `reference = max(limit_price, Bid1)`\n  - If `limit_price` is not provided: same as MARKET\n\n- MARKET\n  - BUY:   `reference = Ask1`\n  - SELL:  `reference = Bid1`\n\n- STOP MARKET\n  - If `stop_price` provided: `reference = stop_price`\n  - Else: same as MARKET\n\n- STOP LIMIT\n  - If `limit_price` provided: `reference = limit_price`\n  - Else: same as MARKET\n\n- TRAILING STOP\n  - If `trigger_price` provided: `reference = trigger_price`\n  - Else: same as MARKET\n\n- BBO (LIMIT with ASK / BID as `orderTypeExt`)\n  - BUY + ASK  => `reference = Ask1`\n  - SELL + BID => `reference = Bid1`\n  - BUY + BID  => `reference = Bid1`\n  - SELL + ASK => `reference = Ask1`",
+        "jsDoc": "Calculate reference price for a **new order** based on business rules.\n\nThe reference price is used by risk / margin formulas as the effective\nexecution price when the user is preparing a new order.\n\nBusiness rules (simplified):\n\n- LIMIT\n  - BUY:   `reference = limit_price`\n  - SELL:  `reference = max(limit_price, Bid1)`\n  - If `limit_price` is not provided: same as MARKET\n\n- MARKET\n  - With `markPrice` + `priceRange`: backend-aligned freezing price, i.e.\n    `BUY = floor(markPrice * (1 + priceRange))`,\n    `SELL = ceil(markPrice * (1 - priceRange))`\n  - Otherwise (legacy fallback): `BUY = Ask1`, `SELL = Bid1`\n\n- STOP MARKET\n  - If `stop_price` provided: `reference = stop_price`\n  - Else: same as MARKET\n\n- STOP LIMIT\n  - If `limit_price` provided: `reference = limit_price`\n  - Else: same as MARKET\n\n- TRAILING STOP\n  - If `trigger_price` provided: `reference = trigger_price`\n  - Else: same as MARKET\n\n- BBO (LIMIT with ASK / BID as `orderTypeExt`)\n  - BUY + ASK  => `reference = Ask1`\n  - SELL + BID => `reference = Bid1`\n  - BUY + BID  => `reference = Bid1`\n  - SELL + ASK => `reference = Ask1`",
         "params": [
           {
             "name": "order",
-            "type": "{ orderType: OrderType; orderTypeExt?: OrderType | undefined; side: OrderSide; limitPrice?: number | undefined; triggerPrice?: number | undefined; }",
+            "type": "{ orderType: OrderType; orderTypeExt?: OrderType | undefined; side: OrderSide; limitPrice?: number | undefined; triggerPrice?: number | undefined; markPrice?: number | undefined; priceRange?: number | undefined; pricePrecision?: number | undefined; }",
             "optional": false,
             "description": "Lightweight description of the new order"
           },
@@ -27478,6 +28431,232 @@
           }
         ],
         "returns": "number | null"
+      }
+    },
+    {
+      "id": "function.createTPSLOrderUpdates",
+      "name": "createTPSLOrderUpdates",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/services/orderCreator/tpslOrderUpdates.ts",
+      "keywords": [
+        "createTPSLOrderUpdates",
+        "create",
+        "TPSLOrder",
+        "Updates",
+        "hooks"
+      ],
+      "searchText": "createTPSLOrderUpdates\nBuild minimal updates, allowing an inactive leg to change execution type.\ncreateTPSLOrderUpdates(children: TPSLChildInput[], oldValue: AlgoOrder, quantity?: string | number | undefined, explicitlyDeactivatedTypes?: readonly string[]): AlgoOrderUpdateEntity[]",
+      "record": {
+        "name": "createTPSLOrderUpdates",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/services/orderCreator/tpslOrderUpdates.ts",
+        "jsDoc": "Build minimal updates, allowing an inactive leg to change execution type.",
+        "params": [
+          {
+            "name": "children",
+            "type": "TPSLChildInput[]",
+            "optional": false
+          },
+          {
+            "name": "oldValue",
+            "type": "AlgoOrder",
+            "optional": false
+          },
+          {
+            "name": "quantity",
+            "type": "string | number | undefined",
+            "optional": true
+          },
+          {
+            "name": "explicitlyDeactivatedTypes",
+            "type": "readonly string[]",
+            "optional": true
+          }
+        ],
+        "returns": "AlgoOrderUpdateEntity[]"
+      }
+    },
+    {
+      "id": "function.sanitizeTPSLChildUpdates",
+      "name": "sanitizeTPSLChildUpdates",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/services/orderCreator/tpslOrderUpdates.ts",
+      "keywords": [
+        "sanitizeTPSLChildUpdates",
+        "sanitize",
+        "TPSLChild",
+        "Updates",
+        "hooks"
+      ],
+      "searchText": "sanitizeTPSLChildUpdates\nGuard the low-level SDK update entry point, including nested Bracket parents.\nsanitizeTPSLChildUpdates(updates: TPSLChildUpdate[], parent?: AlgoOrder | undefined): any[]",
+      "record": {
+        "name": "sanitizeTPSLChildUpdates",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/services/orderCreator/tpslOrderUpdates.ts",
+        "jsDoc": "Guard the low-level SDK update entry point, including nested Bracket parents.",
+        "params": [
+          {
+            "name": "updates",
+            "type": "TPSLChildUpdate[]",
+            "optional": false
+          },
+          {
+            "name": "parent",
+            "type": "AlgoOrder | undefined",
+            "optional": true
+          }
+        ],
+        "returns": "any[]"
+      }
+    },
+    {
+      "id": "function.validateTPSLChild",
+      "name": "validateTPSLChild",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/services/orderCreator/validateTPSLChild.ts",
+      "keywords": [
+        "validateTPSLChild",
+        "validate",
+        "TPSLChild",
+        "hooks"
+      ],
+      "searchText": "validateTPSLChild\nValidate a leaf using its effective update type and the TP/SL form rules.\nvalidateTPSLChild(order: Partial<AlgoOrder>, changes: { type?: OrderType | undefined; trigger_price?: string | number | undefined; price?: string | number | undefined; }, config: Pick<ValuesDepConfig, \"symbol\" | \"markPrice\">, parent?: Partial<AlgoOrder> | undefined): OrderValidationResult",
+      "record": {
+        "name": "validateTPSLChild",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/services/orderCreator/validateTPSLChild.ts",
+        "jsDoc": "Validate a leaf using its effective update type and the TP/SL form rules.",
+        "params": [
+          {
+            "name": "order",
+            "type": "Partial<AlgoOrder>",
+            "optional": false
+          },
+          {
+            "name": "changes",
+            "type": "{ type?: OrderType | undefined; trigger_price?: string | number | undefined; price?: string | number | undefined; }",
+            "optional": false
+          },
+          {
+            "name": "config",
+            "type": "Pick<ValuesDepConfig, \"symbol\" | \"markPrice\">",
+            "optional": false
+          },
+          {
+            "name": "parent",
+            "type": "Partial<AlgoOrder> | undefined",
+            "optional": true
+          }
+        ],
+        "returns": "OrderValidationResult"
+      }
+    },
+    {
+      "id": "function.toIsolatedPendingOrders",
+      "name": "toIsolatedPendingOrders",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/utils/order/isolatedPendingOrders.ts",
+      "keywords": [
+        "toIsolatedPendingOrders",
+        "to",
+        "Isolated",
+        "Pending",
+        "Orders",
+        "hooks"
+      ],
+      "searchText": "toIsolatedPendingOrders\nMap a symbol's open orders (normal + algo) to risk-engine style pending\norder inputs for the isolated frozen simulation.\n\n- reduce-only orders never open positions and are excluded;\n- cross orders are excluded (their margin is not isolated frozen);\n- remaining quantity = `quantity - total_executed_quantity`;\n- reference price = limit price, falling back to the stop trigger price,\n  then to `fallbackPrice` (mark price) when neither is usable.\ntoIsolatedPendingOrders(orders: (AlgoOrder | Order)[] | null | undefined, inputs: { symbol: string; fallbackPrice: number; }): IsolatedPendingOrder[]",
+      "record": {
+        "name": "toIsolatedPendingOrders",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/utils/order/isolatedPendingOrders.ts",
+        "jsDoc": "Map a symbol's open orders (normal + algo) to risk-engine style pending\norder inputs for the isolated frozen simulation.\n\n- reduce-only orders never open positions and are excluded;\n- cross orders are excluded (their margin is not isolated frozen);\n- remaining quantity = `quantity - total_executed_quantity`;\n- reference price = limit price, falling back to the stop trigger price,\n  then to `fallbackPrice` (mark price) when neither is usable.",
+        "params": [
+          {
+            "name": "orders",
+            "type": "(AlgoOrder | Order)[] | null | undefined",
+            "optional": false
+          },
+          {
+            "name": "inputs",
+            "type": "{ symbol: string; fallbackPrice: number; }",
+            "optional": false
+          }
+        ],
+        "returns": "IsolatedPendingOrder[]"
+      }
+    },
+    {
+      "id": "function.resolveIsolatedPendingOrders",
+      "name": "resolveIsolatedPendingOrders",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/utils/order/isolatedPendingOrders.ts",
+      "keywords": [
+        "resolveIsolatedPendingOrders",
+        "resolve",
+        "Isolated",
+        "Pending",
+        "Orders",
+        "hooks"
+      ],
+      "searchText": "resolveIsolatedPendingOrders\nResolve per-order pending inputs, falling back to `undefined` (aggregate\napproximation) when the order stream cannot be trusted:\n\n- the stream has not loaded yet; or\n- the position aggregates report pending quantity the stream does not\n  positively cover as isolated — WebSocket order payloads may omit\n  `margin_mode`, and the query only covers the first page (100 orders).\n\nOnly orders explicitly marked `ISOLATED` count toward the stream side\n(reduce-only included, since the aggregates contain them but they never\nfreeze margin). Quantity the aggregates claim beyond that — including\n`margin_mode`-less orders the mapper would drop — forces the conservative\nfallback, because under-counting pending orders would under-freeze margin.\nresolveIsolatedPendingOrders(orders: (AlgoOrder | Order)[] | null | undefined, inputs: { symbol: string; fallbackPrice: number; pendingLongQty: number; pendingShortQty: number; }): IsolatedPendingOrder[] | undefined",
+      "record": {
+        "name": "resolveIsolatedPendingOrders",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/utils/order/isolatedPendingOrders.ts",
+        "jsDoc": "Resolve per-order pending inputs, falling back to `undefined` (aggregate\napproximation) when the order stream cannot be trusted:\n\n- the stream has not loaded yet; or\n- the position aggregates report pending quantity the stream does not\n  positively cover as isolated — WebSocket order payloads may omit\n  `margin_mode`, and the query only covers the first page (100 orders).\n\nOnly orders explicitly marked `ISOLATED` count toward the stream side\n(reduce-only included, since the aggregates contain them but they never\nfreeze margin). Quantity the aggregates claim beyond that — including\n`margin_mode`-less orders the mapper would drop — forces the conservative\nfallback, because under-counting pending orders would under-freeze margin.",
+        "params": [
+          {
+            "name": "orders",
+            "type": "(AlgoOrder | Order)[] | null | undefined",
+            "optional": false
+          },
+          {
+            "name": "inputs",
+            "type": "{ symbol: string; fallbackPrice: number; pendingLongQty: number; pendingShortQty: number; }",
+            "optional": false
+          }
+        ],
+        "returns": "IsolatedPendingOrder[] | undefined"
+      }
+    },
+    {
+      "id": "function.getMinNotional",
+      "name": "getMinNotional",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/utils/createOrder.ts",
+      "keywords": [
+        "getMinNotional",
+        "get",
+        "Min",
+        "Notional",
+        "hooks"
+      ],
+      "searchText": "getMinNotional\nget the min notional for the order\ngetMinNotional(props: { base_tick?: number | undefined; price?: string | number | undefined; qty?: string | number | undefined; min_notional?: number | undefined; quote_dp?: number | undefined; base_dp?: number | undefined; quote_tick?: number | undefined; }): string | undefined",
+      "record": {
+        "name": "getMinNotional",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/utils/createOrder.ts",
+        "jsDoc": "get the min notional for the order",
+        "params": [
+          {
+            "name": "props",
+            "type": "{ base_tick?: number | undefined; price?: string | number | undefined; qty?: string | number | undefined; min_notional?: number | undefined; quote_dp?: number | undefined; base_dp?: number | undefined; quote_tick?: number | undefined; }",
+            "optional": false
+          }
+        ],
+        "returns": "string | undefined"
       }
     },
     {
@@ -27685,6 +28864,36 @@
           {
             "name": "symbolInfo",
             "type": "SymbolExt",
+            "optional": false
+          }
+        ],
+        "returns": "number"
+      }
+    },
+    {
+      "id": "function.normalizeUSDCBorrowLimit",
+      "name": "normalizeUSDCBorrowLimit",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/hooks",
+      "sourcePath": "packages/hooks/src/next/useOrderEntry/usdcBorrowLimit.ts",
+      "keywords": [
+        "normalizeUSDCBorrowLimit",
+        "normalize",
+        "USDCBorrow",
+        "Limit",
+        "hooks"
+      ],
+      "searchText": "normalizeUSDCBorrowLimit\nThe backend returns `negative_usdc_threshold` as a positive number (e.g. 50000).\nMissing, non-finite, or signed values fall back to a normalized positive limit\nso the submission guard always compares against a concrete number.\nnormalizeUSDCBorrowLimit(value: number | null | undefined): number",
+      "record": {
+        "name": "normalizeUSDCBorrowLimit",
+        "package": "@orderly.network/hooks",
+        "sourcePath": "packages/hooks/src/next/useOrderEntry/usdcBorrowLimit.ts",
+        "jsDoc": "The backend returns `negative_usdc_threshold` as a positive number (e.g. 50000).\nMissing, non-finite, or signed values fall back to a normalized positive limit\nso the submission guard always compares against a concrete number.",
+        "params": [
+          {
+            "name": "value",
+            "type": "number | null | undefined",
             "optional": false
           }
         ],
@@ -29231,6 +30440,35 @@
       }
     },
     {
+      "id": "function.collateralContribution",
+      "name": "collateralContribution",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/perp",
+      "sourcePath": "packages/perp/src/account/collateral.ts",
+      "keywords": [
+        "collateralContribution",
+        "collateral",
+        "Contribution",
+        "perp"
+      ],
+      "searchText": "collateralContribution\ncollateral_value_i = min(collateral_qty_i , collateral_cap_i) * weight_i * index_price_i\ncollateralContribution(params: { collateralQty: number; collateralCap: number; collateralRatio: number; indexPrice: number; }): number",
+      "record": {
+        "name": "collateralContribution",
+        "package": "@orderly.network/perp",
+        "sourcePath": "packages/perp/src/account/collateral.ts",
+        "jsDoc": "collateral_value_i = min(collateral_qty_i , collateral_cap_i) * weight_i * index_price_i",
+        "params": [
+          {
+            "name": "params",
+            "type": "{ collateralQty: number; collateralCap: number; collateralRatio: number; indexPrice: number; }",
+            "optional": false
+          }
+        ],
+        "returns": "number"
+      }
+    },
+    {
       "id": "function.positionNotionalWithOrder_by_symbol",
       "name": "positionNotionalWithOrder_by_symbol",
       "kind": "function",
@@ -29391,7 +30629,7 @@
         "Qty",
         "perp"
       ],
-      "searchText": "totalInitialMarginWithQty\nCalculate total initial margin with orders for cross margin positions.\nFormula: total_initial_margin_with_orders = sum(cross_position_notional_with_orders_i * cross_IMR_i)\ntotalInitialMarginWithQty(inputs: { positions: Position[]; orders: Order[]; markPrices: { [key: string]: number; }; symbolInfo: any; IMR_Factors: { [key: string]: number; }; maxLeverageBySymbol?: Record<string, number> | undefined; }): number",
+      "searchText": "totalInitialMarginWithQty\nCalculate total initial margin with orders for cross margin positions.\nFormula: total_initial_margin_with_orders = sum(cross_position_notional_with_orders_i * cross_IMR_i)\ntotalInitialMarginWithQty(inputs: { positions: Position[]; orders?: Order[] | undefined; markPrices: { [key: string]: number; }; symbolInfo: any; IMR_Factors: { [key: string]: number; }; maxLeverageBySymbol?: Record<...> | undefined; }): number",
       "record": {
         "name": "totalInitialMarginWithQty",
         "package": "@orderly.network/perp",
@@ -29400,7 +30638,7 @@
         "params": [
           {
             "name": "inputs",
-            "type": "{ positions: Position[]; orders: Order[]; markPrices: { [key: string]: number; }; symbolInfo: any; IMR_Factors: { [key: string]: number; }; maxLeverageBySymbol?: Record<string, number> | undefined; }",
+            "type": "{ positions: Position[]; orders?: Order[] | undefined; markPrices: { [key: string]: number; }; symbolInfo: any; IMR_Factors: { [key: string]: number; }; maxLeverageBySymbol?: Record<...> | undefined; }",
             "optional": false
           }
         ],
@@ -29504,6 +30742,101 @@
       }
     },
     {
+      "id": "function.isolatedPendingOrdersFrozen",
+      "name": "isolatedPendingOrdersFrozen",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/perp",
+      "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+      "keywords": [
+        "isolatedPendingOrdersFrozen",
+        "isolated",
+        "Pending",
+        "Orders",
+        "Frozen",
+        "perp"
+      ],
+      "searchText": "isolatedPendingOrdersFrozen\nSimulate the risk engine's close/open allocation and return the total\nisolated frozen margin for a set of pending orders:\n\n- Orders on the position's side (and both sides when flat) are opening\n  quantity and freeze `referencePrice * qty * marginRate`.\n- Reverse-side orders consume `abs(positionQty)` as closing quantity in\n  priority order; only their remainder freezes margin.\n\nEach order's frozen amount is rounded UP to USDC precision before summing,\nmatching the risk engine's per-order rounding.\nisolatedPendingOrdersFrozen(inputs: { positionQty: number; orders: IsolatedPendingOrder[]; leverage: number; isoTakerFeeBuffer?: number | undefined; }): Decimal",
+      "record": {
+        "name": "isolatedPendingOrdersFrozen",
+        "package": "@orderly.network/perp",
+        "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+        "jsDoc": "Simulate the risk engine's close/open allocation and return the total\nisolated frozen margin for a set of pending orders:\n\n- Orders on the position's side (and both sides when flat) are opening\n  quantity and freeze `referencePrice * qty * marginRate`.\n- Reverse-side orders consume `abs(positionQty)` as closing quantity in\n  priority order; only their remainder freezes margin.\n\nEach order's frozen amount is rounded UP to USDC precision before summing,\nmatching the risk engine's per-order rounding.",
+        "params": [
+          {
+            "name": "inputs",
+            "type": "{ positionQty: number; orders: IsolatedPendingOrder[]; leverage: number; isoTakerFeeBuffer?: number | undefined; }",
+            "optional": false
+          }
+        ],
+        "returns": "Decimal"
+      }
+    },
+    {
+      "id": "function.additionalIsolatedOrderFrozenByOrders",
+      "name": "additionalIsolatedOrderFrozenByOrders",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/perp",
+      "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+      "keywords": [
+        "additionalIsolatedOrderFrozenByOrders",
+        "additional",
+        "Isolated",
+        "Order",
+        "Frozen",
+        "By",
+        "Orders",
+        "perp"
+      ],
+      "searchText": "additionalIsolatedOrderFrozenByOrders\nAdditional isolated frozen margin introduced by a batch of same-side new\norders (a single order or scaled children), computed as\n`frozenAfter - frozenBefore` over the same allocation simulation so the\nclosing-priority reallocation between new and existing pending orders is\npriced the same way the risk engine does.\nadditionalIsolatedOrderFrozenByOrders(inputs: { positionQty: number; newOrders: IsolatedPendingOrder[]; pendingOrders: IsolatedPendingOrder[]; leverage: number; isoTakerFeeBuffer?: number | undefined; }): Decimal",
+      "record": {
+        "name": "additionalIsolatedOrderFrozenByOrders",
+        "package": "@orderly.network/perp",
+        "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+        "jsDoc": "Additional isolated frozen margin introduced by a batch of same-side new\norders (a single order or scaled children), computed as\n`frozenAfter - frozenBefore` over the same allocation simulation so the\nclosing-priority reallocation between new and existing pending orders is\npriced the same way the risk engine does.",
+        "params": [
+          {
+            "name": "inputs",
+            "type": "{ positionQty: number; newOrders: IsolatedPendingOrder[]; pendingOrders: IsolatedPendingOrder[]; leverage: number; isoTakerFeeBuffer?: number | undefined; }",
+            "optional": false
+          }
+        ],
+        "returns": "Decimal"
+      }
+    },
+    {
+      "id": "function.additionalIsolatedOrderFrozen",
+      "name": "additionalIsolatedOrderFrozen",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/perp",
+      "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+      "keywords": [
+        "additionalIsolatedOrderFrozen",
+        "additional",
+        "Isolated",
+        "Order",
+        "Frozen",
+        "perp"
+      ],
+      "searchText": "additionalIsolatedOrderFrozen\nAggregate fallback for callers without per-order data: prices the new\norder's full notional (including any closing portion) plus pending orders\nagainst `existingFrozen`. Prefer \n\n\nwhen per-order price/quantity/time data is available.\nadditionalIsolatedOrderFrozen(inputs: { newOrderNotional: number; pendingOrders?: { referencePrice: number; quantity: number; }[] | undefined; existingFrozen?: number | undefined; leverage: number; isoTakerFeeBuffer?: number | undefined; }): Decimal",
+      "record": {
+        "name": "additionalIsolatedOrderFrozen",
+        "package": "@orderly.network/perp",
+        "sourcePath": "packages/perp/src/account/maxQtyIsolated.ts",
+        "jsDoc": "Aggregate fallback for callers without per-order data: prices the new\norder's full notional (including any closing portion) plus pending orders\nagainst `existingFrozen`. Prefer \n\n\nwhen per-order price/quantity/time data is available.",
+        "params": [
+          {
+            "name": "inputs",
+            "type": "{ newOrderNotional: number; pendingOrders?: { referencePrice: number; quantity: number; }[] | undefined; existingFrozen?: number | undefined; leverage: number; isoTakerFeeBuffer?: number | undefined; }",
+            "optional": false
+          }
+        ],
+        "returns": "Decimal"
+      }
+    },
+    {
       "id": "function.totalMarginRatio",
       "name": "totalMarginRatio",
       "kind": "function",
@@ -29561,35 +30894,6 @@
           {
             "name": "totalMarginRatio",
             "type": "number",
-            "optional": false
-          }
-        ],
-        "returns": "number"
-      }
-    },
-    {
-      "id": "function.collateralContribution",
-      "name": "collateralContribution",
-      "kind": "function",
-      "category": "SDK Function",
-      "package": "@orderly.network/perp",
-      "sourcePath": "packages/perp/src/account/collateral.ts",
-      "keywords": [
-        "collateralContribution",
-        "collateral",
-        "Contribution",
-        "perp"
-      ],
-      "searchText": "collateralContribution\ncollateral_value_i = min(collateral_qty_i , collateral_cap_i) * weight_i * index_price_i\ncollateralContribution(params: { collateralQty: number; collateralCap: number; collateralRatio: number; indexPrice: number; }): number",
-      "record": {
-        "name": "collateralContribution",
-        "package": "@orderly.network/perp",
-        "sourcePath": "packages/perp/src/account/collateral.ts",
-        "jsDoc": "collateral_value_i = min(collateral_qty_i , collateral_cap_i) * weight_i * index_price_i",
-        "params": [
-          {
-            "name": "params",
-            "type": "{ collateralQty: number; collateralCap: number; collateralRatio: number; indexPrice: number; }",
             "optional": false
           }
         ],
@@ -32469,6 +33773,35 @@
       }
     },
     {
+      "id": "function.negateFee",
+      "name": "negateFee",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/ui-positions",
+      "sourcePath": "packages/ui-positions/src/components/fundingFeeHistory/negateFee.ts",
+      "keywords": [
+        "negateFee",
+        "negate",
+        "Fee",
+        "ui-positions"
+      ],
+      "searchText": "negateFee\nNegates a backend fee value for display.\nNormalizes -0 to 0 so a zero fee never renders as \"-0\".\nnegateFee(value?: number | undefined): number | undefined",
+      "record": {
+        "name": "negateFee",
+        "package": "@orderly.network/ui-positions",
+        "sourcePath": "packages/ui-positions/src/components/fundingFeeHistory/negateFee.ts",
+        "jsDoc": "Negates a backend fee value for display.\nNormalizes -0 to 0 so a zero fee never renders as \"-0\".",
+        "params": [
+          {
+            "name": "value",
+            "type": "number | undefined",
+            "optional": true
+          }
+        ],
+        "returns": "number | undefined"
+      }
+    },
+    {
       "id": "function.LeverageDisplay",
       "name": "LeverageDisplay",
       "kind": "function",
@@ -32520,6 +33853,78 @@
         "jsDoc": "Extension slot for account menu (connect wallet button). Uses injectable pattern -\nplugins can register interceptors for 'Account.AccountMenu' via OrderlyPluginProvider.",
         "params": [],
         "returns": "Element"
+      }
+    },
+    {
+      "id": "function.getTPSLEditOrderType",
+      "name": "getTPSLEditOrderType",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/ui-tpsl",
+      "sourcePath": "packages/ui-tpsl/src/positionTPSL/tpslOrderSync.ts",
+      "keywords": [
+        "getTPSLEditOrderType",
+        "get",
+        "TPSLEdit",
+        "Order",
+        "Type",
+        "ui-tpsl"
+      ],
+      "searchText": "getTPSLEditOrderType\nUse the execution type configured on this server-owned child.\ngetTPSLEditOrderType(order: AlgoOrder | undefined, leg: TPSLLeg): OrderType",
+      "record": {
+        "name": "getTPSLEditOrderType",
+        "package": "@orderly.network/ui-tpsl",
+        "sourcePath": "packages/ui-tpsl/src/positionTPSL/tpslOrderSync.ts",
+        "jsDoc": "Use the execution type configured on this server-owned child.",
+        "params": [
+          {
+            "name": "order",
+            "type": "AlgoOrder | undefined",
+            "optional": false
+          },
+          {
+            "name": "leg",
+            "type": "TPSLLeg",
+            "optional": false
+          }
+        ],
+        "returns": "OrderType"
+      }
+    },
+    {
+      "id": "function.isTPSLOrderTypeLocked",
+      "name": "isTPSLOrderTypeLocked",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/ui-tpsl",
+      "sourcePath": "packages/ui-tpsl/src/positionTPSL/tpslOrderSync.ts",
+      "keywords": [
+        "isTPSLOrderTypeLocked",
+        "is",
+        "TPSLOrder",
+        "Type",
+        "Locked",
+        "ui-tpsl"
+      ],
+      "searchText": "isTPSLOrderTypeLocked\nOnly an existing, explicitly inactive leg may change execution type.\nisTPSLOrderTypeLocked(order: AlgoOrder | undefined, leg: TPSLLeg): boolean",
+      "record": {
+        "name": "isTPSLOrderTypeLocked",
+        "package": "@orderly.network/ui-tpsl",
+        "sourcePath": "packages/ui-tpsl/src/positionTPSL/tpslOrderSync.ts",
+        "jsDoc": "Only an existing, explicitly inactive leg may change execution type.",
+        "params": [
+          {
+            "name": "order",
+            "type": "AlgoOrder | undefined",
+            "optional": false
+          },
+          {
+            "name": "leg",
+            "type": "TPSLLeg",
+            "optional": false
+          }
+        ],
+        "returns": "boolean"
       }
     },
     {
@@ -32729,6 +34134,69 @@
       }
     },
     {
+      "id": "function.findLatestPendingConvertRecord",
+      "name": "findLatestPendingConvertRecord",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/components/convertForm/convertHistory.ts",
+      "keywords": [
+        "findLatestPendingConvertRecord",
+        "find",
+        "Latest",
+        "Pending",
+        "Convert",
+        "Record",
+        "ui-transfer"
+      ],
+      "searchText": "findLatestPendingConvertRecord\nLatest pending convert for the account. Forward and reverse share this slot.\nfindLatestPendingConvertRecord(rows: ConvertHistoryRecord[]): ConvertHistoryRecord | undefined",
+      "record": {
+        "name": "findLatestPendingConvertRecord",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/components/convertForm/convertHistory.ts",
+        "jsDoc": "Latest pending convert for the account. Forward and reverse share this slot.",
+        "params": [
+          {
+            "name": "rows",
+            "type": "ConvertHistoryRecord[]",
+            "optional": false
+          }
+        ],
+        "returns": "ConvertHistoryRecord | undefined"
+      }
+    },
+    {
+      "id": "function.getSolanaBlockTime",
+      "name": "getSolanaBlockTime",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/ui-transfer",
+      "sourcePath": "packages/ui-transfer/src/contract/getSolanaBlockTime.ts",
+      "keywords": [
+        "getSolanaBlockTime",
+        "get",
+        "Solana",
+        "Block",
+        "Time",
+        "ui-transfer"
+      ],
+      "searchText": "getSolanaBlockTime\nAverage Solana slot time from recent performance samples. Mainnet routes\nthrough Orderly `/v1/solana-rpc-proxy` (requires Account + Orderly key);\ndevnet connects directly to the chain public RPC.\ngetSolanaBlockTime(chain: Chain): Promise<number>",
+      "record": {
+        "name": "getSolanaBlockTime",
+        "package": "@orderly.network/ui-transfer",
+        "sourcePath": "packages/ui-transfer/src/contract/getSolanaBlockTime.ts",
+        "jsDoc": "Average Solana slot time from recent performance samples. Mainnet routes\nthrough Orderly `/v1/solana-rpc-proxy` (requires Account + Orderly key);\ndevnet connects directly to the chain public RPC.",
+        "params": [
+          {
+            "name": "chain",
+            "type": "Chain",
+            "optional": false
+          }
+        ],
+        "returns": "Promise<number>"
+      }
+    },
+    {
       "id": "function.getEndpointId",
       "name": "getEndpointId",
       "kind": "function",
@@ -32773,12 +34241,12 @@
         "Confirmations",
         "ui-transfer"
       ],
-      "searchText": "getChainConfirmations\nno need to distinguish between EVM and SOL\ngetChainConfirmations(chain: Chain): Promise<number>",
+      "searchText": "getChainConfirmations\nRequired confirmations for a deposit pathway (Orderly Receive ULN).\nReads the real RelayV2 / Sol peer OApp config. When the OApp config is\nunset (`confirmations = 0`), falls back to the default ULN config\n(`oapp = 0x0`) on the same receive library resolved from the endpoint\n(see the fallback comment below for details).\ngetChainConfirmations(chain: Chain): Promise<number>",
       "record": {
         "name": "getChainConfirmations",
         "package": "@orderly.network/ui-transfer",
         "sourcePath": "packages/ui-transfer/src/contract/getChainConfirmations.ts",
-        "jsDoc": "no need to distinguish between EVM and SOL",
+        "jsDoc": "Required confirmations for a deposit pathway (Orderly Receive ULN).\nReads the real RelayV2 / Sol peer OApp config. When the OApp config is\nunset (`confirmations = 0`), falls back to the default ULN config\n(`oapp = 0x0`) on the same receive library resolved from the endpoint\n(see the fallback comment below for details).",
         "params": [
           {
             "name": "chain",
@@ -32986,6 +34454,205 @@
       }
     },
     {
+      "id": "function.resolveTPSLOrderType",
+      "name": "resolveTPSLOrderType",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "resolveTPSLOrderType",
+        "resolve",
+        "TPSLOrder",
+        "Type",
+        "utils"
+      ],
+      "searchText": "resolveTPSLOrderType\nExplicit types win; price-only SDK calls retain their legacy inference.\nresolveTPSLOrderType(type?: string | undefined, price?: string | number | null | undefined, fullPosition?: boolean): OrderType",
+      "record": {
+        "name": "resolveTPSLOrderType",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "Explicit types win; price-only SDK calls retain their legacy inference.",
+        "params": [
+          {
+            "name": "type",
+            "type": "string | undefined",
+            "optional": true
+          },
+          {
+            "name": "price",
+            "type": "string | number | null | undefined",
+            "optional": true
+          },
+          {
+            "name": "fullPosition",
+            "type": "boolean",
+            "optional": true
+          }
+        ],
+        "returns": "OrderType"
+      }
+    },
+    {
+      "id": "function.isActiveTPSLLeg",
+      "name": "isActiveTPSLLeg",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "isActiveTPSLLeg",
+        "is",
+        "Active",
+        "TPSLLeg",
+        "utils"
+      ],
+      "searchText": "isActiveTPSLLeg\nA TP/SL leg counts as active only when it was activated on the server and\nstill carries a usable positive trigger price; cancelled or placeholder\nlegs (e.g. blanked inactive legs while editing) are not active.\nisActiveTPSLLeg(order?: Pick<TPSLOrderState, \"is_activated\" | \"trigger_price\"> | undefined): boolean",
+      "record": {
+        "name": "isActiveTPSLLeg",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "A TP/SL leg counts as active only when it was activated on the server and\nstill carries a usable positive trigger price; cancelled or placeholder\nlegs (e.g. blanked inactive legs while editing) are not active.",
+        "params": [
+          {
+            "name": "order",
+            "type": "Pick<TPSLOrderState, \"is_activated\" | \"trigger_price\"> | undefined",
+            "optional": true
+          }
+        ],
+        "returns": "boolean"
+      }
+    },
+    {
+      "id": "function.isPositionalTPSL",
+      "name": "isPositionalTPSL",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "isPositionalTPSL",
+        "is",
+        "Positional",
+        "TPSL",
+        "utils"
+      ],
+      "searchText": "isPositionalTPSL\nProvenance is independent of the execution type and execution stage.\nisPositionalTPSL(order: TPSLOrderState): boolean",
+      "record": {
+        "name": "isPositionalTPSL",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "Provenance is independent of the execution type and execution stage.",
+        "params": [
+          {
+            "name": "order",
+            "type": "TPSLOrderState",
+            "optional": false
+          }
+        ],
+        "returns": "boolean"
+      }
+    },
+    {
+      "id": "function.isEntirePositionTPSL",
+      "name": "isEntirePositionTPSL",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "isEntirePositionTPSL",
+        "is",
+        "Entire",
+        "Position",
+        "TPSL",
+        "utils"
+      ],
+      "searchText": "isEntirePositionTPSL\nUntriggered cancelled orders still mean entire position, including in history.\nisEntirePositionTPSL(order: TPSLOrderState): boolean",
+      "record": {
+        "name": "isEntirePositionTPSL",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "Untriggered cancelled orders still mean entire position, including in history.",
+        "params": [
+          {
+            "name": "order",
+            "type": "TPSLOrderState",
+            "optional": false
+          }
+        ],
+        "returns": "boolean"
+      }
+    },
+    {
+      "id": "function.getTPSLQuantity",
+      "name": "getTPSLQuantity",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "getTPSLQuantity",
+        "get",
+        "TPSLQuantity",
+        "utils"
+      ],
+      "searchText": "getTPSLQuantity\nNever infer historical quantities from the current position.\ngetTPSLQuantity(order: TPSLOrderState, positionQuantity?: number | undefined, history?: boolean): number | undefined",
+      "record": {
+        "name": "getTPSLQuantity",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "Never infer historical quantities from the current position.",
+        "params": [
+          {
+            "name": "order",
+            "type": "TPSLOrderState",
+            "optional": false
+          },
+          {
+            "name": "positionQuantity",
+            "type": "number | undefined",
+            "optional": true
+          },
+          {
+            "name": "history",
+            "type": "boolean",
+            "optional": true
+          }
+        ],
+        "returns": "number | undefined"
+      }
+    },
+    {
+      "id": "function.withTPSLProvenance",
+      "name": "withTPSLProvenance",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/utils",
+      "sourcePath": "packages/utils/src/tpsl.ts",
+      "keywords": [
+        "withTPSLProvenance",
+        "with",
+        "TPSLProvenance",
+        "utils"
+      ],
+      "searchText": "withTPSLProvenance\nPreserve the direct virtual parent, especially below BRACKET roots.\nwithTPSLProvenance(order: T): T",
+      "record": {
+        "name": "withTPSLProvenance",
+        "package": "@orderly.network/utils",
+        "sourcePath": "packages/utils/src/tpsl.ts",
+        "jsDoc": "Preserve the direct virtual parent, especially below BRACKET roots.",
+        "params": [
+          {
+            "name": "order",
+            "type": "T",
+            "optional": false
+          }
+        ],
+        "returns": "T"
+      }
+    },
+    {
       "id": "function.getVaultInfo",
       "name": "getVaultInfo",
       "kind": "function",
@@ -33134,6 +34801,37 @@
           }
         ],
         "returns": "Promise<VaultOverallInfoResponse>"
+      }
+    },
+    {
+      "id": "function.buildPrivyClientConfig",
+      "name": "buildPrivyClientConfig",
+      "kind": "function",
+      "category": "SDK Function",
+      "package": "@orderly.network/wallet-connector-privy",
+      "sourcePath": "packages/wallet-connector-privy/src/providers/privy/initPrivyProvider.tsx",
+      "keywords": [
+        "buildPrivyClientConfig",
+        "build",
+        "Privy",
+        "Client",
+        "Config",
+        "wallet-connector-privy"
+      ],
+      "searchText": "buildPrivyClientConfig\nBuilds the Privy client config from the merged mainnet/testnet chain list.\n\nPrivy throws on an empty `supportedChains` array (\"`supportedChains` must\ncontain at least one chain\"). A broker may legitimately expose Solana-only\nchains, so when no EVM chain survives the filter both `supportedChains` and\n`defaultChain` are omitted and Privy falls back to its own defaults — the\nprovider itself must stay mounted for login and Solana embedded wallets.\nbuildPrivyClientConfig(options: { initChains: Chain[]; privyConfig: InitPrivy; network: Network; }): PrivyClientConfig",
+      "record": {
+        "name": "buildPrivyClientConfig",
+        "package": "@orderly.network/wallet-connector-privy",
+        "sourcePath": "packages/wallet-connector-privy/src/providers/privy/initPrivyProvider.tsx",
+        "jsDoc": "Builds the Privy client config from the merged mainnet/testnet chain list.\n\nPrivy throws on an empty `supportedChains` array (\"`supportedChains` must\ncontain at least one chain\"). A broker may legitimately expose Solana-only\nchains, so when no EVM chain survives the filter both `supportedChains` and\n`defaultChain` are omitted and Privy falls back to its own defaults — the\nprovider itself must stay mounted for login and Solana embedded wallets.",
+        "params": [
+          {
+            "name": "options",
+            "type": "{ initChains: Chain[]; privyConfig: InitPrivy; network: Network; }",
+            "optional": false
+          }
+        ],
+        "returns": "PrivyClientConfig"
       }
     }
   ]

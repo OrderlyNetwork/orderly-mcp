@@ -1,5 +1,6 @@
 import Fuse from 'fuse.js';
 import componentGuides from '../data/component-guides.json' with { type: 'json' };
+import { provenanceFooter } from './provenance.js';
 
 export interface ComponentGuideResult {
   content: Array<{ type: 'text'; text: string }>;
@@ -96,7 +97,13 @@ export async function getComponentGuide(
   // Use exact match or best match
   const match = exactMatch?.item || qualityResults[0].item;
 
-  let text = `# Building a ${match.name}\n\n${match.description}\n\n`;
+  // Guide content is curated by hand/templates and can drift from the real SDK
+  // surface (see component-guides-audit.json). Always point the caller at the
+  // verified lookup path before the example code.
+  const caveat =
+    '> ⚠️ Pattern sketch: this example is template-generated and may contain outdated imports or APIs. Verify every symbol with `search_orderly_docs` before using it.\n';
+
+  let text = `${caveat}\n# Building a ${match.name}\n\n${match.description}\n\n`;
 
   text += `## Required Packages\n\n\`\`\`bash\nnpm install ${match.requiredPackages.join(' ')}\n\`\`\`\n\n`;
 
@@ -138,7 +145,7 @@ export async function getComponentGuide(
   }
 
   return {
-    content: [{ type: 'text', text }],
+    content: [{ type: 'text', text: text + provenanceFooter('sdk') }],
   };
 }
 

@@ -147,6 +147,11 @@
         "testnet": null,
         "description": "YUSD stablecoin contract"
       },
+      "deUSD": {
+        "mainnet": "0x15700b564ca08d9439c58ca5053166e8317aa138",
+        "testnet": null,
+        "description": "deUSD contract"
+      },
       "WBTC": {
         "mainnet": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
         "testnet": null,
@@ -474,7 +479,7 @@
     "description": "Orderly L2 is the internal chain where the Ledger contract lives. The Ledger contract (verifyingContract) is used for EIP-712 signatures for on-chain operations: withdrawals, internal transfers, and settle PnL. There is only ONE Ledger contract per network (mainnet/testnet). Vault contracts are on each supported EVM chain."
   },
   "_metadata": {
-    "generatedAt": "2026-07-13T07:52:14.373Z",
+    "generatedAt": "2026-09-30T07:14:11.611Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/build-on-omnichain/addresses.mdx",
     "totalChains": 13
   }

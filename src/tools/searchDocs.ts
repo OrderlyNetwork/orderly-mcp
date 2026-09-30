@@ -1,6 +1,7 @@
 import Fuse from 'fuse.js';
 import documentationData from '../data/documentation.json' with { type: 'json' };
 import sdkSymbolsData from '../data/sdk-symbols.json' with { type: 'json' };
+import { provenanceFooter } from './provenance.js';
 
 export interface SearchResult {
   content: Array<{ type: 'text'; text: string }>;
@@ -212,6 +213,28 @@ function getSymbolNameSet(): Set<string> {
 }
 
 export type SearchScope = 'auto' | 'docs' | 'sdk';
+export type SearchDetail = 'summary' | 'full';
+
+// Char budget for a doc chunk rendered in 'summary' mode (the default). Doc
+// chunks routinely run 5-15KB; five of them made single responses hit ~72KB
+// (~18k tokens). 1200 chars/section keeps a full 5-hit response under ~8KB.
+const SUMMARY_CHAR_BUDGET = 1200;
+
+/**
+ * Cut content at the summary budget, preferring a paragraph boundary so the
+ * excerpt ends cleanly. The omitted-char note tells the caller how to get the
+ * rest (detail:"full").
+ */
+function summarizeChunk(content: string): string {
+  if (content.length <= SUMMARY_CHAR_BUDGET) return content;
+  const slice = content.slice(0, SUMMARY_CHAR_BUDGET);
+  const breakIdx = slice.lastIndexOf('\n\n');
+  const kept = breakIdx > SUMMARY_CHAR_BUDGET * 0.5 ? slice.slice(0, breakIdx) : slice;
+  return (
+    `${kept}\n\n*[truncated — ${content.length - kept.length} chars omitted;` +
+    ` re-search with detail:"full"]*`
+  );
+}
 
 /**
  * Heuristic intent detection for 'auto' scope. Routes to the SDK corpus only
@@ -403,7 +426,12 @@ function renderSymbol(sym: SymbolEntry, rank: number, relevancePercent: number):
   return text;
 }
 
-function renderDoc(chunk: DocChunk, rank: number, result: MergedResult): string {
+function renderDoc(
+  chunk: DocChunk,
+  rank: number,
+  result: MergedResult,
+  detail: SearchDetail = 'summary'
+): string {
   const relevancePercent = Math.round((1 - result.score) * 100);
   let text = `## ${rank}. ${chunk.title}\n\n`;
   text += `**Category:** ${chunk.category} | **Relevance:** ${relevancePercent}%`;
@@ -411,11 +439,8 @@ function renderDoc(chunk: DocChunk, rank: number, result: MergedResult): string 
     text += ` | **Matched ${result.hits} terms**`;
   }
   text += `\n\n`;
-  text += `${chunk.content}\n\n`;
 
-  if (chunk.keywords.length > 0) {
-    text += `*Keywords: ${chunk.keywords.join(', ')}*\n\n`;
-  }
+  text += detail === 'full' ? `${chunk.content}\n\n` : `${summarizeChunk(chunk.content)}\n\n`;
 
   text += `---\n\n`;
   return text;
@@ -424,7 +449,8 @@ function renderDoc(chunk: DocChunk, rank: number, result: MergedResult): string 
 export async function searchOrderlyDocs(
   query: string,
   limit: number = 5,
-  scope: SearchScope = 'auto'
+  scope: SearchScope = 'auto',
+  detail: SearchDetail = 'summary'
 ): Promise<SearchResult> {
   const docs = documentationData as DocumentationData;
 
@@ -474,7 +500,8 @@ export async function searchOrderlyDocs(
             `- SDK hooks (e.g., "useOrderEntry", "usePositionStream")\n` +
             `- Protocol concepts (e.g., "vault", "leverage", "funding rate")\n` +
             `- Available categories: ${categories.join(', ')}\n\n` +
-            `Or use "explain_workflow" for step-by-step guides.`,
+            `Or use "explain_workflow" for step-by-step guides.` +
+            `${provenanceFooter(effectiveScope === 'sdk' ? 'sdk' : 'docs')}`,
         },
       ],
     };
@@ -491,12 +518,14 @@ export async function searchOrderlyDocs(
     if (result.item.type === 'symbol') {
       text += renderSymbol(result.item.payload as SymbolEntry, i + 1, relevancePercent);
     } else {
-      text += renderDoc(result.item.payload as DocChunk, i + 1, result);
+      text += renderDoc(result.item.payload as DocChunk, i + 1, result, detail);
     }
   }
 
   return {
-    content: [{ type: 'text', text }],
+    content: [
+      { type: 'text', text: text + provenanceFooter(effectiveScope === 'sdk' ? 'sdk' : 'docs') },
+    ],
   };
 }
 

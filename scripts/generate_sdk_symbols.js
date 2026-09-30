@@ -237,9 +237,34 @@ function flattenShard(shard, kind) {
 }
 
 async function main() {
-  const version = await resolveVersion();
-  process.stderr.write(`[sdk-symbols] ${PKG}@${version}: downloading tarball...\n`);
-  const pkgRoot = await downloadAndExtract(version);
+  // SDK_DOCS_LOCAL_ROOT points at a js-sdk checkout and takes precedence over
+  // the npm tarball: the published package lags the repo (a deprecation can
+  // land on main days before the next release), so local ingestion is the only
+  // same-day-fresh path. Requires the bundle from
+  // `pnpm --filter @orderly.network/sdk-docs build` (runs sync:bundle).
+  const localRoot = process.env.SDK_DOCS_LOCAL_ROOT;
+  let pkgRoot;
+  let version;
+  let source;
+  if (localRoot) {
+    pkgRoot = path.join(localRoot, 'packages', 'sdk-docs');
+    if (!fs.existsSync(path.join(pkgRoot, 'bundled', 'manifest.json'))) {
+      throw new Error(
+        `No bundled/ manifest under ${pkgRoot} — run \`pnpm --filter @orderly.network/sdk-docs build\` in ${localRoot} first`
+      );
+    }
+    const pkgJsonPath = path.join(pkgRoot, 'package.json');
+    version = fs.existsSync(pkgJsonPath)
+      ? `${JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8')).version}-local`
+      : 'local';
+    source = 'local-checkout';
+    process.stderr.write(`[sdk-symbols] local checkout: ${pkgRoot}\n`);
+  } else {
+    version = await resolveVersion();
+    source = 'npm-tarball';
+    process.stderr.write(`[sdk-symbols] ${PKG}@${version}: downloading tarball...\n`);
+    pkgRoot = await downloadAndExtract(version);
+  }
   const bundled = path.join(pkgRoot, 'bundled');
   const manifestPath = path.join(bundled, 'manifest.json');
   if (!fs.existsSync(manifestPath)) {
@@ -278,6 +303,7 @@ async function main() {
     metadata: {
       sourcePackage: PKG,
       sourceVersion: version,
+      source,
       schemaVersion: manifest.schemaVersion,
       gitSha: manifest.gitSha,
       generatedAt: manifest.generatedAt,

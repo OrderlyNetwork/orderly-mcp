@@ -204,8 +204,8 @@ describe('searchOrderlyDocs', () => {
   });
 
   it('should still route an exact symbol name to SDK even when camelCased', async () => {
-    // 'OrderEntry' is a real component symbol — must route to the SDK corpus.
-    const result = await searchOrderlyDocs('OrderEntry', 5);
+    // 'AlertDialog' is a real component symbol — must route to the SDK corpus.
+    const result = await searchOrderlyDocs('AlertDialog', 5);
     const text = result.content[0].text;
     expect(text).toContain(' (SDK symbols)');
   });
@@ -214,7 +214,7 @@ describe('searchOrderlyDocs', () => {
   // The unified search folds hooks/types/components/functions into one index;
   // each kind renders a distinct inline block that must be exercised.
   it('should render SDK components with props', async () => {
-    const result = await searchOrderlyDocs('OrderEntry', 5, 'sdk');
+    const result = await searchOrderlyDocs('AlertDialog', 5, 'sdk');
     const text = result.content[0].text;
     expect(text).toContain('`SDK Component`');
     expect(text).toContain('**Component name:**');
@@ -231,12 +231,14 @@ describe('searchOrderlyDocs', () => {
   });
 
   it('should render SDK functions with signature, params, and returns', async () => {
-    const result = await searchOrderlyDocs('parseUnits', 5, 'sdk');
+    // parseUnits was removed from the SDK; generateRegisterAccountMessage is a
+    // current @orderly.network/core function with a full signature.
+    const result = await searchOrderlyDocs('generateRegisterAccountMessage', 5, 'sdk');
     const text = result.content[0].text;
     expect(text).toContain('`SDK Function`');
     expect(text).toMatch(/\*\*Signature:\*\*/);
     expect(text).toContain('**Parameters:**');
-    expect(text).toMatch(/\*\*Returns:\*\* `bigint`/);
+    expect(text).toMatch(/\*\*Returns:\*\* `.+`/);
   });
 
   it('should render hook params detail, returns, and jsDoc body', async () => {
@@ -263,7 +265,9 @@ describe('searchOrderlyDocs', () => {
   // Regression guard for the August 2026 stale-fee bug: searching for builder
   // staking / fee tiers must return CURRENT values, not the retired programme.
   it('should return current fee tier thresholds when searching "builder staking"', async () => {
-    const result = await searchOrderlyDocs('builder staking fee tiers', 5);
+    // Thresholds live deep inside a long chunk — use detail:'full' (summary
+    // mode truncates at ~1200 chars by design).
+    const result = await searchOrderlyDocs('builder staking fee tiers', 5, 'auto', 'full');
     const text = result.content[0].text;
     expect(text).toContain('Search Results');
     // Must include the corrected Platinum/Diamond volume thresholds

@@ -66,6 +66,13 @@ export function createMcpServer(): Server {
                   "Which corpus to search: 'sdk' for type-accurate SDK symbols (hooks/components/types/functions), 'docs' for protocol documentation, or 'auto' (default) which detects intent from the query (camelCase/use* names → SDK, plain language → docs)",
                 default: 'auto',
               },
+              detail: {
+                type: 'string',
+                enum: ['summary', 'full'],
+                description:
+                  "'summary' (default) truncates long documentation sections to keep responses compact; 'full' returns complete section text",
+                default: 'summary',
+              },
             },
             required: ['query'],
           },
@@ -257,7 +264,8 @@ export function createMcpServer(): Server {
           result = (await searchOrderlyDocs(
             args.query as string,
             (args.limit as number) || 5,
-            (args.scope as 'auto' | 'docs' | 'sdk') || 'auto'
+            (args.scope as 'auto' | 'docs' | 'sdk') || 'auto',
+            (args.detail as 'summary' | 'full') || 'summary'
           )) as ToolResult;
           break;
 
