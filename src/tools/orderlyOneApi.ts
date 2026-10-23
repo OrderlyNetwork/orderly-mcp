@@ -8,6 +8,8 @@ export interface OrderlyOneApiInfoResult {
 interface OrderlyOneEndpoint {
   path: string;
   method: string;
+  agentAccess?: 'blocked' | 'allowed' | 'conditional';
+  agentNote?: string;
   summary: string;
   description: string;
   operationId: string;
@@ -54,10 +56,18 @@ interface OrderlyOneAuthFlow {
   example: string;
 }
 
+interface OrderlyOneAgentPolicy {
+  summary: string;
+  brokerIdCreation?: string;
+  sanctionedDexLaunchPath: string[];
+  humanOnlySurface: string;
+}
+
 interface OrderlyOneApiData {
   version: string;
   title: string;
   description: string;
+  agentPolicy?: OrderlyOneAgentPolicy;
   baseUrl: {
     production: string;
     development: string;
@@ -112,6 +122,60 @@ function getFuseInstance(): Fuse<OrderlyOneEndpoint> {
   return fuseInstance;
 }
 
+const AGENT_POLICY_CATEGORIES = new Set(['dex', 'graduation']);
+
+function touchesAgentPolicyCategory(tags: string[] = []): boolean {
+  return tags.some((tag) => AGENT_POLICY_CATEGORIES.has(tag.toLowerCase()));
+}
+
+function formatSanctionedLaunchPath(policy: OrderlyOneAgentPolicy): string {
+  let text = `**Sanctioned DEX launch path:**\n\n`;
+  policy.sanctionedDexLaunchPath.forEach((step, index) => {
+    text += `${index + 1}. ${step}\n`;
+  });
+  text += `\n**Human-only surface:** ${policy.humanOnlySurface}\n\n`;
+  return text;
+}
+
+function renderAgentPolicy(policy: OrderlyOneAgentPolicy): string {
+  let text = `## Agent Policy\n\n${policy.summary}\n\n`;
+  if (policy.brokerIdCreation) {
+    text += `**Broker ID creation (allowed):** ${policy.brokerIdCreation}\n\n`;
+  }
+  return text + formatSanctionedLaunchPath(policy);
+}
+
+function renderBlockedEndpointNotice(
+  endpoint: OrderlyOneEndpoint,
+  policy?: OrderlyOneAgentPolicy
+): string {
+  let text = `## ⛔ Blocked for Agents\n\n`;
+  text += `${endpoint.method} ${endpoint.path} must not be called by agents.\n\n`;
+  text += `**Why:** ${endpoint.agentNote ?? 'This operation creates, deploys or destroys a DEX.'}\n\n`;
+
+  if (policy) {
+    text += `${policy.summary}\n\n`;
+    text += formatSanctionedLaunchPath(policy);
+  }
+
+  return text;
+}
+
+function renderConditionalEndpointNotice(
+  endpoint: OrderlyOneEndpoint,
+  policy?: OrderlyOneAgentPolicy
+): string {
+  let text = `## ⚠️ Conditional — one shape is allowed\n\n`;
+  text += `${endpoint.method} ${endpoint.path} is callable by agents only in a specific form.\n\n`;
+  text += `**Rule:** ${endpoint.agentNote ?? 'Check the request body before calling.'}\n\n`;
+
+  if (policy?.brokerIdCreation) {
+    text += `**Broker ID creation (allowed):** ${policy.brokerIdCreation}\n\n`;
+  }
+
+  return text;
+}
+
 export async function getOrderlyOneApiInfo(
   endpoint?: string,
   category?: string
@@ -129,12 +193,22 @@ export async function getOrderlyOneApiInfo(
 
     if (matchingCategory) {
       let text = `# ${matchingCategory.name}\n\n`;
+
+      if (data.agentPolicy && touchesAgentPolicyCategory([matchingCategory.name])) {
+        text += renderAgentPolicy(data.agentPolicy);
+      }
+
       text += `${matchingCategory.description}\n\n`;
       text += `## Endpoints\n\n`;
 
       matchingCategory.endpoints.forEach((ep) => {
         text += `### ${ep.method} ${ep.path}\n\n`;
         text += `**Summary:** ${ep.summary}\n\n`;
+        if (ep.agentAccess === 'blocked') {
+          text += `**⛔ Blocked for agents:** ${ep.agentNote ?? 'This operation is not available to agents.'}\n\n`;
+        } else if (ep.agentAccess === 'conditional') {
+          text += `**⚠️ Conditional for agents:** ${ep.agentNote ?? 'Check the request body before calling.'}\n\n`;
+        }
         if (ep.description) {
           text += `${ep.description}\n\n`;
         }
@@ -175,6 +249,12 @@ export async function getOrderlyOneApiInfo(
   // If no endpoint specified, show overview with navigation guide
   if (!endpoint) {
     let text = `# Orderly One API\n\n`;
+
+    if (data.agentPolicy) {
+      text += renderAgentPolicy(data.agentPolicy);
+      text += `**Agents:** do not follow the upstream DEX-creation steps in the description below. \`POST /api/dex\` is allowed only with \`integrationType: "custom"\` to record a broker ID; the hosted \`low_code\` variant and the frontend/upgrade/delete endpoints are not for agents. To launch a frontend, fork https://github.com/OrderlyNetwork/dex-template and follow its AGENTS.md.\n\n`;
+    }
+
     text += `## Overview\n\n`;
     text += `${data.description}\n\n`;
 
@@ -249,7 +329,13 @@ export async function getOrderlyOneApiInfo(
       text += `${cat.description}\n\n`;
       text += `**${cat.endpoints.length} Endpoints:**\n\n`;
       cat.endpoints.forEach((ep) => {
-        text += `- **${ep.method} ${ep.path}** - ${ep.summary}\n`;
+        const access =
+          ep.agentAccess === 'blocked'
+            ? ' ⛔ blocked for agents'
+            : ep.agentAccess === 'conditional'
+              ? ' ⚠️ conditional: integrationType "custom" only'
+              : '';
+        text += `- **${ep.method} ${ep.path}** - ${ep.summary}${access}\n`;
       });
       text += '\n';
     });
@@ -292,6 +378,15 @@ export async function getOrderlyOneApiInfo(
   const match = qualityResults[0].item;
 
   let text = `# ${match.method} ${match.path}\n\n`;
+
+  if (match.agentAccess === 'blocked') {
+    text += renderBlockedEndpointNotice(match, data.agentPolicy);
+  } else if (match.agentAccess === 'conditional') {
+    text += renderConditionalEndpointNotice(match, data.agentPolicy);
+  } else if (data.agentPolicy && touchesAgentPolicyCategory(match.tags)) {
+    text += `**Agent policy:** ${data.agentPolicy.summary}\n\n`;
+  }
+
   text += `**Summary:** ${match.summary}\n\n`;
 
   if (match.description) {

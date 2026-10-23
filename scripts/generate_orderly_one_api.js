@@ -39,6 +39,52 @@ const projectRoot = path.join(__dirname, '..');
 const OPENAPI_URL = 'https://dex-api.orderly.network/openapi.json';
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'orderly-one-api.json');
 
+// Operations agents must never call: these create, deploy or destroy a DEX.
+// Kept here so regenerating the docs cannot silently drop the agent-surface policy.
+const AGENT_BLOCKED_OPERATIONS = [
+  {
+    method: 'POST',
+    path: '/api/dex/{id}/frontend',
+    reason: 'Frontend creation deploys a public site.',
+  },
+  {
+    method: 'POST',
+    path: '/api/dex/{id}/upgrade',
+    reason: 'Upgrading rewrites a deployed frontend.',
+  },
+  {
+    method: 'DELETE',
+    path: '/api/dex/{id}',
+    reason: 'Deleting a DEX is irreversible.',
+  },
+];
+
+// Operations that are allowed only in one specific shape. `POST /api/dex` with
+// `integrationType: "custom"` is how an agent records a broker ID with no hosted
+// frontend; with `integrationType: "low_code"` it provisions one.
+const AGENT_CONDITIONAL_OPERATIONS = [
+  {
+    method: 'POST',
+    path: '/api/dex',
+    reason:
+      'Allowed only with integrationType: "custom", which creates the broker ID record without a hosted frontend. Do not use integrationType: "low_code" — for a frontend, fork https://github.com/OrderlyNetwork/dex-template and follow its AGENTS.md.',
+  },
+];
+
+const AGENT_POLICY = {
+  summary:
+    'Agents may create and manage broker IDs, but must not create, deploy, upgrade or delete DEX frontends.',
+  brokerIdCreation:
+    'POST /api/dex with integrationType: "custom" creates a broker ID record only, and is allowed. The hosted (low_code) variant provisions a frontend and is not for agents.',
+  sanctionedDexLaunchPath: [
+    'Create the broker ID (broker onboarding / x402 graduation flow).',
+    'Fork https://github.com/OrderlyNetwork/dex-template and follow its AGENTS.md.',
+    'Set the VITE_* variables in .env, notably VITE_ORDERLY_BROKER_ID.',
+    'Deploy, then verify with GET /api/graduation/graduation-status.',
+  ],
+  humanOnlySurface: 'https://dex.orderly.network',
+};
+
 // Download OpenAPI spec
 async function downloadOpenAPISpec() {
   console.log(`📥 Fetching Orderly One OpenAPI spec from ${OPENAPI_URL}...\n`);
@@ -240,6 +286,21 @@ fetch(url, {
   }
 }
 
+// Single source of truth for the agent surface: blocked, conditional or allowed.
+function getAgentAccess(method, endpointPath) {
+  const blocked = AGENT_BLOCKED_OPERATIONS.find(
+    (operation) => operation.method === method && operation.path === endpointPath
+  );
+  if (blocked) return { agentAccess: 'blocked', agentNote: blocked.reason };
+
+  const conditional = AGENT_CONDITIONAL_OPERATIONS.find(
+    (operation) => operation.method === method && operation.path === endpointPath
+  );
+  if (conditional) return { agentAccess: 'conditional', agentNote: conditional.reason };
+
+  return { agentAccess: 'allowed' };
+}
+
 // Extract endpoints from spec
 function extractEndpoints(spec) {
   const endpoints = [];
@@ -249,9 +310,11 @@ function extractEndpoints(spec) {
     for (const [method, details] of Object.entries(methods)) {
       if (typeof details !== 'object' || !details.summary) continue;
 
+      const upperMethod = method.toUpperCase();
       const endpoint = {
         path,
-        method: method.toUpperCase(),
+        ...getAgentAccess(upperMethod, path),
+        method: upperMethod,
         summary: details.summary || '',
         description: extractDescription(details.description),
         operationId:
@@ -260,7 +323,7 @@ function extractEndpoints(spec) {
         parameters: extractParameters(details, spec),
         requestBody: extractRequestBody(details, spec),
         responses: extractResponses(details, spec),
-        example: generateExample(path, method.toUpperCase(), details),
+        example: generateExample(path, upperMethod, details),
       };
 
       endpoints.push(endpoint);
@@ -368,6 +431,7 @@ function processOpenAPISpec(spec) {
     description:
       spec.info?.description ||
       'Orderly One API - Create and manage your own perpetual DEX using Orderly Network infrastructure',
+    agentPolicy: AGENT_POLICY,
     baseUrl: {
       production: 'https://dex-api.orderly.network',
       development: 'https://testnet-dex-api.orderly.network',
