@@ -34,6 +34,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', server: 'orderly-network-mcp', version: APP_VERSION });
 });
 
+// Domain verification for directory listings (e.g. Glama connector claim).
+// Must stay public and stable: Glama re-checks this file daily.
+app.get('/.well-known/glama.json', (_req, res) => {
+  res.json({
+    $schema: 'https://glama.ai/mcp/schemas/connector.json',
+    claim: 'glama_claim_mmfzO4ZRdTAseiL5dXb7x_W-9pmXpjC2',
+  });
+});
+
 // Session management - map to store transports by session ID
 const transports = new Map<
   string,
