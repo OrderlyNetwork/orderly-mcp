@@ -36,12 +36,23 @@ const projectRoot = path.join(__dirname, '..');
 const GUIDES_FILE = path.join(projectRoot, 'src', 'data', 'component-guides.json');
 const SYMBOLS_FILE = path.join(projectRoot, 'src', 'data', 'sdk-symbols.json');
 
+const LEGACY_PACKAGES = [
+  '@orderly.network/react',
+  '@orderly.network/react-hooks',
+  '@orderly.network/sdk',
+];
+
+const INVALID_SYMBOLS = [/\bBTC[-/]PERP\b/, /\bETH[-/]PERP\b/, /\bBTC\/USD\b/, /\bETH\/USD\b/];
+
+// Page-level exports are real but omitted from the local sdk-docs package index.
+const EXTRA_EXPORTS = {
+  '@orderly.network/trading': ['TradingPage', 'OrderBookWidget', 'OrderBookAndTradesWidget'],
+};
+
 function resolvePackageIndex() {
   const candidates = [];
   if (process.env.SDK_DOCS_LOCAL_ROOT) {
-    candidates.push(
-      path.join(process.env.SDK_DOCS_LOCAL_ROOT, 'packages', 'sdk-docs', 'bundled')
-    );
+    candidates.push(path.join(process.env.SDK_DOCS_LOCAL_ROOT, 'packages', 'sdk-docs', 'bundled'));
   }
   candidates.push(path.join(projectRoot, '..', 'js-sdk', 'packages', 'sdk-docs', 'bundled'));
   for (const dir of candidates) {
@@ -63,7 +74,11 @@ function extractImports(code) {
     const braces = clause.match(/\{([^}]*)\}/);
     if (braces) {
       for (const part of braces[1].split(',')) {
-        const name = part.trim().replace(/^type\s+/, '').split(/\s+as\s+/)[0].trim();
+        const name = part
+          .trim()
+          .replace(/^type\s+/, '')
+          .split(/\s+as\s+/)[0]
+          .trim();
         if (name) named.push(name);
       }
     }
@@ -84,9 +99,7 @@ function main() {
     );
   }
 
-  const hookNames = new Set(
-    symbols.filter((s) => s.kind === 'hook').map((s) => s.name)
-  );
+  const hookNames = new Set(symbols.filter((s) => s.kind === 'hook').map((s) => s.name));
 
   const errors = [];
   const warnings = [];
@@ -94,44 +107,82 @@ function main() {
   for (const guide of guides) {
     const ref = `${guide.name}`;
 
-    // 1. requiredPackages exist
-    if (pkgIndex) {
-      for (const pkg of guide.requiredPackages || []) {
-        if (pkg.startsWith('@orderly.network/') && !pkgIndex[pkg]) {
-          errors.push({ guide: ref, kind: 'unknown-package', detail: pkg });
-        }
+    // 1. requiredPackages exist and are not legacy aliases
+    for (const pkg of guide.requiredPackages || []) {
+      if (LEGACY_PACKAGES.includes(pkg)) {
+        errors.push({ guide: ref, kind: 'legacy-package', detail: pkg });
+      } else if (pkgIndex && pkg.startsWith('@orderly.network/') && !pkgIndex[pkg]) {
+        errors.push({ guide: ref, kind: 'unknown-package', detail: pkg });
       }
     }
 
-    // 2. named imports from Orderly packages must be real exports
-    if (pkgIndex) {
-      for (const variant of guide.variants || []) {
-        for (const imp of extractImports(variant.code || '')) {
-          if (!imp.specifier.startsWith('@orderly.network/')) continue;
-          if (!pkgIndex[imp.specifier]) {
+    for (const variant of guide.variants || []) {
+      // 2. additionalImports must not reference legacy packages
+      for (const line of variant.additionalImports || []) {
+        for (const pkg of LEGACY_PACKAGES) {
+          if (line.includes(pkg)) {
             errors.push({
               guide: ref,
-              kind: 'unknown-package-import',
-              detail: imp.specifier,
+              kind: 'legacy-package',
+              detail: `${pkg} in additionalImports`,
+              complexity: variant.complexity,
             });
-            continue;
           }
-          const exports = pkgIndex[imp.specifier].exports || [];
-          for (const name of imp.names) {
-            if (!exports.includes(name)) {
-              errors.push({
-                guide: ref,
-                kind: 'unresolved-import',
-                detail: `${name} is not exported by ${imp.specifier}`,
-                complexity: variant.complexity,
-              });
-            }
+        }
+      }
+
+      // 3. code must use real Orderly symbol formats
+      for (const pattern of INVALID_SYMBOLS) {
+        if (pattern.test(variant.code || '')) {
+          errors.push({
+            guide: ref,
+            kind: 'invalid-symbol',
+            detail: `matches ${pattern}`,
+            complexity: variant.complexity,
+          });
+        }
+      }
+
+      if (!pkgIndex) continue;
+
+      // 4. named imports from Orderly packages must be real exports
+      for (const imp of extractImports(variant.code || '')) {
+        if (LEGACY_PACKAGES.includes(imp.specifier)) {
+          errors.push({
+            guide: ref,
+            kind: 'legacy-package',
+            detail: imp.specifier,
+            complexity: variant.complexity,
+          });
+          continue;
+        }
+        if (!imp.specifier.startsWith('@orderly.network/')) continue;
+        if (!pkgIndex[imp.specifier]) {
+          errors.push({
+            guide: ref,
+            kind: 'unknown-package-import',
+            detail: imp.specifier,
+          });
+          continue;
+        }
+        const exports = [
+          ...(pkgIndex[imp.specifier].exports || []),
+          ...(EXTRA_EXPORTS[imp.specifier] || []),
+        ];
+        for (const name of imp.names) {
+          if (!exports.includes(name)) {
+            errors.push({
+              guide: ref,
+              kind: 'unresolved-import',
+              detail: `${name} is not exported by ${imp.specifier}`,
+              complexity: variant.complexity,
+            });
           }
         }
       }
     }
 
-    // 3. keyHooks present in symbol index (soft)
+    // 5. keyHooks present in symbol index (soft)
     for (const hook of guide.keyHooks || []) {
       if (!hookNames.has(hook)) {
         warnings.push({ guide: ref, kind: 'hook-not-in-index', detail: hook });

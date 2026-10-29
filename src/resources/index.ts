@@ -338,7 +338,7 @@ export async function getResource(uri: string) {
           text += `(\`${meta.sourcePackage || '@orderly.network/sdk-docs'}\`@${
             meta.sourceVersion || 'n/a'
           }, git \`${String(meta.gitSha || '').slice(0, 10)}\`).\n\n`;
-          text += `**${allComponents.length} components**: ${withGuides} with building guides, ${symbolOnly} type-accurate symbol-only.\n\n`;
+          text += `**${allComponents.length} components**: ${withGuides} with curated building guides, ${symbolOnly} type-accurate symbol-only.\n\n`;
           text += '## Sample Components\n\n';
 
           const sampleComponents = allComponents.slice(0, 15);

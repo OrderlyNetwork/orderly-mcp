@@ -1,6 +1,5 @@
 import Fuse from 'fuse.js';
 import componentGuides from '../data/component-guides.json' with { type: 'json' };
-import { provenanceFooter } from './provenance.js';
 
 export interface ComponentGuideResult {
   content: Array<{ type: 'text'; text: string }>;
@@ -77,12 +76,15 @@ export async function getComponentGuide(
 
   if (qualityResults.length === 0) {
     const guides = (componentGuides as { components: ComponentGuide[] }).components;
-    const availableComponents = guides.map((g) => g.name).join(', ');
+    const availableGuides = guides.map((guide) => guide.name).join(', ');
     return {
       content: [
         {
           type: 'text',
-          text: `Component "${component}" not found.\n\nAvailable components: ${availableComponents}`,
+          text:
+            `No component guide for "${component}".\n\n` +
+            `Available guides: ${availableGuides}\n\n` +
+            'Use `search_orderly_docs` with `scope: "sdk"` for other components.',
         },
       ],
     };
@@ -97,21 +99,17 @@ export async function getComponentGuide(
   // Use exact match or best match
   const match = exactMatch?.item || qualityResults[0].item;
 
-  // Guide content is curated by hand/templates and can drift from the real SDK
-  // surface (see component-guides-audit.json). Always point the caller at the
-  // verified lookup path before the example code.
-  const caveat =
-    '> ⚠️ Pattern sketch: this example is template-generated and may contain outdated imports or APIs. Verify every symbol with `search_orderly_docs` before using it.\n';
-
-  let text = `${caveat}\n# Building a ${match.name}\n\n${match.description}\n\n`;
+  let text = `# Building a ${match.name}\n\n${match.description}\n\n`;
 
   text += `## Required Packages\n\n\`\`\`bash\nnpm install ${match.requiredPackages.join(' ')}\n\`\`\`\n\n`;
 
-  text += `## Key Hooks\n\n`;
-  match.keyHooks.forEach((hook) => {
-    text += `- \`${hook}\`\n`;
-  });
-  text += `\n`;
+  if (match.keyHooks.length > 0) {
+    text += `## Key Hooks\n\n`;
+    match.keyHooks.forEach((hook) => {
+      text += `- \`${hook}\`\n`;
+    });
+    text += `\n`;
+  }
 
   // Find the right variant
   const variant =
@@ -145,7 +143,12 @@ export async function getComponentGuide(
   }
 
   return {
-    content: [{ type: 'text', text: text + provenanceFooter('sdk') }],
+    content: [
+      {
+        type: 'text',
+        text: `${text}\n\n---\n*provenance: curated · @orderly.network/* 3.3.1*`,
+      },
+    ],
   };
 }
 

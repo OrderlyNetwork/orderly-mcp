@@ -76,7 +76,7 @@ describe('getResource', () => {
       // with symbol-only entries from the SDK bundle; the overview surfaces
       // both counts so consumers know the corpus is hybrid.
       expect(text).toMatch(
-        /\*\*\d+ components\*\*: \d+ with building guides, \d+ type-accurate symbol-only\./
+        /\*\*\d+ components\*\*: \d+ with curated building guides, \d+ type-accurate symbol-only\./
       );
     });
   });

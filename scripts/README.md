@@ -35,6 +35,7 @@ node scripts/analyze_telegram_chats.js
 ```
 
 The cleanup script keeps only group chats that:
+
 - Are of type "group" (skips DMs, channels, bots)
 - Contain "Orderly" in the name (case-insensitive)
 - Contain `<>`, `&`, ` x ` (with spaces), or `|` in the name
@@ -125,6 +126,7 @@ Extracts developer Q&A from each kept Telegram chat log. Per-file fingerprint ca
 **Cache invalidation:** Switching from `.json` (raw) to `.txt` (clean chat log) changes every file's content hash, so the first run after migration re-processes every file. Subsequent runs are cached as normal. Bumping `PROMPT_VERSION` (in the script) does the same — use it when the system prompt changes meaningfully.
 
 Per-chat log shows transcript size + token estimate + context-pair count + retry attempts on failure (prefixed with `[i/N filename]` for traceable interleaved output):
+
 ```
 Read .txt transcript.
 Chat: "Orderly | Solana", 2024-01-15..2024-03-22
@@ -135,6 +137,7 @@ Context: 5 same-file + 12 cross-file → 17 merged (cap 30)
 Transcripts over `MAX_TRANSCRIPT_TOKENS` (50k tokens, ~200k chars) are truncated to the **latest** messages at message boundaries (tail kept, head dropped). Keeps cost predictable and avoids the model dropping the tail under context pressure.
 
 **Env vars:**
+
 - `BLOCKED_SENDERS=bot1,bot2` — comma-separated sender names to drop (case-insensitive substring)
 - `MIN_MESSAGE_LENGTH=10` — messages shorter than this after trim get dropped (set `0` to disable)
 - `NEAR_AI_TIMEOUT_MS=1800000` — per-request timeout in ms (default 30 min)
@@ -178,9 +181,21 @@ components, and functions are kept when documented.
 **Cost:** 🆓 FREE (pure code analysis)
 
 Parses the SDK source tree to extract component-building guides (required packages, key
-hooks, variants). Note: this script also historically wrote `src/data/sdk-patterns.json`,
-which is now **superseded** — SDK symbol lookup flows through `sdk-symbols.json` (see
+hooks, variants). Note: the checked-in `component-guides.json` is now hand-written and
+checked against `@orderly.network/*` 3.3.1; this script is legacy and its output should
+not be published as-is. It also historically wrote `src/data/sdk-patterns.json`, which is
+now **superseded** — SDK symbol lookup flows through `sdk-symbols.json` (see
 `generate_sdk_symbols.js` above).
+
+### `audit_component_guides.js`
+
+**Input:** `src/data/component-guides.json`, `src/data/sdk-symbols.json`
+**Output:** `component-guides-audit.json`
+**Cost:** 🆓 FREE
+
+Checks package names, named imports, and symbol formats against the local SDK package
+index. Page-level exports omitted by that index (`TradingPage`, `OrderBookWidget`,
+`OrderBookAndTradesWidget`) are allowlisted explicitly.
 
 ## Cost Management
 

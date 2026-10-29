@@ -363,12 +363,9 @@ Get guidance on building React UI components using Orderly SDK.
 - `component` (string, required): Component type
 - `complexity` (string, optional): 'minimal', 'standard', or 'advanced' (default: 'standard')
 
-**Available components**:
+**Available guides**: `TradingPage`, `OrderBook`, `OrderEntryWidget`, `OrderEntry`, `PositionsWidget`, `WalletConnectorWidget`.
 
-- `order-entry`: Order placement form
-- `orderbook`: Market depth display
-- `positions`: Position management table
-- `wallet-connector`: Wallet connection UI
+Other components return a pointer to `search_orderly_docs` (scope `sdk`).
 
 ### 7. `get_orderly_one_api_info`
 
@@ -616,7 +613,7 @@ yarn build
 | ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
 | **documentation.json**    | Official docs (git: documentation-public) | `generate_mcp_data.js`                                                                            |
 | **sdk-symbols.json**      | `@orderly.network/sdk-docs` npm package | `generate_sdk_symbols.js`                                                                         |
-| **component-guides.json** | SDK source code (GitHub)       | `analyze_sdk.js`                                                                                  |
+| **component-guides.json** | Hand-written, checked against `@orderly.network/*` 3.3.1 | —                                                                                                     |
 | **workflows.json**        | Official docs (git: documentation-public) | `generate_mcp_data.js`                                                                            |
 | **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
 | **indexer-api.json**      | Indexer API OpenAPI spec       | `generate_indexer_api.js`                                                                         |

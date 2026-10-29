@@ -53,7 +53,7 @@ describe('provenance footers', () => {
   });
 
   it('component guides carry the provenance line', async () => {
-    const result = await getComponentGuide('AlertDialog');
-    expect(result.content[0].text).toMatch(/provenance: symbols=@orderly\.network\/sdk-docs@\S+/);
+    const result = await getComponentGuide('order entry');
+    expect(result.content[0].text).toMatch(/provenance: curated/);
   });
 });
