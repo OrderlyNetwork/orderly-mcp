@@ -94,7 +94,7 @@ export function createMcpServer(): Server {
           name: 'get_contract_addresses',
           annotations: toolAnnotations('Get Orderly Contract Addresses'),
           description:
-            "Get the deployed smart contract addresses for Orderly on a specific chain and network. `chain` is required; `contractType` filters to one contract (e.g. vault, usdc, usdt) or 'all'; `network` selects mainnet (default) or testnet. Returns each matching contract's address and description, plus the address on the other network when available; unknown chains or contract types return the valid options. Read-only lookup from bundled data — no auth, network calls, or side effects. Use for deployment and wiring addresses only; for API details use the relevant *api_info tool, for SDK symbols use search_orderly_docs, and for integration steps use explain_workflow.",
+            "Get the deployed smart contract addresses for Orderly on a specific chain and network. `chain` is required; `contractType` filters to one contract (e.g. vault, usdc, usdt) or 'all'; `network` selects mainnet (default) or testnet. 'all' lists every contract with an address on the selected network; a specific type also returns its description and the address on the other network when available. Unknown chains or contract types return the valid options. Read-only lookup from bundled data — no network calls, credentials, or side effects. Use for deployment and wiring addresses only; for API details use get_api_info or the matching named API tool, for SDK symbols use search_orderly_docs, and for integration steps use explain_workflow.",
           inputSchema: {
             type: 'object',
             properties: {
