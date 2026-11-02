@@ -181,7 +181,7 @@ export function createMcpServer(): Server {
           name: 'get_component_guide',
           annotations: toolAnnotations('Get Orderly Component Guide'),
           description:
-            "Get a curated build guide for a React UI component from the Orderly SDK, such as order-entry, orderbook, positions, or wallet-connector. Returns Markdown with required packages, key hooks, a complete TSX example at the requested complexity (falling back to 'standard'), tips, styling notes, common mistakes, and related components. Read-only static guidance — no network calls, auth, rate limits, or side effects. Use when building a known UI component; for SDK hook/type signatures use search_orderly_docs (scope 'sdk'), for end-to-end steps use explain_workflow, and for backend endpoints use the relevant *api_info tool.",
+            "Get a curated build guide for a React UI component from the Orderly SDK, such as order-entry, orderbook, positions, or wallet-connector. Returns Markdown with required packages, key hooks, a complete TSX example, tips, styling notes, common mistakes, and related components; `complexity` selects the example depth — 'minimal' for a scaffold, 'advanced' for production wiring — and falls back to 'standard'. Guides include full code and can be long; a miss lists available guides and points to search_orderly_docs. Read-only static guidance — no network calls, credentials, rate limits, or side effects. Use for a known UI component; for SDK hook/type signatures use search_orderly_docs (scope 'sdk'), for end-to-end steps use explain_workflow, and for backend endpoints use get_api_info or the matching domain API tool.",
           inputSchema: {
             type: 'object',
             properties: {
