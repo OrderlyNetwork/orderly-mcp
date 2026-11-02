@@ -93,7 +93,8 @@ export function createMcpServer(): Server {
         {
           name: 'get_contract_addresses',
           annotations: toolAnnotations('Get Orderly Contract Addresses'),
-          description: 'Get smart contract addresses for Orderly on specific chains',
+          description:
+            "Get the deployed smart contract addresses for Orderly on a specific chain and network. `chain` is required; `contractType` filters to one contract (e.g. vault, usdc, usdt) or 'all'; `network` selects mainnet (default) or testnet. Returns each matching contract's address and description, plus the address on the other network when available; unknown chains or contract types return the valid options. Read-only lookup from bundled data — no auth, network calls, or side effects. Use for deployment and wiring addresses only; for API details use the relevant *api_info tool, for SDK symbols use search_orderly_docs, and for integration steps use explain_workflow.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -159,7 +160,7 @@ export function createMcpServer(): Server {
           name: 'get_indexer_api_info',
           annotations: toolAnnotations('Get Indexer API Info'),
           description:
-            'Get information about Orderly Indexer API for trading metrics, account events, trades, and volume statistics (rankings endpoints available via endpoint search)',
+            "Get reference documentation for the Orderly Indexer API, a read-only source of historical and aggregated trading data: volume and fee metrics, account events, trades, and rankings. Omit both parameters for an overview with base URLs, categories, common errors, and usage tips; pass `category` to list all endpoints in an area, or `endpoint` for one endpoint's parameters, request/response schemas, and TypeScript example (category takes precedence if both are supplied). Bundled docs lookup only — no API call, auth, or rate limits. Use for analytics, dashboards, account history, and leaderboards; for live trading operations use get_api_info, and for zero-auth market data use get_public_info_api_info.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -202,7 +203,7 @@ export function createMcpServer(): Server {
           name: 'get_orderly_one_api_info',
           annotations: toolAnnotations('Get Orderly One API Info'),
           description:
-            'Get information about Orderly One API for DEX creation, graduation, and management',
+            "Get reference documentation for the Orderly One API used to create, graduate, and manage a DEX, covering auth, DEX, graduation, theme, stats, leaderboard, and admin endpoints. Omit both parameters for an overview; pass `category` to list endpoints in an area, or `endpoint` for one endpoint's method, parameters, and examples (category takes precedence if both are supplied). Responses flag agent-blocked or conditional operations such as DEX creation, deployment, and deletion. Read-only bundled docs — it never calls the API or needs credentials. Use for Orderly One/DEX-builder tasks; for core trading use get_api_info, and for vault or analytics data use the respective *api_info tools.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -244,7 +245,7 @@ export function createMcpServer(): Server {
           name: 'get_public_info_api_info',
           annotations: toolAnnotations('Get Public Info API Info'),
           description:
-            'Get information about the Orderly Public Info API — a zero-auth single endpoint (POST /v1/public/query) for market, account, and platform data via a `type` field. Covers 24 query types (marketSummary, accountState, orderbook, candles, topAddresses, etc.)',
+            'Get reference documentation for the Orderly Public Info API — a zero-auth single endpoint (POST /v1/public/query) for market, account, and platform data selected by a `type` field. Covers 24 query types (marketSummary, accountState, orderbook, candles, topAddresses, whaleContext, etc.); pass `queryType` for params, response fields, example, weight, and freshness, `category` to list a group, or neither for the overview and rate-limit rules. Read-only bundled docs — it does not call the endpoint. Use instead of get_api_info for zero-auth public data; use get_api_info for authenticated trading, get_indexer_api_info for historical analytics, and get_strategy_vault_api_info for vault data.',
           inputSchema: {
             type: 'object',
             properties: {
