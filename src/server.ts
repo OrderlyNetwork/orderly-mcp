@@ -160,7 +160,7 @@ export function createMcpServer(): Server {
           name: 'get_indexer_api_info',
           annotations: toolAnnotations('Get Indexer API Info'),
           description:
-            "Get reference documentation for the Orderly Indexer API, a read-only source of historical and aggregated trading data: volume and fee metrics, account events, trades, and rankings. Omit both parameters for an overview with base URLs, categories, common errors, and usage tips; pass `category` to list all endpoints in an area, or `endpoint` for one endpoint's parameters, request/response schemas, and TypeScript example (category takes precedence if both are supplied). Bundled docs lookup only — no API call, auth, or rate limits. Use for analytics, dashboards, account history, and leaderboards; for live trading operations use get_api_info, and for zero-auth market data use get_public_info_api_info.",
+            'Get reference documentation for the Orderly Indexer API, a read-only source of historical and aggregated trading data: volume and fee metrics, account events, trades, and rankings. Omit both parameters for an overview with base URLs, categories, common errors, and usage tips; pass `category` to discover all endpoints in an area, or `endpoint` to fuzzy-match one endpoint and return its parameters, request/response schemas, and TypeScript example (category takes precedence if both are supplied). Bundled docs lookup only — no API call, credentials, or rate limits. Use for analytics, dashboards, account history, and leaderboards; for live trading operations use get_api_info, and for zero-auth market data use get_public_info_api_info.',
           inputSchema: {
             type: 'object',
             properties: {
