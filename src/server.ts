@@ -224,7 +224,7 @@ export function createMcpServer(): Server {
           name: 'get_strategy_vault_api_info',
           annotations: toolAnnotations('Get Strategy Vault API Info'),
           description:
-            "Get reference documentation for the Orderly Strategy Vault REST API covering vault performance, strategy providers, fund management, liquidity providers, and user stats. Omit both parameters for an overview with base URL and categories; pass `category` to list endpoints in an area, or `endpoint` for one endpoint's detail (category wins if both are supplied). Read-only bundled docs — it does not call the API and needs no auth or rate limits. Use for vault/yield integrations; for core trading use get_api_info, for historical analytics use get_indexer_api_info, and for zero-auth market data use get_public_info_api_info.",
+            'Get reference documentation for the Orderly Strategy Vault REST API covering vault performance, strategy providers, fund management, liquidity providers, and user stats. Omit both parameters for an overview with base URL and categories; pass `category` to discover all endpoints in an area, or `endpoint` to fuzzy-match one endpoint and return its full detail (category wins if both are supplied). Read-only bundled docs — it does not call the API and requires no credentials or rate limits. Use for vault/yield integrations; for core trading use get_api_info, for historical analytics use get_indexer_api_info, and for zero-auth market data use get_public_info_api_info.',
           inputSchema: {
             type: 'object',
             properties: {
