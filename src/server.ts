@@ -122,7 +122,7 @@ export function createMcpServer(): Server {
           name: 'explain_workflow',
           annotations: toolAnnotations('Explain Orderly Workflow'),
           description:
-            "Get a curated, step-by-step guide for a common Orderly development task such as wallet connection, deposits, SDK setup, or placing orders. Returns the best-matching workflow as Markdown with prerequisites, numbered steps, TypeScript examples, common issues, and related workflows; fuzzy matching accepts partial names or natural-language descriptions, and a miss lists available workflows. Read-only lookup from bundled data — no network calls, auth, rate limits, or side effects. Use for end-to-end tasks; for a known UI component use get_component_guide, for SDK symbols use search_orderly_docs (scope 'sdk'), and for endpoint details use the relevant *api_info tool.",
+            "Get a curated, step-by-step guide for a common Orderly development task such as wallet connection, deposits, SDK setup, or placing orders. Returns exactly one best-matching workflow as Markdown with prerequisites, numbered steps, TypeScript examples, common issues, and related workflows; pass the task in natural language or a partial name, and a miss lists available workflows. Read-only lookup from bundled data — no network calls, credentials, rate limits, or side effects. Use for end-to-end tasks, not one-off lookups: get_component_guide for a known UI component, search_orderly_docs (scope 'sdk') for symbols, get_api_info for core endpoints, and the matching named tool for Indexer, Public Info, Orderly One, or Strategy Vault data.",
           inputSchema: {
             type: 'object',
             properties: {
