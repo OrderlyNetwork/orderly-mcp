@@ -24,6 +24,18 @@ export interface ToolResult {
   isError?: boolean;
 }
 
+// Every tool is a read-only lookup over data bundled at build time.
+const READ_ONLY_TOOL_ANNOTATIONS = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+} as const;
+
+function toolAnnotations(title: string) {
+  return { title, ...READ_ONLY_TOOL_ANNOTATIONS };
+}
+
 export function createMcpServer(): Server {
   const server = new Server(
     {
@@ -44,8 +56,9 @@ export function createMcpServer(): Server {
       tools: [
         {
           name: 'search_orderly_docs',
+          annotations: toolAnnotations('Search Orderly Documentation'),
           description:
-            'Search Orderly Network documentation for specific topics, concepts, or questions',
+            "Search the bundled Orderly Network documentation and SDK symbol index by topic or question. Returns up to `limit` ranked Markdown sections with relevance scores; scope 'sdk' returns hooks/components/types/functions with signatures, props, and source paths, while 'docs' or 'auto' returns prose guidance. Read-only local search — no network calls, auth, rate limits, or side effects. Use for open-ended discovery when the component, workflow, or endpoint is unknown; for a known component use get_component_guide, for a task walkthrough use explain_workflow, for a specific endpoint use the matching *api_info tool, and for addresses use get_contract_addresses.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -79,6 +92,7 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_contract_addresses',
+          annotations: toolAnnotations('Get Orderly Contract Addresses'),
           description: 'Get smart contract addresses for Orderly on specific chains',
           inputSchema: {
             type: 'object',
@@ -105,7 +119,9 @@ export function createMcpServer(): Server {
         },
         {
           name: 'explain_workflow',
-          description: 'Get step-by-step explanation of common Orderly development workflows',
+          annotations: toolAnnotations('Explain Orderly Workflow'),
+          description:
+            "Get a curated, step-by-step guide for a common Orderly development task such as wallet connection, deposits, SDK setup, or placing orders. Returns the best-matching workflow as Markdown with prerequisites, numbered steps, TypeScript examples, common issues, and related workflows; fuzzy matching accepts partial names or natural-language descriptions, and a miss lists available workflows. Read-only lookup from bundled data — no network calls, auth, rate limits, or side effects. Use for end-to-end tasks; for a known UI component use get_component_guide, for SDK symbols use search_orderly_docs (scope 'sdk'), and for endpoint details use the relevant *api_info tool.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -120,7 +136,9 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_api_info',
-          description: 'Get information about Orderly REST API endpoints or WebSocket streams',
+          annotations: toolAnnotations('Get Orderly API Info'),
+          description:
+            'Get reference documentation for the core Orderly trading API: REST endpoints, WebSocket streams, or authentication. With only `type`, lists every endpoint or stream with base URLs and auth requirements; with `endpoint`, returns one match with method/path or topic, auth, rate limits, parameters, request/response schemas, and a TypeScript example. Read-only bundled docs — it does not call the API, and needs no credentials, rate limits, or side effects. Use for authenticated trading and market data; for historical analytics use get_indexer_api_info, for zero-auth public data use get_public_info_api_info, for DEX management use get_orderly_one_api_info, and for vault data use get_strategy_vault_api_info.',
           inputSchema: {
             type: 'object',
             properties: {
@@ -139,6 +157,7 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_indexer_api_info',
+          annotations: toolAnnotations('Get Indexer API Info'),
           description:
             'Get information about Orderly Indexer API for trading metrics, account events, trades, and volume statistics (rankings endpoints available via endpoint search)',
           inputSchema: {
@@ -159,7 +178,9 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_component_guide',
-          description: 'Get guidance on building React UI components using Orderly SDK',
+          annotations: toolAnnotations('Get Orderly Component Guide'),
+          description:
+            "Get a curated build guide for a React UI component from the Orderly SDK, such as order-entry, orderbook, positions, or wallet-connector. Returns Markdown with required packages, key hooks, a complete TSX example at the requested complexity (falling back to 'standard'), tips, styling notes, common mistakes, and related components. Read-only static guidance — no network calls, auth, rate limits, or side effects. Use when building a known UI component; for SDK hook/type signatures use search_orderly_docs (scope 'sdk'), for end-to-end steps use explain_workflow, and for backend endpoints use the relevant *api_info tool.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -179,6 +200,7 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_orderly_one_api_info',
+          annotations: toolAnnotations('Get Orderly One API Info'),
           description:
             'Get information about Orderly One API for DEX creation, graduation, and management',
           inputSchema: {
@@ -199,8 +221,9 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_strategy_vault_api_info',
+          annotations: toolAnnotations('Get Strategy Vault API Info'),
           description:
-            'Get information about Orderly Strategy Vault API for yield optimization, strategy providers, and liquidity providers',
+            "Get reference documentation for the Orderly Strategy Vault REST API covering vault performance, strategy providers, fund management, liquidity providers, and user stats. Omit both parameters for an overview with base URL and categories; pass `category` to list endpoints in an area, or `endpoint` for one endpoint's detail (category wins if both are supplied). Read-only bundled docs — it does not call the API and needs no auth or rate limits. Use for vault/yield integrations; for core trading use get_api_info, for historical analytics use get_indexer_api_info, and for zero-auth market data use get_public_info_api_info.",
           inputSchema: {
             type: 'object',
             properties: {
@@ -219,6 +242,7 @@ export function createMcpServer(): Server {
         },
         {
           name: 'get_public_info_api_info',
+          annotations: toolAnnotations('Get Public Info API Info'),
           description:
             'Get information about the Orderly Public Info API — a zero-auth single endpoint (POST /v1/public/query) for market, account, and platform data via a `type` field. Covers 24 query types (marketSummary, accountState, orderbook, candles, topAddresses, etc.)',
           inputSchema: {
