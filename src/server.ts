@@ -203,7 +203,7 @@ export function createMcpServer(): Server {
           name: 'get_orderly_one_api_info',
           annotations: toolAnnotations('Get Orderly One API Info'),
           description:
-            "Get reference documentation for the Orderly One API used to create, graduate, and manage a DEX, covering auth, DEX, graduation, theme, stats, leaderboard, and admin endpoints. Omit both parameters for an overview; pass `category` to list endpoints in an area, or `endpoint` for one endpoint's method, parameters, and examples (category takes precedence if both are supplied). Responses flag agent-blocked or conditional operations such as DEX creation, deployment, and deletion. Read-only bundled docs — it never calls the API or needs credentials. Use for Orderly One/DEX-builder tasks; for core trading use get_api_info, and for vault or analytics data use the respective *api_info tools.",
+            'Get reference documentation for the Orderly One API used to create, graduate, and manage a DEX, covering auth, DEX, graduation, theme, stats, leaderboard, and admin endpoints. Omit both parameters for an overview; pass `category` to discover all endpoints in an area, or `endpoint` to fuzzy-match one endpoint and return its method, parameters, and examples (category takes precedence if both are supplied). Responses flag agent-blocked or conditional operations such as DEX creation, deployment, and deletion. Read-only bundled docs — it never calls the API or requires credentials. Use for Orderly One/DEX-builder tasks; for core trading use get_api_info, for vault data use get_strategy_vault_api_info, and for analytics use get_indexer_api_info or get_public_info_api_info.',
           inputSchema: {
             type: 'object',
             properties: {
