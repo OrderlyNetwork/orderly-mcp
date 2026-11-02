@@ -245,7 +245,7 @@ export function createMcpServer(): Server {
           name: 'get_public_info_api_info',
           annotations: toolAnnotations('Get Public Info API Info'),
           description:
-            'Get reference documentation for the Orderly Public Info API — a zero-auth single endpoint (POST /v1/public/query) for market, account, and platform data selected by a `type` field. Covers 24 query types (marketSummary, accountState, orderbook, candles, topAddresses, whaleContext, etc.); pass `queryType` for params, response fields, example, weight, and freshness, `category` to list a group, or neither for the overview and rate-limit rules. Read-only bundled docs — it does not call the endpoint. Use instead of get_api_info for zero-auth public data; use get_api_info for authenticated trading, get_indexer_api_info for historical analytics, and get_strategy_vault_api_info for vault data.',
+            'Get reference documentation for the Orderly Public Info API — a zero-auth single endpoint (POST /v1/public/query) for market, account, and platform data selected by a `type` field. Covers 24 query types (marketSummary, accountState, orderbook, candles, topAddresses, whaleContext, etc.); `queryType` accepts exact, partial, or fuzzy names and returns params, response fields, example, weight, and freshness; `category` lists a group (queryType wins if both are supplied); omit both for the overview and rate-limit rules. Read-only bundled docs — it does not call the endpoint. Use instead of get_api_info for zero-auth public data; use get_api_info for authenticated trading, get_indexer_api_info for historical analytics, and get_strategy_vault_api_info for vault data.',
           inputSchema: {
             type: 'object',
             properties: {
