@@ -85,4 +85,35 @@ describe('getApiInfo WebSocket resolution', () => {
     expect(obu).toContain('orderbookupdate');
     expect(obu).toContain('down_asks');
   });
+
+  it('lists every public market-data topic', async () => {
+    const text = textOf(await getApiInfo('websocket'));
+    const topics = [
+      '{symbol}@bbo',
+      'bbos',
+      '{symbol}@orderbookupdate',
+      '{symbol}@trade',
+      'price_changes',
+      'markprices',
+      'indexprices',
+      '{symbol}@kline_{time}',
+      '{symbol}@openinterest',
+      '{symbol}@estfundingrate',
+    ];
+    for (const topic of topics) {
+      expect(text, topic).toContain(topic);
+    }
+  });
+
+  it('accepts a lowercase method prefix', async () => {
+    const text = textOf(await getApiInfo('rest', 'post /v1/order'));
+    expect(text).toContain('# POST /v1/order');
+    expect(text).not.toContain('# DELETE /v1/order');
+  });
+
+  it('applies a method filter to fuzzy path queries', async () => {
+    const text = textOf(await getApiInfo('rest', 'POST create order'));
+    expect(text).toContain('# POST /v1/order');
+    expect(text).not.toContain('# DELETE /v1/order');
+  });
 });

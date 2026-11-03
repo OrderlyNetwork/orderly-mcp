@@ -42,4 +42,34 @@ describe('tool metadata', () => {
       expect(description.split(/\s+/).length, tool.name).toBeGreaterThanOrEqual(40);
     }
   });
+
+  it('exposes exactly the expected tool surface', async () => {
+    const { tools } = await client.listTools();
+    expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'explain_workflow',
+      'get_api_info',
+      'get_component_guide',
+      'get_contract_addresses',
+      'get_indexer_api_info',
+      'get_orderly_one_api_info',
+      'get_public_info_api_info',
+      'get_strategy_vault_api_info',
+      'search_orderly_docs',
+    ]);
+  });
+
+  it('exposes exactly the expected resource surface', async () => {
+    const { resources } = await client.listResources();
+    expect(resources.map((resource) => resource.uri).sort()).toEqual([
+      'orderly://api/indexer',
+      'orderly://api/public-info',
+      'orderly://api/rest',
+      'orderly://api/websocket',
+      'orderly://contracts',
+      'orderly://overview',
+      'orderly://sdk/components',
+      'orderly://sdk/hooks',
+      'orderly://workflows',
+    ]);
+  });
 });

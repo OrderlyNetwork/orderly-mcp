@@ -355,6 +355,30 @@ describe('searchOrderlyDocs', () => {
     expect(text).toContain('mcp.orderly.network');
   });
 
+  // --- Curated corpus reachability -----------------------------------------
+  // Every hand-curated chunk must remain reachable through normal search, not
+  // just present in the JSON.
+  it.each([
+    ['funding payments', 'Funding Rate: Calculation, Schedule, and Payments'],
+    ['liquidation fees', 'Liquidations: Triggers, Tiers, and Fees'],
+    [
+      'perp anything insurance fund',
+      'Perp Anything Market Operations: Insurance Fund, Launch, and Fees',
+    ],
+    ['pre-tge listing', 'Perp Anything Pre-TGE Listing'],
+    ['rwa market session', 'Perp Anything RWA Markets and Trading Sessions'],
+    ['builder oracle byok', 'Builder Oracle: Builder-Pushed and BYOK Price Sources'],
+    ['mcp server install', 'Orderly MCP Server: Setup and Tools'],
+    ['predict round status', 'Orderly Predict rounds, statuses, and settlement'],
+    ['predict order cutoff', 'Orderly Predict order management and validation'],
+    ['predict region restriction', 'Orderly Predict region restriction'],
+    ['predict endpoints', 'Orderly Predict endpoint reference'],
+    ['predict error codes', 'Orderly Predict error codes'],
+  ])('should route "%s" to "%s"', async (query, expected) => {
+    const text = (await searchOrderlyDocs(query, 3, 'docs')).content[0].text;
+    expect(text).toContain(expected);
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
