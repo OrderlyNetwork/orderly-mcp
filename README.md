@@ -54,6 +54,7 @@ This MCP server enables AI assistants to answer questions about Orderly Network 
 - **Component Guides**: Patterns for building trading UI components
 - **API Reference**: REST and WebSocket endpoint documentation
 - **Indexer API**: Trading metrics, account events, trades, and volume statistics
+- **Orderly Predict**: 5-minute BTC Up/Down rounds, order rules, settlement, fees, and SDK integration (covered by documentation search)
 
 ## Installation
 
@@ -487,6 +488,7 @@ This MCP server includes embedded data from:
 6. **Indexer API**: Trading metrics, account events, trades, and volume statistics
 7. **Orderly One API**: DEX creation, graduation, and management API documentation
 8. **Workflow Guides**: Common development task explanations
+9. **Orderly Predict**: Round lifecycle, order rules, settlement, fee schedule, and SDK integration
 
 ## Project Structure
 
@@ -609,18 +611,18 @@ yarn build
 
 ### Data Files
 
-| File                      | Source                         | Generation Script                                                                                 |
-| ------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| **documentation.json**    | Official docs (git: documentation-public) | `generate_mcp_data.js`                                                                            |
-| **sdk-symbols.json**      | `@orderly.network/sdk-docs` npm package | `generate_sdk_symbols.js`                                                                         |
-| **component-guides.json** | Hand-written, checked against `@orderly.network/*` 3.3.1 | —                                                                                                     |
-| **workflows.json**        | Official docs (git: documentation-public) | `generate_mcp_data.js`                                                                            |
-| **api.json**              | OpenAPI spec                   | `generate_api_from_openapi.js`                                                                    |
-| **indexer-api.json**      | Indexer API OpenAPI spec       | `generate_indexer_api.js`                                                                         |
-| **orderly-one-api.json**  | Orderly One OpenAPI spec       | `generate_orderly_one_api.js`                                                                     |
-| **sv-api.json**           | Strategy Vault OpenAPI spec    | `generate_sv_api.js`                                                                              |
-| **public-info-api.json**  | Public Info API MDX docs       | `generate_public_info_api.js`                                                                     |
-| **contracts.json**        | Official docs (Git: documentation-public) | `generate_contracts.js`                                                                           |
+| File                      | Source                                                   | Generation Script              |
+| ------------------------- | -------------------------------------------------------- | ------------------------------ |
+| **documentation.json**    | Official docs (git: documentation-public)                | `generate_mcp_data.js`         |
+| **sdk-symbols.json**      | `@orderly.network/sdk-docs` npm package                  | `generate_sdk_symbols.js`      |
+| **component-guides.json** | Hand-written, checked against `@orderly.network/*` 3.3.1 | —                              |
+| **workflows.json**        | Official docs (git: documentation-public)                | `generate_mcp_data.js`         |
+| **api.json**              | OpenAPI spec                                             | `generate_api_from_openapi.js` |
+| **indexer-api.json**      | Indexer API OpenAPI spec                                 | `generate_indexer_api.js`      |
+| **orderly-one-api.json**  | Orderly One OpenAPI spec                                 | `generate_orderly_one_api.js`  |
+| **sv-api.json**           | Strategy Vault OpenAPI spec                              | `generate_sv_api.js`           |
+| **public-info-api.json**  | Public Info API MDX docs                                 | `generate_public_info_api.js`  |
+| **contracts.json**        | Official docs (Git: documentation-public)                | `generate_contracts.js`        |
 
 ## Contributing
 

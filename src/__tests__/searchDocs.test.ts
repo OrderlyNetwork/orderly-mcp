@@ -287,4 +287,32 @@ describe('searchOrderlyDocs', () => {
     // Platinum should show 3M, not 2M
     expect(text).not.toMatch(/\b2M\s+(?:\$?ORDER)\s+staked/);
   });
+
+  // --- Orderly Predict corpus ----------------------------------------------
+  // Predict sections are curated chunks inside documentation.json, so plain
+  // prediction questions are answerable through the normal docs search.
+  it('should find Orderly Predict content for prediction queries', async () => {
+    const result = await searchOrderlyDocs('prediction market up down', 5);
+    const text = result.content[0].text;
+    expect(text).toContain('Search Results');
+    expect(text).toContain('Orderly Predict overview');
+  });
+
+  it('should return the full Predict fee table at default detail', async () => {
+    // Regression: summarizeChunk used to cut at paragraph boundaries, which
+    // dropped Markdown tables and returned the tier header with no rows.
+    const result = await searchOrderlyDocs('predict fees', 5, 'docs');
+    const text = result.content[0].text;
+    expect(text).toContain('Recommended Predict taker rate');
+    expect(text).toContain('600 bps');
+    expect(text).toContain('Diamond');
+    expect(text).toContain('300 bps');
+  });
+
+  it('should surface the DOWN conversion rules for buy-down queries', async () => {
+    const result = await searchOrderlyDocs('prediction market how do I buy down', 5, 'docs');
+    const text = result.content[0].text;
+    expect(text).toContain('Orderly Predict');
+    expect(text).toContain('Orderly Predict order management and validation');
+  });
 });

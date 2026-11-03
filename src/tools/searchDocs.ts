@@ -228,8 +228,11 @@ const SUMMARY_CHAR_BUDGET = 1200;
 function summarizeChunk(content: string): string {
   if (content.length <= SUMMARY_CHAR_BUDGET) return content;
   const slice = content.slice(0, SUMMARY_CHAR_BUDGET);
-  const breakIdx = slice.lastIndexOf('\n\n');
-  const kept = breakIdx > SUMMARY_CHAR_BUDGET * 0.5 ? slice.slice(0, breakIdx) : slice;
+  // Cut at a line boundary rather than a paragraph boundary: Markdown tables
+  // are single-newline blocks, and cutting at the last blank line drops whole
+  // tables (e.g. fee tiers) even when their rows fit inside the budget.
+  const lineBreak = slice.lastIndexOf('\n');
+  const kept = lineBreak > SUMMARY_CHAR_BUDGET * 0.5 ? slice.slice(0, lineBreak) : slice;
   return (
     `${kept}\n\n*[truncated — ${content.length - kept.length} chars omitted;` +
     ` re-search with detail:"full"]*`
@@ -254,6 +257,24 @@ function detectScope(query: string): 'docs' | 'sdk' {
   if (tokens.some((t) => getSymbolNameSet().has(t))) return 'sdk';
   return 'docs';
 }
+
+// Query terms that unambiguously point at Orderly Predict. When one is present,
+// Predict chunks are ranked ahead of equally-scored prose so generic words in
+// the same query ("order", "fee", "settlement") don't bury the Predict answer.
+const PREDICT_INTENT_TOKENS = new Set([
+  'predict',
+  'prediction',
+  'predictions',
+  'binary',
+  'round',
+  'rounds',
+  'strike',
+  'outcome',
+  'tie',
+  's0',
+  's1',
+  'bbos',
+]);
 
 // Initialize the Fuse instance lazily to avoid doing heavy work at module load time.
 let fuseInstance: Fuse<IndexItem> | null = null;
@@ -486,7 +507,23 @@ export async function searchOrderlyDocs(
   ]);
 
   const fuse = getFuseInstance();
-  const mergedResults = multiTokenSearch(fuse, tokens, limit, allowedTypes);
+  const wantsPredict =
+    effectiveScope === 'docs' && tokens.some((t) => PREDICT_INTENT_TOKENS.has(t));
+  const mergedResults = multiTokenSearch(
+    fuse,
+    tokens,
+    wantsPredict ? limit * 3 : limit,
+    allowedTypes
+  );
+
+  if (wantsPredict) {
+    mergedResults.sort(
+      (a, b) =>
+        Number(b.item.category === 'Orderly Predict') -
+        Number(a.item.category === 'Orderly Predict')
+    );
+    mergedResults.length = Math.min(mergedResults.length, limit);
+  }
 
   if (mergedResults.length === 0) {
     const categories = [...new Set(docs.chunks.map((c) => c.category))];
