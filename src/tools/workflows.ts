@@ -1,5 +1,6 @@
 import Fuse from 'fuse.js';
 import workflowsData from '../data/workflows.json' with { type: 'json' };
+import { addDomainAliases, hasNearWord, makeWordSet, normalizeWord } from './lexical.js';
 
 export interface WorkflowResult {
   content: Array<{ type: 'text'; text: string }>;
@@ -86,11 +87,42 @@ interface MergedResult {
   workflow: Workflow;
   score: number;
   hits: number;
+  strongHits: number;
+  lexical: number;
+  titleNear: number;
+}
+
+interface WorkflowWords {
+  name: Set<string>;
+  description: Set<string>;
+  steps: Set<string>;
+}
+
+const workflowWordsCache = new Map<string, WorkflowWords>();
+
+function addAliases(words: Set<string>, text: string): Set<string> {
+  addDomainAliases(words, text);
+  return words;
+}
+
+function wordsFor(workflow: Workflow): WorkflowWords {
+  const cached = workflowWordsCache.get(workflow.name);
+  if (cached) return cached;
+  const stepsText = workflow.steps.map((step) => `${step.title} ${step.description}`).join(' ');
+  const words: WorkflowWords = {
+    name: addAliases(makeWordSet(workflow.name), workflow.name),
+    description: addAliases(makeWordSet(workflow.description), workflow.description),
+    steps: addAliases(makeWordSet(stepsText), stepsText),
+  };
+  workflowWordsCache.set(workflow.name, words);
+  return words;
 }
 
 /**
  * Multi-token search: run Fuse for each token individually, then merge.
- * Workflows matching multiple tokens get a score boost (lower = better).
+ * Exact word matches in the workflow name/description outrank fuzzy matches on
+ * common words, so "deposit" doesn't match "Deposited Under Wrong Broker ID"
+ * ahead of an actual deposit workflow.
  */
 function multiTokenSearch(fuse: Fuse<Workflow>, tokens: string[], limit: number): MergedResult[] {
   const resultMap = new Map<string, { workflow: Workflow; scores: number[]; hits: number }>();
@@ -116,12 +148,40 @@ function multiTokenSearch(fuse: Fuse<Workflow>, tokens: string[], limit: number)
   return [...resultMap.values()]
     .map((entry) => {
       const avgScore = entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length;
-      // Divide by hit count so workflows matching more query tokens rank higher
-      const boostedScore = avgScore / entry.hits;
-      return { workflow: entry.workflow, score: boostedScore, hits: entry.hits };
+      const words = wordsFor(entry.workflow);
+      let strongHits = 0;
+      let lexical = 0;
+      let titleNear = 0;
+
+      for (const token of tokens) {
+        const normalized = normalizeWord(token);
+        if (!normalized) continue;
+        if (words.name.has(normalized)) {
+          strongHits++;
+          lexical += 4;
+        } else if (words.description.has(normalized)) {
+          strongHits++;
+          lexical += 2;
+        } else if (words.steps.has(normalized)) {
+          lexical += 1;
+        } else if (hasNearWord(words.name, normalized)) {
+          titleNear++;
+        }
+      }
+
+      return {
+        workflow: entry.workflow,
+        score: avgScore,
+        hits: entry.hits,
+        strongHits,
+        lexical,
+        titleNear,
+      };
     })
     .sort((a, b) => {
-      // Prioritize coverage (more token hits = more relevant), then score
+      if (b.strongHits !== a.strongHits) return b.strongHits - a.strongHits;
+      if (b.lexical !== a.lexical) return b.lexical - a.lexical;
+      if (b.titleNear !== a.titleNear) return b.titleNear - a.titleNear;
       if (b.hits !== a.hits) return b.hits - a.hits;
       return a.score - b.score;
     })
@@ -156,9 +216,15 @@ export async function explainWorkflow(workflow: string): Promise<WorkflowResult>
   const fuse = getFuseInstance();
   const mergedResults = multiTokenSearch(fuse, tokens, 5);
 
-  // Quality cutoff: 0.5 multi-token avg is a good match; 0.75 is the ceiling
+  // Quality cutoff: exact lexical hits always qualify; fuzzy-only matches must
+  // clear a score bar (0.5 single-token, 0.6 when multiple tokens agree).
   const qualityResults = mergedResults.filter(
-    (r) => r.score < 0.5 || (r.hits >= 2 && r.score < 0.75)
+    (r) =>
+      r.strongHits > 0 ||
+      r.lexical > 0 ||
+      r.titleNear > 0 ||
+      r.score < 0.5 ||
+      (r.hits >= 2 && r.score < 0.6)
   );
 
   if (qualityResults.length === 0) {
@@ -231,4 +297,5 @@ export async function explainWorkflow(workflow: string): Promise<WorkflowResult>
 // Export function to clear cache (useful for testing)
 export function clearWorkflowCache(): void {
   fuseInstance = null;
+  workflowWordsCache.clear();
 }

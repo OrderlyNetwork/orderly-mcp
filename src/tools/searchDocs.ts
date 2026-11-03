@@ -1,6 +1,7 @@
 import Fuse from 'fuse.js';
 import documentationData from '../data/documentation.json' with { type: 'json' };
 import sdkSymbolsData from '../data/sdk-symbols.json' with { type: 'json' };
+import { addDomainAliases, hasNearWord, makeWordSet, normalizeWord } from './lexical.js';
 import { provenanceFooter } from './provenance.js';
 
 export interface SearchResult {
@@ -79,6 +80,9 @@ interface IndexItem {
   content: string;
   category: string;
   keywords: string[];
+  titleWords: Set<string>;
+  keywordWords: Set<string>;
+  contentWords: Set<string>;
   payload: DocChunk | SymbolEntry;
 }
 
@@ -200,6 +204,11 @@ function tokenizeQuery(query: string): string[] {
     .filter((t) => t.length >= 2 && !STOPWORDS.has(t));
 }
 
+function withAliases(words: Set<string>, text: string): Set<string> {
+  addDomainAliases(words, text);
+  return words;
+}
+
 // Lowercased SDK symbol names, used for exact-match intent detection.
 let symbolNameSet: Set<string> | null = null;
 
@@ -292,6 +301,9 @@ function getFuseInstance(): Fuse<IndexItem> {
         content: chunk.content,
         category: chunk.category,
         keywords: chunk.keywords,
+        titleWords: withAliases(makeWordSet(chunk.title), chunk.title),
+        keywordWords: withAliases(makeWordSet(chunk.keywords.join(' ')), chunk.keywords.join(' ')),
+        contentWords: withAliases(makeWordSet(chunk.content), chunk.content),
         payload: chunk,
       })),
       ...symbols.symbols.map((sym) => ({
@@ -301,6 +313,9 @@ function getFuseInstance(): Fuse<IndexItem> {
         content: sym.searchText,
         category: sym.category,
         keywords: sym.keywords,
+        titleWords: withAliases(makeWordSet(sym.name), sym.name),
+        keywordWords: withAliases(makeWordSet(sym.keywords.join(' ')), sym.keywords.join(' ')),
+        contentWords: withAliases(makeWordSet(sym.searchText), sym.searchText),
         payload: sym,
       })),
     ];
@@ -379,17 +394,41 @@ function multiTokenSearch(
     .map((entry) => {
       const avgScore = entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length;
       const hits = entry.scores.length;
-      // Divide by hit count so items matching more query tokens rank higher
-      const boostedScore = avgScore / hits;
-      return { item: entry.item, score: boostedScore, hits };
+      let strongHits = 0;
+      let lexical = 0;
+      let titleNear = 0;
+
+      for (const token of tokens) {
+        const normalized = normalizeWord(token);
+        if (!normalized) continue;
+        if (entry.item.titleWords.has(normalized)) {
+          strongHits++;
+          lexical += 4;
+        } else if (entry.item.keywordWords.has(normalized)) {
+          strongHits++;
+          lexical += 2;
+        } else if (entry.item.contentWords.has(normalized)) {
+          lexical += 1;
+        } else if (hasNearWord(entry.item.titleWords, normalized)) {
+          titleNear++;
+        }
+      }
+
+      return { item: entry.item, score: avgScore, hits, strongHits, lexical, titleNear };
     })
-    .filter((r) => r.score < 0.7)
+    .filter((r) => r.score < 0.7 || r.lexical > 0)
     .sort((a, b) => {
-      // Prioritize coverage (more token hits = more relevant), then score
+      // Exact word matches in the title/keywords beat fuzzy coverage of common
+      // words ("order" matching "Orderly", "positon" matching "deposit").
+      if (b.strongHits !== a.strongHits) return b.strongHits - a.strongHits;
+      if (b.lexical !== a.lexical) return b.lexical - a.lexical;
+      // Typo tolerance: prefer items whose title contains a one-edit neighbour.
+      if (b.titleNear !== a.titleNear) return b.titleNear - a.titleNear;
       if (b.hits !== a.hits) return b.hits - a.hits;
       return a.score - b.score;
     })
-    .slice(0, limit);
+    .slice(0, limit)
+    .map(({ item, score, hits }) => ({ item, score, hits }));
 }
 
 /** Format a single param/prop line with optional/required marker. */

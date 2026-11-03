@@ -56,4 +56,24 @@ describe('explainWorkflow', () => {
     const result = await explainWorkflow('the and of');
     expect(result.content[0].text).toContain('contained only common words');
   });
+
+  // --- Ranking regressions -------------------------------------------------
+  it('should route "set tp sl" to the TP/SL workflow', async () => {
+    const result = await explainWorkflow('set tp sl');
+    const text = result.content[0].text;
+    expect(text).toContain('Take Profit');
+    expect(text).toContain('Stop Loss');
+  });
+
+  it('should not answer "place first order" with the builders-page listing', async () => {
+    const result = await explainWorkflow('place first order');
+    const text = result.content[0].text;
+    expect(text.split('\n')[0]).not.toContain('Getting Listed');
+    expect(text.toLowerCase()).toContain('order');
+  });
+
+  it('should prioritize an exact workflow name token over fuzzy matches', async () => {
+    const result = await explainWorkflow('wallet connection');
+    expect(result.content[0].text.split('\n')[0]).toContain('Wallet Connection');
+  });
 });

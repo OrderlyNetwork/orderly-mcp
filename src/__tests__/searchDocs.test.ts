@@ -288,6 +288,35 @@ describe('searchOrderlyDocs', () => {
     expect(text).not.toMatch(/\b2M\s+(?:\$?ORDER)\s+staked/);
   });
 
+  // --- Ranking regressions -------------------------------------------------
+  // Fuzzy matches on common words ("order" → "Orderly", "positon" → "deposit")
+  // must not outrank exact word matches in titles/keywords.
+  it('should rank order docs above referral for "create order"', async () => {
+    const text = (await searchOrderlyDocs('create order', 3, 'docs')).content[0].text;
+    const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
+    expect(top).toMatch(/Order/);
+    expect(top).not.toMatch(/Referral/);
+  });
+
+  it('should rank order docs above plugin docs for "place order"', async () => {
+    const text = (await searchOrderlyDocs('place order', 3, 'docs')).content[0].text;
+    const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
+    expect(top).toMatch(/Order/);
+    expect(top).not.toMatch(/Plugin/);
+  });
+
+  it('should tolerate the "positon" typo without surfacing deposit docs', async () => {
+    const text = (await searchOrderlyDocs('positon', 3, 'docs')).content[0].text;
+    const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
+    expect(top).toMatch(/[Pp]osition/);
+    expect(top).not.toMatch(/[Dd]eposit/);
+  });
+
+  it('should expand "tp sl" to take-profit/stop-loss docs', async () => {
+    const text = (await searchOrderlyDocs('tp sl', 3, 'docs')).content[0].text;
+    expect(text).toMatch(/Take Profit|TP\/SL/);
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
