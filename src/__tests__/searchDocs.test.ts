@@ -317,6 +317,22 @@ describe('searchOrderlyDocs', () => {
     expect(text).toMatch(/Take Profit|TP\/SL/);
   });
 
+  it('should return the funding rate explainer for funding queries', async () => {
+    const text = (await searchOrderlyDocs('funding rate', 3, 'docs', 'full')).content[0].text;
+    expect(text).toContain('Funding Rate: Calculation, Schedule, and Payments');
+    expect(text).toContain('Accrued Funding');
+  });
+
+  it('should return mark/index/last price docs for price queries', async () => {
+    const text = (await searchOrderlyDocs('mark price vs index price', 3, 'docs')).content[0].text;
+    expect(text).toContain('Mark Price, Index Price, and Last Price');
+  });
+
+  it('should return the liquidation explainer for liquidation queries', async () => {
+    const text = (await searchOrderlyDocs('how does liquidation work', 3, 'docs')).content[0].text;
+    expect(text).toContain('Liquidations: Triggers, Tiers, and Fees');
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
