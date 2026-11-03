@@ -307,11 +307,11 @@ Get step-by-step explanation of common development workflows.
 
 **Available workflows**:
 
-- `wallet-connection`: Connect wallet and create Orderly key
-- `place-first-order`: Complete flow for placing first trade
-- `deposit-funds`: Deposit USDC/tokens to Orderly
-- `set-tp-sl`: Set Take Profit and Stop Loss
-- `subaccount-management`: Create and manage subaccounts
+- `wallet connection`: Connect wallet and create an Orderly key
+- `place first order` / `limit order`: Create, track, edit, and cancel an order
+- `deposit`: Approve and deposit through the Vault contract
+- `withdraw`: Sign the EIP-712 withdrawal and submit it
+- `set tp sl`: Create bracket take-profit/stop-loss orders
 
 ### 4. `get_api_info`
 
@@ -463,7 +463,7 @@ AI uses get_contract_addresses with chain "arbitrum", contractType "USDC"
 ```
 User: "How do I place my first order?"
 
-AI uses explain_workflow with workflow "place-first-order"
+AI uses explain_workflow with workflow "place first order"
 → Returns step-by-step guide
 ```
 

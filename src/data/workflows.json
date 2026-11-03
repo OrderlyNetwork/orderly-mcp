@@ -10809,11 +10809,145 @@
         "Setting Up Permissionless Vaults",
         "Diagnosing Stuck or Delayed Withdrawals"
       ]
+    },
+    {
+      "name": "Deposit Funds into an Orderly Account",
+      "description": "Approve a supported token and call the Orderly Vault deposit contract so funds are credited to an Orderly account under your broker ID.",
+      "prerequisites": [
+        "Registered Orderly account and account ID",
+        "Valid broker ID (brokerHash is keccak256 of the broker ID string)",
+        "A supported token/chain pair and its Vault + token contract addresses",
+        "Wallet with gas for the target chain"
+      ],
+      "steps": [
+        {
+          "title": "Confirm the token and chain are supported",
+          "description": "Use the supported collateral info endpoint to verify the token/chain combination and check deposit availability. For custodial or CEX senders that cannot call contracts, use the Deposit by Transfer flow instead of the Vault deposit."
+        },
+        {
+          "title": "Approve ERC20 spending by the Vault",
+          "description": "For ERC20 tokens, approve the Vault contract to spend the deposit amount. Native tokens (for example OKB on X Layer) skip approval and are deposited through the payable deposit function."
+        },
+        {
+          "title": "Build the DepositData struct",
+          "description": "accountId is the Orderly account ID in bytes32; brokerHash is keccak256(utf8(brokerId)); tokenHash is keccak256(utf8(token)); tokenAmount uses the token's on-chain decimals (USDC uses 6).",
+          "code": "const depositInput = {\n  accountId: orderlyAccountId,\n  brokerHash: keccak256(toUtf8Bytes(brokerId)),\n  tokenHash: keccak256(toUtf8Bytes('USDC')),\n  tokenAmount: 10_000_000n // 10 USDC (6 decimals)\n};",
+          "important": "A mismatched brokerHash or tokenHash credits the wrong account or token. Derive both from the exact strings."
+        },
+        {
+          "title": "Quote the deposit fee and call deposit",
+          "description": "Read getDepositFee(receiver, depositInput), then call deposit(depositInput, { value: fee }) for ERC20, or value = principal + fee for native tokens. Only the principal is credited as collateral."
+        },
+        {
+          "title": "Wait for cross-chain credit and verify",
+          "description": "Deposits can take time to reflect while the cross-chain transfer finalizes. Confirm the credited balance with GET /v1/client/info or the asset history endpoint before placing orders."
+        }
+      ],
+      "commonIssues": [
+        "Deposit not credited yet: cross-chain finalization can take time; check asset history before retrying",
+        "Wrong decimals: pass on-chain units (6 for USDC), not ledger units",
+        "Missing approve: ERC20 deposits revert without an allowance for the Vault",
+        "Native token sent directly to the Vault address instead of through the payable deposit call"
+      ],
+      "relatedWorkflows": [
+        "Withdraw Funds from Orderly",
+        "Understanding Orderly Withdrawal Security and Mechanisms",
+        "Implementing Gasless Deposits and Internal Transfers"
+      ]
+    },
+    {
+      "name": "Withdraw Funds from Orderly",
+      "description": "Request a withdrawal by signing an EIP-712 Withdraw message with the on-chain domain and submitting it to the withdrawal API.",
+      "prerequisites": [
+        "Orderly account with a positive withdrawable balance",
+        "Realized PnL settled if the withdrawal includes trading profits",
+        "Supported destination chain and token",
+        "API credentials (orderly key) for the REST call"
+      ],
+      "steps": [
+        {
+          "title": "Settle PnL if needed",
+          "description": "Realized profit from open or recently closed positions must be settled through the Settle PnL flow before it enters withdrawable_balance. Withdrawing before settlement can exceed the available balance and fail."
+        },
+        {
+          "title": "Choose the destination chain and check fees",
+          "description": "Read current withdrawal fees and minimums from the supported collateral info endpoint. If the destination chain lacks liquidity, an additional cross-chain fee can be deducted."
+        },
+        {
+          "title": "Get a withdrawal nonce",
+          "description": "Call the withdrawal nonce endpoint and use the returned value in the signed message."
+        },
+        {
+          "title": "Sign the EIP-712 Withdraw message",
+          "description": "Use the on-chain domain (name Orderly, version 1, destination chainId, Ledger verifyingContract) - not the off-chain API-auth domain. Fields: brokerId, chainId, receiver, token, amount, withdrawNonce, timestamp.",
+          "code": "const signature = await wallet.signTypedData(\n  { name: 'Orderly', version: '1', chainId: 42161, verifyingContract: ledgerAddress },\n  { Withdraw: [\n    { name: 'brokerId', type: 'string' },\n    { name: 'chainId', type: 'uint256' },\n    { name: 'receiver', type: 'address' },\n    { name: 'token', type: 'string' },\n    { name: 'amount', type: 'uint256' },\n    { name: 'withdrawNonce', type: 'uint64' },\n    { name: 'timestamp', type: 'uint64' }\n  ] },\n  withdrawMessage\n);",
+          "important": "amount is a uint256 in the signed message but must be serialized as a string in the REST payload."
+        },
+        {
+          "title": "Submit the withdrawal request",
+          "description": "POST /v1/withdraw_request with { message, signature, userAddress } and the standard Ed25519 API auth headers. Track the withdrawal status until the funds arrive."
+        }
+      ],
+      "commonIssues": [
+        "Unsettled PnL makes the requested amount exceed the withdrawable balance",
+        "Using the off-chain auth domain instead of the on-chain Ledger domain",
+        "Sending amount as a JSON number instead of a string in the REST payload",
+        "Wrong token decimals for the destination chain"
+      ],
+      "relatedWorkflows": [
+        "Deposit Funds into an Orderly Account",
+        "Understanding Orderly Withdrawal Security and Mechanisms",
+        "Diagnosing Stuck or Delayed Withdrawals"
+      ]
+    },
+    {
+      "name": "Place and Manage a Limit Order",
+      "description": "Create, track, edit, and cancel a limit order through the signed Orderly REST API.",
+      "prerequisites": [
+        "Registered account with a valid orderly key",
+        "Sufficient collateral for margin and fees",
+        "Symbol order rules from GET /v1/public/info/{symbol}"
+      ],
+      "steps": [
+        {
+          "title": "Read the symbol rules",
+          "description": "Fetch quote_min/max, quote_tick, base_min/max, base_tick, and min_notional. Prices and quantities must land exactly on ticks; Orderly does not round for you."
+        },
+        {
+          "title": "Sign the request",
+          "description": "Sign timestamp + method + path + body with the Ed25519 orderly key and send orderly-account-id, orderly-key, orderly-signature, and orderly-timestamp headers."
+        },
+        {
+          "title": "Create the order",
+          "description": "POST /v1/order with symbol, side, order_type=LIMIT, order_price, order_quantity, and margin_mode when the symbol is isolated-margin only.",
+          "code": "const order = await client.order({\n  symbol: 'PERP_ETH_USDC',\n  side: 'BUY',\n  order_type: 'LIMIT',\n  order_price: '2800',\n  order_quantity: '0.1',\n  margin_mode: 'CROSS'\n});",
+          "important": "Use IOC with a protection price for market-style entries, and reduce_only=true to close a position without flipping sides."
+        },
+        {
+          "title": "Track the order",
+          "description": "Subscribe to the executionreport WebSocket topic for fills and status changes, or poll GET /v1/orders with status filters."
+        },
+        {
+          "title": "Edit or cancel",
+          "description": "PUT /v1/order changes price or quantity before the fill; DELETE /v1/order cancels a single order; DELETE /v1/orders cancels all pending orders."
+        }
+      ],
+      "commonIssues": [
+        "Price or quantity off the tick size",
+        "Notional below min_notional",
+        "Missing leverage setting for the symbol",
+        "Signature mismatch because the body was reserialized after signing"
+      ],
+      "relatedWorkflows": [
+        "Creating Bracket Orders with Take Profit and Stop Loss via API",
+        "Managing Orders via Hooks SDK and REST API",
+        "Performing Internal Transfers Between Orderly Accounts"
+      ]
     }
   ],
   "metadata": {
     "version": "2.0.0",
-    "totalWorkflows": 194,
+    "totalWorkflows": 197,
     "generatedFrom": 1747,
     "lastUpdated": "2026-07-15",
     "deduped": true,

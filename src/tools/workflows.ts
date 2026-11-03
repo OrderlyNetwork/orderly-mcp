@@ -90,10 +90,12 @@ interface MergedResult {
   strongHits: number;
   lexical: number;
   titleNear: number;
+  nameFirstIndex: number;
 }
 
 interface WorkflowWords {
   name: Set<string>;
+  nameSequence: string[];
   description: Set<string>;
   steps: Set<string>;
 }
@@ -111,6 +113,11 @@ function wordsFor(workflow: Workflow): WorkflowWords {
   const stepsText = workflow.steps.map((step) => `${step.title} ${step.description}`).join(' ');
   const words: WorkflowWords = {
     name: addAliases(makeWordSet(workflow.name), workflow.name),
+    nameSequence: workflow.name
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((word) => word.length >= 2)
+      .map(normalizeWord),
     description: addAliases(makeWordSet(workflow.description), workflow.description),
     steps: addAliases(makeWordSet(stepsText), stepsText),
   };
@@ -152,6 +159,7 @@ function multiTokenSearch(fuse: Fuse<Workflow>, tokens: string[], limit: number)
       let strongHits = 0;
       let lexical = 0;
       let titleNear = 0;
+      let nameFirstIndex = Number.POSITIVE_INFINITY;
 
       for (const token of tokens) {
         const normalized = normalizeWord(token);
@@ -159,6 +167,8 @@ function multiTokenSearch(fuse: Fuse<Workflow>, tokens: string[], limit: number)
         if (words.name.has(normalized)) {
           strongHits++;
           lexical += 4;
+          const index = words.nameSequence.indexOf(normalized);
+          if (index >= 0 && index < nameFirstIndex) nameFirstIndex = index;
         } else if (words.description.has(normalized)) {
           strongHits++;
           lexical += 2;
@@ -176,12 +186,18 @@ function multiTokenSearch(fuse: Fuse<Workflow>, tokens: string[], limit: number)
         strongHits,
         lexical,
         titleNear,
+        nameFirstIndex,
       };
     })
     .sort((a, b) => {
       if (b.strongHits !== a.strongHits) return b.strongHits - a.strongHits;
       if (b.lexical !== a.lexical) return b.lexical - a.lexical;
       if (b.titleNear !== a.titleNear) return b.titleNear - a.titleNear;
+      // For single-token lookups, prefer the name where the token appears
+      // earliest ("Deposit Funds..." beats "...Vault Deposits").
+      if (tokens.length === 1 && a.nameFirstIndex !== b.nameFirstIndex) {
+        return a.nameFirstIndex - b.nameFirstIndex;
+      }
       if (b.hits !== a.hits) return b.hits - a.hits;
       return a.score - b.score;
     })

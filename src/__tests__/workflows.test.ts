@@ -76,4 +76,21 @@ describe('explainWorkflow', () => {
     const result = await explainWorkflow('wallet connection');
     expect(result.content[0].text.split('\n')[0]).toContain('Wallet Connection');
   });
+
+  it('should route "deposit" to the deposit workflow, not the vault workflow', async () => {
+    const result = await explainWorkflow('deposit');
+    const title = result.content[0].text.split('\n')[0];
+    expect(title).toContain('Deposit Funds into an Orderly Account');
+    expect(title).not.toContain('Vault');
+  });
+
+  it('should route "withdraw" to the withdrawal workflow', async () => {
+    const result = await explainWorkflow('withdraw');
+    expect(result.content[0].text.split('\n')[0]).toContain('Withdraw Funds from Orderly');
+  });
+
+  it('should route "place first order" to the limit-order workflow', async () => {
+    const result = await explainWorkflow('place first order');
+    expect(result.content[0].text.split('\n')[0]).toContain('Place and Manage a Limit Order');
+  });
 });
