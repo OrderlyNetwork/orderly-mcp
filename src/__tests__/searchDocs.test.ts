@@ -349,6 +349,12 @@ describe('searchOrderlyDocs', () => {
     expect(text).toContain('Builder Oracle: Builder-Pushed and BYOK Price Sources');
   });
 
+  it('should answer MCP server setup queries', async () => {
+    const text = (await searchOrderlyDocs('orderly MCP server setup', 3, 'docs')).content[0].text;
+    expect(text).toContain('Orderly MCP Server: Setup and Tools');
+    expect(text).toContain('mcp.orderly.network');
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
