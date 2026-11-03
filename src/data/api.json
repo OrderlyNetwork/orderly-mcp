@@ -805,6 +805,37 @@
         "errors": []
       },
       {
+        "path": "/v1/product_restricted_areas",
+        "method": "GET",
+        "summary": "Get restricted areas by product",
+        "description": "GET /v1/product_restricted_areas\n\nReturns the restricted country and city list for a product type. Cached on the backend with a 30-second TTL.",
+        "auth": false,
+        "tags": [
+          "public"
+        ],
+        "rateLimit": "10 requests per 1 second per IP address",
+        "parameters": [
+          {
+            "name": "product_type",
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "description": "Product type to query. Orderly Predict passes `BINARY`.",
+            "example": "BINARY"
+          }
+        ],
+        "requestBody": null,
+        "responses": [
+          {
+            "code": 200,
+            "description": "Success",
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"product_type\": {\n              \"description\": \"The product type that was queried.\",\n              \"type\": \"string\",\n              \"example\": \"BINARY\"\n            },\n            \"countries\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"rows\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"description\": \"Country name.\",\n                        \"type\": \"string\",\n                        \"example\": \"United States\"\n                      },\n                      \"visibility\": {\n                        \"description\": \"Whether the product entry point stays visible (`visible`) or is hidden (`hidden`) for this country. Both values mean trading is fully blocked.\",\n                        \"type\": \"string\",\n                        \"example\": \"visible\"\n                      }\n                    }\n                  }\n                }\n              }\n            },\n            \"cities\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"rows\": {\n                  \"type\": \"array\",\n                  \"items\": {\n                    \"type\": \"object\",\n                    \"properties\": {\n                      \"name\": {\n                        \"description\": \"City name.\",\n                        \"type\": \"string\",\n                        \"example\": \"Toronto\"\n                      },\n                      \"country_name\": {\n                        \"description\": \"The country this city belongs to.\",\n                        \"type\": \"string\",\n                        \"example\": \"Canada\"\n                      },\n                      \"visibility\": {\n                        \"description\": \"Whether the product entry point stays visible (`visible`) or is hidden (`hidden`) for this city. Both values mean trading is fully blocked.\",\n                        \"type\": \"string\",\n                        \"example\": \"hidden\"\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+          }
+        ],
+        "example": "const url = 'https://api.orderly.org/v1/product_restricted_areas';\nfetch(url).then(res => res.json()).then(console.log);",
+        "errors": []
+      },
+      {
         "path": "/v1/public/futures_market",
         "method": "GET",
         "summary": "Get market volume by builder",
@@ -917,7 +948,7 @@
         "path": "/v1/public/market_info/price_changes",
         "method": "GET",
         "summary": "Get price info for all symbols",
-        "description": "GET /v1/public/market_info/price_changes\n\nReturn the current price and the price 5m, 30m, 1h, 24h, 3d, 7d, 30d ago for all symbols\n\nExamples:\n\n- Now: 11:06:30 (2024-07-11)  \n\n- 5m: 11:01:00 (2024-07-11)\n\n- 30m: 10:36:00 (2024-07-11)\n\n- 1h: 10:06:00 (2024-07-11)\n\n- 4h: 07:06:00 (2024-07-11)\n\n- 24h: 11:06:00 (2024-07-10)\n\n- 3d: 00:00:00 (2024-07-08)\n\n- 7d: 00:00:00 (2024-07-04)\n\n- 30d: 00:00:00 (2024-06-11)",
+        "description": "GET /v1/public/market_info/price_changes\n\nReturn the current price and the price 5m, 30m, 1h, 24h, 3d, 7d, 30d ago for all symbols\n\nExamples:\n\n- Now: 11:06:30 (2024-07-11)  \n\n- 5m: 11:01:00 (2024-07-11)\n\n- 30m: 10:36:00 (2024-07-11)\n\n- 1h: 10:06:00 (2024-07-11)\n\n- 4h: 07:06:00 (2024-07-11)\n\n- 24h: 11:06:00 (2024-07-10)\n\n- 3d: 00:00:00 (2024-07-08)\n\n- 7d: 00:00:00 (2024-07-04)\n\n- 30d: 00:00:00 (2024-06-11)\n\n\nPredict symbols are not listed.",
         "auth": false,
         "tags": [
           "public"
@@ -961,7 +992,7 @@
         "path": "/v1/public/market_info/history_charts",
         "method": "GET",
         "summary": "Get historical price list for all symbols",
-        "description": "GET /v1/public/market_info/history_charts\n\nReturn the close price for all symbols",
+        "description": "GET /v1/public/market_info/history_charts\n\nReturn the close price for all symbols\n\n\nPredict symbols are not listed.",
         "auth": false,
         "tags": [
           "public"
@@ -1107,7 +1138,7 @@
         "path": "/v1/public/funding_rates",
         "method": "GET",
         "summary": "Get predicted funding rates for all markets",
-        "description": "GET /v1/public/funding_rates\n\nGet predicted funding rates for all futures trading pairs.\n\nGet the : \n* last_funding_rate : latest hourly funding rate for all the markets for the last funding period (dt = 8h)\n* est_funding_rate : rolling average of all funding rates over the last 8 hours",
+        "description": "GET /v1/public/funding_rates\n\nGet predicted funding rates for all futures trading pairs.\n\nGet the : \n* last_funding_rate : latest hourly funding rate for all the markets for the last funding period (dt = 8h)\n* est_funding_rate : rolling average of all funding rates over the last 8 hours\n\nPredict symbols are included in this list with zero funding; no separate Predict funding endpoint exists.",
         "auth": false,
         "tags": [
           "public"
@@ -1129,7 +1160,7 @@
         "path": "/v1/public/funding_rate/{symbol}",
         "method": "GET",
         "summary": "Get predicted funding rate for one market",
-        "description": "GET /v1/public/funding_rate/{symbol}\n\nGet latest funding rate for one market.",
+        "description": "GET /v1/public/funding_rate/{symbol}\n\nGet latest funding rate for one market.\n\n\nFor a Predict symbol, this returns a zero funding rate.",
         "auth": false,
         "tags": [
           "public"
@@ -1160,7 +1191,7 @@
         "path": "/v1/public/funding_rate_history",
         "method": "GET",
         "summary": "Get funding rate history for one market",
-        "description": "GET /v1/public/funding_rate_history\n\n\nGet funding rate history for one market.",
+        "description": "GET /v1/public/funding_rate_history\n\n\nGet funding rate history for one market.\n\n\nFor a Predict symbol, this returns a zero funding rate.",
         "auth": false,
         "tags": [
           "public"
@@ -1223,7 +1254,7 @@
         "path": "/v1/public/futures/{symbol}",
         "method": "GET",
         "summary": "Get market info for one symbol",
-        "description": "GET /v1/public/futures/{symbol}\n\nGet basic market information for one trading pair.",
+        "description": "GET /v1/public/futures/{symbol}\n\nGet basic market information for one trading pair.\n\n\nFor a Predict symbol, index_price is not a tradable BBO. During trading, mark_price equals the round's own index price. Neither index_price nor mark_price is S0 or S1. The final value of both is exactly 0, 0.5, or 1; funding fields are zero.",
         "auth": false,
         "tags": [
           "public"
@@ -1372,7 +1403,7 @@
         "path": "/v1/public/info/{symbol}",
         "method": "GET",
         "summary": "Get order rules per symbol",
-        "description": "GET /v1/public/info/{symbol}\n\n\nThis endpoint provides all the values for the rules that an order need\nto fulfil in order for it to be placed successfully. The rules are\ndefined as follows:\n\n\nPrice filter\n\n\n- price >= quote_min\n\n- price =< quote_max\n\n- (price - quote_min) % quote_tick should equal to zero\n\n- price =< mark_price * (1 + price_range) when BUY\n\n- price >= mark_price * (1 - price_range) when SELL\n\n\nSize filter\n\n\n- base_min =< quantity =< base_max\n\n- (quantity - base_min) % base_tick should equal to zero\n\n\nMin Notional filter\n\n\n- price * quantity should greater than min_notional\n\n\nRisk Exposure filer\n\n\n- Order size should be within holding threshold. See\n[account_info](/docs/build-on-omnichain/restful-api/private/get-account-information)",
+        "description": "GET /v1/public/info/{symbol}\n\n\nThis endpoint provides all the values for the rules that an order need\nto fulfil in order for it to be placed successfully. The rules are\ndefined as follows:\n\n\nPrice filter\n\n\n- price >= quote_min\n\n- price =< quote_max\n\n- (price - quote_min) % quote_tick should equal to zero\n\n- price =< mark_price * (1 + price_range) when BUY\n\n- price >= mark_price * (1 - price_range) when SELL\n\n\nSize filter\n\n\n- base_min =< quantity =< base_max\n\n- (quantity - base_min) % base_tick should equal to zero\n\n\nMin Notional filter\n\n\n- price * quantity should greater than min_notional\n\n\nRisk Exposure filer\n\n\n- Order size should be within holding threshold. See\n[account_info](/docs/build-on-omnichain/restful-api/private/get-account-information)\n\n\nPredict symbols are not returned by this endpoint; symbol and response are unchanged, and there is no \"include Predict\" toggle. Use GET /v1/public/binary/info or GET /v1/public/binary/info/{symbol} for Predict round information.",
         "auth": false,
         "tags": [
           "public"
@@ -1403,7 +1434,7 @@
         "path": "/v1/public/token",
         "method": "GET",
         "summary": "Get supported collateral info",
-        "description": "GET /v1/public/token\n\nRetrieves the available tokens to be used as collateral within Orderly.",
+        "description": "GET /v1/public/token\n\nRetrieves the available tokens to be used as collateral within Orderly.\n\nToken-level decimals describes Orderly ledger precision and the integer\namount precision used in signed withdrawal messages. chain_details[].decimals\ndescribes on-chain token units. These values can differ: native OKB on\nX Layer (196) uses 8 ledger decimals and 18 on-chain decimals.\n\nFor native OKB, contract_address is an empty string; ERC20 approval is\nnot applicable. Use the standard Vault deposit flow. Check\nexclusive_deposit_supported separately before offering Deposit by Transfer.",
         "auth": false,
         "tags": [
           "public"
@@ -1424,7 +1455,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"rows\"\n          ],\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"token\": {\n                    \"type\": \"string\",\n                    \"description\": \"name of token\",\n                    \"example\": \"ETH\"\n                  },\n                  \"base_weight\": {\n                    \"type\": \"number\",\n                    \"description\": \"1 for usdc\",\n                    \"example\": 0.8\n                  },\n                  \"discount_factor\": {\n                    \"type\": \"number\",\n                    \"description\": \"null for usdc\",\n                    \"example\": 0.02\n                  },\n                  \"haircut\": {\n                    \"type\": \"number\",\n                    \"description\": \"0 for usdc\",\n                    \"example\": 0.95\n                  },\n                  \"user_max_qty\": {\n                    \"type\": \"number\",\n                    \"description\": \"-1 = infinity > usdc\",\n                    \"example\": 111\n                  },\n                  \"is_collateral\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"True, the asset can be collateral, users are allowed to manually swap, and we will do auto-swap\",\n                    \"example\": true\n                  },\n                  \"decimals\": {\n                    \"type\": \"number\",\n                    \"description\": \"precision of the token\",\n                    \"example\": 6\n                  },\n                  \"minimum_withdraw_amount\": {\n                    \"type\": \"number\",\n                    \"description\": \"\",\n                    \"example\": 0.000001\n                  },\n                  \"on_chain_swap\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"True, the asset is eligible for on-chain swaps on at least one supported blockchain\",\n                    \"example\": true\n                  },\n                  \"token_hash\": {\n                    \"type\": \"string\",\n                    \"example\": \"0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa\"\n                  },\n                  \"chain_details\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"chain_id\": {\n                          \"type\": \"integer\",\n                          \"example\": 43113\n                        },\n                        \"contract_address\": {\n                          \"type\": \"string\",\n                          \"example\": \"0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3\"\n                        },\n                        \"cross_chain_withdrawal_fee\": {\n                          \"type\": \"integer\",\n                          \"example\": 0\n                        },\n                        \"decimals\": {\n                          \"type\": \"integer\",\n                          \"example\": 18\n                        },\n                        \"withdraw_fee\": {\n                          \"type\": \"number\",\n                          \"example\": 2\n                        },\n                        \"display_name\": {\n                          \"type\": \"string\",\n                          \"description\": \"`USDC.e` for `Mantle` chain\",\n                          \"example\": \"ETH\"\n                        },\n                        \"exclusive_deposit_supported\": {\n                          \"type\": \"boolean\",\n                          \"description\": \"Whether this token on this chain supports deposit via exclusive receiver address.\",\n                          \"example\": false\n                        }\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"rows\"\n          ],\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"token\": {\n                    \"type\": \"string\",\n                    \"description\": \"name of token\",\n                    \"example\": \"ETH\"\n                  },\n                  \"base_weight\": {\n                    \"type\": \"number\",\n                    \"description\": \"1 for usdc\",\n                    \"example\": 0.8\n                  },\n                  \"discount_factor\": {\n                    \"type\": \"number\",\n                    \"description\": \"null for usdc\",\n                    \"example\": 0.02\n                  },\n                  \"haircut\": {\n                    \"type\": \"number\",\n                    \"description\": \"0 for usdc\",\n                    \"example\": 0.95\n                  },\n                  \"user_max_qty\": {\n                    \"type\": \"number\",\n                    \"description\": \"-1 = infinity > usdc\",\n                    \"example\": 111\n                  },\n                  \"is_collateral\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"Whether the asset can be used as collateral. This flag alone does not indicate support for manual or on-chain swaps.\",\n                    \"example\": true\n                  },\n                  \"decimals\": {\n                    \"type\": \"number\",\n                    \"description\": \"Orderly ledger decimals, also used for signed withdrawal integer amounts. May differ from chain_details[].decimals; OKB uses 8 here and 18 on X Layer.\",\n                    \"example\": 6\n                  },\n                  \"minimum_withdraw_amount\": {\n                    \"type\": \"number\",\n                    \"description\": \"Minimum withdrawal amount in human-readable token units; the requested amount must also exceed applicable fees.\",\n                    \"example\": 0.000001\n                  },\n                  \"on_chain_swap\": {\n                    \"type\": \"boolean\",\n                    \"description\": \"True, the asset is eligible for on-chain swaps on at least one supported blockchain\",\n                    \"example\": true\n                  },\n                  \"token_hash\": {\n                    \"type\": \"string\",\n                    \"example\": \"0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa\"\n                  },\n                  \"chain_details\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"chain_id\": {\n                          \"type\": \"string\",\n                          \"example\": \"196\"\n                        },\n                        \"contract_address\": {\n                          \"type\": \"string\",\n                          \"description\": \"ERC20 token address, or an empty string for native OKB on X Layer. Native OKB does not require ERC20 approval.\",\n                          \"example\": \"0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3\"\n                        },\n                        \"cross_chain_withdrawal_fee\": {\n                          \"type\": \"number\",\n                          \"description\": \"Additional cross-chain withdrawal fee in human-readable token units.\",\n                          \"example\": 0\n                        },\n                        \"decimals\": {\n                          \"type\": \"integer\",\n                          \"description\": \"On-chain token decimals. Native OKB on X Layer uses 18; this is distinct from the token-level ledger decimals.\",\n                          \"example\": 18\n                        },\n                        \"withdrawal_fee\": {\n                          \"type\": \"number\",\n                          \"description\": \"Withdrawal fee in human-readable token units, deducted from the requested gross amount. Native OKB currently uses 0.01.\",\n                          \"example\": 2\n                        },\n                        \"display_name\": {\n                          \"type\": \"string\",\n                          \"description\": \"`USDC.e` for `Mantle` chain\",\n                          \"example\": \"ETH\"\n                        },\n                        \"exclusive_deposit_supported\": {\n                          \"type\": \"boolean\",\n                          \"description\": \"Whether this token on this chain supports deposit via exclusive receiver address.\",\n                          \"example\": false\n                        }\n                      }\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/public/token';\nfetch(url).then(res => res.json()).then(console.log);",
@@ -1434,7 +1465,7 @@
         "path": "/v1/public/info",
         "method": "GET",
         "summary": "Get available symbols",
-        "description": "GET /v1/public/info\n\nGet available symbols that Orderly supports, and also send order rules for each symbol. The definition of rules can be found at [Get Order Rules per Market](/docs/build-on-omnichain/restful-api/public/get-order-rules-per-symbol)",
+        "description": "GET /v1/public/info\n\nGet available symbols that Orderly supports, and also send order rules for each symbol. The definition of rules can be found at [Get Order Rules per Market](/docs/build-on-omnichain/restful-api/public/get-order-rules-per-symbol)\n\nPredict symbols are not returned by this endpoint. Use GET /v1/public/binary/info for Predict round information.",
         "auth": false,
         "tags": [
           "public"
@@ -1453,10 +1484,118 @@
         "errors": []
       },
       {
+        "path": "/v1/public/binary/info",
+        "method": "GET",
+        "summary": "Get Orderly Predict round info for all rounds",
+        "description": "GET /v1/public/binary/info\n\nReturns a snapshot of up to the most recent 300 Predict rounds, newest first. Each row carries both the round's trading parameters and, once available, its result. There is no query filtering, scope, or pagination.\n\nThe snapshot refreshes about once per minute and includes rounds with status ACTIVE, DELISTING, RECYCLING, or DELISTED. Rounds that have not yet opened for trading (NEW, PENDING) are never included. A round reaching its order cutoff does not remove it from the snapshot; whether new orders are still accepted is governed by the order endpoints, not by this snapshot.\n\nMultiple rows can have status = ACTIVE at the same time, since several upcoming rounds are open for trading ahead of their strike. The row currently in its observation window is the ACTIVE row where observation_start_at <= server time < expire_at.\n\nThe permanent per-round symbol always comes from this endpoint (or from GET /v1/public/binary/info/{symbol}); clients must not construct it from any naming pattern.",
+        "auth": false,
+        "tags": [
+          "public"
+        ],
+        "rateLimit": null,
+        "parameters": [],
+        "requestBody": null,
+        "responses": [
+          {
+            "code": 200,
+            "description": "OK",
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"rows\"\n          ],\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"symbol\",\n                  \"product_type\",\n                  \"status\",\n                  \"activated_at\",\n                  \"observation_start_at\",\n                  \"expire_at\",\n                  \"s0\",\n                  \"index_price_symbol\",\n                  \"fee_model\",\n                  \"s1\",\n                  \"outcome\",\n                  \"settlement_price_per_share\",\n                  \"result_committed_at\",\n                  \"rule_version\",\n                  \"quote_min\",\n                  \"quote_max\",\n                  \"quote_tick\",\n                  \"base_min\",\n                  \"base_max\",\n                  \"base_tick\",\n                  \"min_notional\"\n                ],\n                \"properties\": {\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"description\": \"The round's permanent Predict symbol. Never constructed by the client.\",\n                    \"example\": \"<binary_symbol>\"\n                  },\n                  \"product_type\": {\n                    \"type\": \"string\",\n                    \"description\": \"Always `BINARY`. Clients use this field to classify the product and must not parse it from the symbol.\",\n                    \"example\": \"BINARY\"\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"description\": \"Round status. Only `ACTIVE`, `DELISTING`, `RECYCLING`, or `DELISTED`; trading controls never set another value.\",\n                    \"enum\": [\n                      \"ACTIVE\",\n                      \"DELISTING\",\n                      \"RECYCLING\",\n                      \"DELISTED\"\n                    ]\n                  },\n                  \"activated_at\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true,\n                    \"description\": \"When the round opened for trading (t_active). Null before it opens.\"\n                  },\n                  \"observation_start_at\": {\n                    \"type\": \"integer\",\n                    \"description\": \"t0, the time boundary used to record S0.\"\n                  },\n                  \"expire_at\": {\n                    \"type\": \"integer\",\n                    \"description\": \"t1, the expiry boundary for ordinary order placement, editing, and cancellation.\"\n                  },\n                  \"s0\": {\n                    \"type\": \"number\",\n                    \"nullable\": true,\n                    \"description\": \"S0. Null before t0 or before it has been recorded. This is the only S0 field; there is no `strike_price` alias.\"\n                  },\n                  \"index_price_symbol\": {\n                    \"type\": \"string\",\n                    \"description\": \"The underlying's Index symbol, formatted as `PERP_{underlying}_USDC`.\",\n                    \"example\": \"PERP_BTC_USDC\"\n                  },\n                  \"fee_model\": {\n                    \"type\": \"string\",\n                    \"description\": \"Always `BINARY_PROBABILITY`, meaning each fill is charged in USDC as `C x r x p x (1 - p)`, where `r` is the account's Predict maker or taker rate in bps divided by 10000.\",\n                    \"example\": \"BINARY_PROBABILITY\"\n                  },\n                  \"s1\": {\n                    \"type\": \"number\",\n                    \"nullable\": true,\n                    \"description\": \"S1. Always null before the result is published.\"\n                  },\n                  \"outcome\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"description\": \"`UP`, `DOWN`, or `TIE` once the result is published; null before that. `S1 > S0` is `UP`, `S1 < S0` is `DOWN`, `S1 = S0` is `TIE`.\",\n                    \"enum\": [\n                      \"UP\",\n                      \"DOWN\",\n                      \"TIE\"\n                    ]\n                  },\n                  \"settlement_price_per_share\": {\n                    \"type\": \"number\",\n                    \"nullable\": true,\n                    \"description\": \"Settlement price per share once the result is published. 1 or 0 for `UP`/`DOWN`; 0.5 per share on both UP and DOWN for `TIE`. Null before the result is published. This value is always the UP-book settlement price `R`; an UP position settles at `R` per share and a DOWN position settles at `1 - R` per share.\"\n                  },\n                  \"result_committed_at\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true,\n                    \"description\": \"When the result was first published. Null before that. Does not by itself mean a user's funds have settled; see `GET /v1/position_history`.\"\n                  },\n                  \"rule_version\": {\n                    \"type\": \"string\",\n                    \"description\": \"Always `binary-v1`.\",\n                    \"example\": \"binary-v1\"\n                  },\n                  \"quote_min\": {\n                    \"type\": \"number\",\n                    \"description\": \"Minimum order price. Currently fixed at `0.01`.\"\n                  },\n                  \"quote_max\": {\n                    \"type\": \"number\",\n                    \"description\": \"Maximum order price. Currently fixed at `0.99`.\"\n                  },\n                  \"quote_tick\": {\n                    \"type\": \"number\",\n                    \"description\": \"Order price tick size. Currently fixed at `0.01`.\"\n                  },\n                  \"base_min\": {\n                    \"type\": \"number\",\n                    \"description\": \"Minimum order quantity in shares. Currently fixed at `0.01`.\"\n                  },\n                  \"base_max\": {\n                    \"type\": \"number\",\n                    \"description\": \"Maximum order quantity in shares. Currently fixed at `10000`.\"\n                  },\n                  \"base_tick\": {\n                    \"type\": \"number\",\n                    \"description\": \"Order quantity tick size in shares. Currently fixed at `0.01`.\"\n                  },\n                  \"min_notional\": {\n                    \"type\": \"number\",\n                    \"description\": \"Minimum notional value. Currently fixed at `1`.\"\n                  },\n                  \"funding_period\": {\n                    \"type\": \"number\",\n                    \"description\": \"Funding period in hours, present when the corresponding configuration is available. Predict does not support liquidation, so `std_liquidation_fee`, `liquidator_fee`, `claim_insurance_fund_discount`, and `liquidation_tier` are omitted rather than zero-filled.\"\n                  },\n                  \"cap_funding\": {\n                    \"type\": \"number\"\n                  },\n                  \"floor_funding\": {\n                    \"type\": \"number\"\n                  },\n                  \"interest_rate\": {\n                    \"type\": \"number\"\n                  },\n                  \"cap_ir\": {\n                    \"type\": \"number\"\n                  },\n                  \"floor_ir\": {\n                    \"type\": \"number\"\n                  },\n                  \"imr_factor\": {\n                    \"type\": \"number\"\n                  },\n                  \"deviation_factor\": {\n                    \"type\": \"number\"\n                  },\n                  \"mark_index_price_deviation_floor\": {\n                    \"type\": \"number\"\n                  },\n                  \"mark_index_price_deviation_cap\": {\n                    \"type\": \"number\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+          }
+        ],
+        "example": "const url = 'https://api.orderly.org/v1/public/binary/info';\nfetch(url).then(res => res.json()).then(console.log);",
+        "errors": []
+      },
+      {
+        "path": "/v1/public/binary/info/{symbol}",
+        "method": "GET",
+        "summary": "Get Orderly Predict round info for one round",
+        "description": "GET /v1/public/binary/info/{symbol}\n\nReturns the full lifecycle information for a single Predict round, from when it opens for trading through result publication. Clients keep polling this same endpoint after expiry instead of switching to another endpoint.\n\nLooked up from the same snapshot as GET /v1/public/binary/info. Returns successfully even before the result is published; it never responds with a \"result not ready\" state. Returns RESOURCE_NOT_FOUND when the symbol does not exist, is not a Predict symbol, has not yet opened for trading, or has fallen outside the most recent 300 rounds.\n\nWhether the result has been published is determined only by whether result_committed_at has a value, never by status, s1, or outcome.",
+        "auth": false,
+        "tags": [
+          "public"
+        ],
+        "rateLimit": null,
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "type": "string",
+            "required": true,
+            "description": "The round's permanent Predict symbol, as returned by Predict info. Never constructed by the client.",
+            "example": "<binary_symbol>"
+          }
+        ],
+        "requestBody": null,
+        "responses": [
+          {
+            "code": 200,
+            "description": "OK",
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"allOf\": [\n            {\n              \"type\": \"object\",\n              \"required\": [\n                \"symbol\",\n                \"product_type\",\n                \"status\",\n                \"activated_at\",\n                \"observation_start_at\",\n                \"expire_at\",\n                \"s0\",\n                \"index_price_symbol\",\n                \"fee_model\",\n                \"s1\",\n                \"outcome\",\n                \"settlement_price_per_share\",\n                \"result_committed_at\",\n                \"rule_version\",\n                \"quote_min\",\n                \"quote_max\",\n                \"quote_tick\",\n                \"base_min\",\n                \"base_max\",\n                \"base_tick\",\n                \"min_notional\"\n              ],\n              \"properties\": {\n                \"symbol\": {\n                  \"type\": \"string\",\n                  \"description\": \"The round's permanent Predict symbol. Never constructed by the client.\",\n                  \"example\": \"<binary_symbol>\"\n                },\n                \"product_type\": {\n                  \"type\": \"string\",\n                  \"description\": \"Always `BINARY`. Clients use this field to classify the product and must not parse it from the symbol.\",\n                  \"example\": \"BINARY\"\n                },\n                \"status\": {\n                  \"type\": \"string\",\n                  \"description\": \"Round status. Only `ACTIVE`, `DELISTING`, `RECYCLING`, or `DELISTED`; trading controls never set another value.\",\n                  \"enum\": [\n                    \"ACTIVE\",\n                    \"DELISTING\",\n                    \"RECYCLING\",\n                    \"DELISTED\"\n                  ]\n                },\n                \"activated_at\": {\n                  \"type\": \"integer\",\n                  \"nullable\": true,\n                  \"description\": \"When the round opened for trading (t_active). Null before it opens.\"\n                },\n                \"observation_start_at\": {\n                  \"type\": \"integer\",\n                  \"description\": \"t0, the time boundary used to record S0.\"\n                },\n                \"expire_at\": {\n                  \"type\": \"integer\",\n                  \"description\": \"t1, the expiry boundary for ordinary order placement, editing, and cancellation.\"\n                },\n                \"s0\": {\n                  \"type\": \"number\",\n                  \"nullable\": true,\n                  \"description\": \"S0. Null before t0 or before it has been recorded. This is the only S0 field; there is no `strike_price` alias.\"\n                },\n                \"index_price_symbol\": {\n                  \"type\": \"string\",\n                  \"description\": \"The underlying's Index symbol, formatted as `PERP_{underlying}_USDC`.\",\n                  \"example\": \"PERP_BTC_USDC\"\n                },\n                \"fee_model\": {\n                  \"type\": \"string\",\n                  \"description\": \"Always `BINARY_PROBABILITY`, meaning each fill is charged in USDC as `C x r x p x (1 - p)`, where `r` is the account's Predict maker or taker rate in bps divided by 10000.\",\n                  \"example\": \"BINARY_PROBABILITY\"\n                },\n                \"s1\": {\n                  \"type\": \"number\",\n                  \"nullable\": true,\n                  \"description\": \"S1. Always null before the result is published.\"\n                },\n                \"outcome\": {\n                  \"type\": \"string\",\n                  \"nullable\": true,\n                  \"description\": \"`UP`, `DOWN`, or `TIE` once the result is published; null before that. `S1 > S0` is `UP`, `S1 < S0` is `DOWN`, `S1 = S0` is `TIE`.\",\n                  \"enum\": [\n                    \"UP\",\n                    \"DOWN\",\n                    \"TIE\"\n                  ]\n                },\n                \"settlement_price_per_share\": {\n                  \"type\": \"number\",\n                  \"nullable\": true,\n                  \"description\": \"Settlement price per share once the result is published. 1 or 0 for `UP`/`DOWN`; 0.5 per share on both UP and DOWN for `TIE`. Null before the result is published. This value is always the UP-book settlement price `R`; an UP position settles at `R` per share and a DOWN position settles at `1 - R` per share.\"\n                },\n                \"result_committed_at\": {\n                  \"type\": \"integer\",\n                  \"nullable\": true,\n                  \"description\": \"When the result was first published. Null before that. Does not by itself mean a user's funds have settled; see `GET /v1/position_history`.\"\n                },\n                \"rule_version\": {\n                  \"type\": \"string\",\n                  \"description\": \"Always `binary-v1`.\",\n                  \"example\": \"binary-v1\"\n                },\n                \"quote_min\": {\n                  \"type\": \"number\",\n                  \"description\": \"Minimum order price. Currently fixed at `0.01`.\"\n                },\n                \"quote_max\": {\n                  \"type\": \"number\",\n                  \"description\": \"Maximum order price. Currently fixed at `0.99`.\"\n                },\n                \"quote_tick\": {\n                  \"type\": \"number\",\n                  \"description\": \"Order price tick size. Currently fixed at `0.01`.\"\n                },\n                \"base_min\": {\n                  \"type\": \"number\",\n                  \"description\": \"Minimum order quantity in shares. Currently fixed at `0.01`.\"\n                },\n                \"base_max\": {\n                  \"type\": \"number\",\n                  \"description\": \"Maximum order quantity in shares. Currently fixed at `10000`.\"\n                },\n                \"base_tick\": {\n                  \"type\": \"number\",\n                  \"description\": \"Order quantity tick size in shares. Currently fixed at `0.01`.\"\n                },\n                \"min_notional\": {\n                  \"type\": \"number\",\n                  \"description\": \"Minimum notional value. Currently fixed at `1`.\"\n                },\n                \"funding_period\": {\n                  \"type\": \"number\",\n                  \"description\": \"Funding period in hours, present when the corresponding configuration is available. Predict does not support liquidation, so `std_liquidation_fee`, `liquidator_fee`, `claim_insurance_fund_discount`, and `liquidation_tier` are omitted rather than zero-filled.\"\n                },\n                \"cap_funding\": {\n                  \"type\": \"number\"\n                },\n                \"floor_funding\": {\n                  \"type\": \"number\"\n                },\n                \"interest_rate\": {\n                  \"type\": \"number\"\n                },\n                \"cap_ir\": {\n                  \"type\": \"number\"\n                },\n                \"floor_ir\": {\n                  \"type\": \"number\"\n                },\n                \"imr_factor\": {\n                  \"type\": \"number\"\n                },\n                \"deviation_factor\": {\n                  \"type\": \"number\"\n                },\n                \"mark_index_price_deviation_floor\": {\n                  \"type\": \"number\"\n                },\n                \"mark_index_price_deviation_cap\": {\n                  \"type\": \"number\"\n                }\n              }\n            },\n            {\n              \"type\": \"object\",\n              \"required\": [\n                \"price_evidence\",\n                \"manual_correction\"\n              ],\n              \"properties\": {\n                \"price_evidence\": {\n                  \"type\": \"object\",\n                  \"nullable\": true,\n                  \"description\": \"Null before the result is published. Not an independent evidence resource, actual price-fetch timestamp, or audit proof.\",\n                  \"properties\": {\n                    \"s0\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"price\": {\n                          \"type\": \"number\"\n                        },\n                        \"timestamp\": {\n                          \"type\": \"integer\"\n                        },\n                        \"source\": {\n                          \"type\": \"string\",\n                          \"example\": \"live\"\n                        }\n                      }\n                    },\n                    \"s1\": {\n                      \"type\": \"object\",\n                      \"properties\": {\n                        \"price\": {\n                          \"type\": \"number\"\n                        },\n                        \"timestamp\": {\n                          \"type\": \"integer\"\n                        },\n                        \"source\": {\n                          \"type\": \"string\",\n                          \"example\": \"live\"\n                        }\n                      }\n                    }\n                  }\n                },\n                \"manual_correction\": {\n                  \"type\": \"object\",\n                  \"nullable\": true,\n                  \"description\": \"Always null.\"\n                }\n              }\n            }\n          ]\n        }\n      }\n    }\n  ]\n}"
+          }
+        ],
+        "example": "const url = 'https://api.orderly.org/v1/public/binary/info/{symbol}';\nfetch(url).then(res => res.json()).then(console.log);",
+        "errors": []
+      },
+      {
+        "path": "/v1/public/index_price",
+        "method": "GET",
+        "summary": "Get index price history",
+        "description": "GET /v1/public/index_price\n\nReturns a fixed 1-second-granularity array of index prices for the given symbol over the requested time range. This endpoint is public and does not require authentication.\n\nThe query window must fall within the last 24 hours, with start_t less than end_t, and end_t not later than the current time. A single query must span at least 1 second and at most 10 minutes; a window outside that range returns a parameter error instead of being clipped.\n\nReturns only records that actually exist in the window, ordered ascending by timestamp; missing seconds are not backfilled and there is no guarantee of one record per second. Returns the earliest min(limit, 1000) records in the window. There is no pagination.",
+        "auth": false,
+        "tags": [
+          "public"
+        ],
+        "rateLimit": "10 requests per second per IP address",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "type": "string",
+            "required": true,
+            "description": "For example `PERP_BTC_USDC`. A syntactically valid symbol with no recorded data returns an empty array.",
+            "example": "PERP_BTC_USDC"
+          },
+          {
+            "name": "start_t",
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "description": "UTC epoch milliseconds, inclusive.",
+            "example": null
+          },
+          {
+            "name": "end_t",
+            "in": "query",
+            "type": "integer",
+            "required": true,
+            "description": "UTC epoch milliseconds, exclusive.",
+            "example": null
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "required": false,
+            "description": "Positive integer. Default and maximum 1000.",
+            "example": null
+          }
+        ],
+        "requestBody": null,
+        "responses": [
+          {
+            "code": 200,
+            "description": "OK",
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"timestamp\": {\n                \"type\": \"integer\"\n              },\n              \"index_price\": {\n                \"type\": \"number\"\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+          }
+        ],
+        "example": "const url = 'https://api.orderly.org/v1/public/index_price';\nfetch(url).then(res => res.json()).then(console.log);",
+        "errors": []
+      },
+      {
         "path": "/v1/public/index_price_source",
         "method": "GET",
         "summary": "Get index price source",
-        "description": "GET /v1/public/index_price_source\n\nRetrieves the available tokens to be used as collateral within Orderly.",
+        "description": "GET /v1/public/index_price_source\n\nRetrieves the configured index price sources for each symbol.\n\nThe sources array lists configured sources; it does not indicate which sources\nactually participated in the index price calculation at that moment. Actual\nparticipation depends on price availability, price validity, and effective weight.",
         "auth": false,
         "tags": [
           "public"
@@ -1468,7 +1607,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"rows\"\n          ],\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"description\": \"SPOT symbol name\",\n                    \"example\": \"SPOT_BNB_USDC\"\n                  },\n                  \"updated_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1710382176255\n                  },\n                  \"sources\": {\n                    \"type\": \"array\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"example\": [\n                      \"gateio\",\n                      \"kucoin\",\n                      \"binance\",\n                      \"okx\",\n                      \"huobi\",\n                      \"bybit\",\n                      \"mexc\"\n                    ]\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"rows\"\n          ],\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"description\": \"SPOT symbol name\",\n                    \"example\": \"SPOT_BNB_USDC\"\n                  },\n                  \"updated_time\": {\n                    \"type\": \"number\",\n                    \"example\": 1710382176255\n                  },\n                  \"sources\": {\n                    \"type\": \"array\",\n                    \"description\": \"Configured index price sources for this symbol. This list does not\\nindicate which sources actually participated in the calculation at\\nthat moment; participation depends on price availability, price\\nvalidity, and effective weight.\\n\",\n                    \"items\": {\n                      \"type\": \"string\"\n                    },\n                    \"example\": [\n                      \"gateio\",\n                      \"kucoin\",\n                      \"binance\",\n                      \"okx\",\n                      \"huobi\",\n                      \"bybit\",\n                      \"mexc\"\n                    ]\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/public/index_price_source';\nfetch(url).then(res => res.json()).then(console.log);",
@@ -1531,7 +1670,7 @@
         "path": "/v1/tv/history",
         "method": "GET",
         "summary": "Get tradingview history bars",
-        "description": "GET /v1/tv/history?symbol={}&resolution={}&from={}&to={}",
+        "description": "GET /v1/tv/history?symbol={}&resolution={}&from={}&to={}\n\n\nA Predict symbol returns s=no_data; Predict has no kline of its own.",
         "auth": false,
         "tags": [
           "public"
@@ -1617,13 +1756,21 @@
         "path": "/v1/positions",
         "method": "GET",
         "summary": "Get all positions info",
-        "description": "GET /v1/positions",
+        "description": "GET /v1/positions\n\n\nFor a Predict position, position_qty greater than 0 is UP, less than 0 is DOWN, and margin_mode is always ISOLATED. product_type only filters rows; account-level fields such as account_value and free_collateral keep their existing basis regardless of the filter.",
         "auth": true,
         "tags": [
           "private"
         ],
         "rateLimit": "30 requests per 10 second per user",
         "parameters": [
+          {
+            "name": "product_type",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Filter by product type. Only uppercase `PERP` or `BINARY` is accepted; omit to return all products. `PERP` includes all non-Predict products.",
+            "example": null
+          },
           {
             "name": "orderly-timestamp",
             "in": "header",
@@ -1798,7 +1945,7 @@
         "path": "/v1/position_history",
         "method": "GET",
         "summary": "Get position history",
-        "description": "GET /v1/position_history",
+        "description": "GET /v1/position_history\n\n\nFor a Predict round's expiry settlement segment, the row also carries outcome, settlement_price_per_share, and settled_at; these are null for a segment closed by an early exit. settled_at having a value means only that the system's expiry close for that segment is complete, not that any later fund transfer has finished.",
         "auth": true,
         "tags": [
           "private"
@@ -1811,6 +1958,14 @@
             "type": "string",
             "required": false,
             "description": "",
+            "example": null
+          },
+          {
+            "name": "product_type",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Filter by product type. Only uppercase `PERP` or `BINARY` is accepted; omit to return all products. `PERP` includes all non-Predict products.",
             "example": null
           },
           {
@@ -1859,7 +2014,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"position_id\": {\n                    \"type\": \"number\",\n                    \"example\": 1\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"closed\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"liquidated\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_ETH_USDC\"\n                  },\n                  \"avg_open_price\": {\n                    \"type\": \"number\",\n                    \"example\": 61016.1\n                  },\n                  \"avg_close_price\": {\n                    \"type\": \"number\",\n                    \"example\": 61016.1\n                  },\n                  \"max_position_qty\": {\n                    \"type\": \"number\",\n                    \"example\": 56.6\n                  },\n                  \"closed_position_qty\": {\n                    \"type\": \"number\",\n                    \"example\": 56.6\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"LONG\"\n                  },\n                  \"trading_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0.015\n                  },\n                  \"accumulated_funding_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0.11\n                  },\n                  \"insurance_fund_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"liquidator_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"liquidation_id\": {\n                    \"type\": \"number\",\n                    \"example\": null\n                  },\n                  \"realized_pnl\": {\n                    \"type\": \"number\",\n                    \"example\": -9.09691927314905\n                  },\n                  \"open_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"close_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"last_update_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"leverage\": {\n                    \"type\": \"integer\",\n                    \"example\": 10\n                  },\n                  \"margin_mode\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"CROSS\",\n                      \"ISOLATED\"\n                    ],\n                    \"example\": \"CROSS\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"rows\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"position_id\": {\n                    \"type\": \"number\",\n                    \"example\": 1\n                  },\n                  \"status\": {\n                    \"type\": \"string\",\n                    \"example\": \"closed\"\n                  },\n                  \"type\": {\n                    \"type\": \"string\",\n                    \"example\": \"liquidated\"\n                  },\n                  \"symbol\": {\n                    \"type\": \"string\",\n                    \"example\": \"PERP_ETH_USDC\"\n                  },\n                  \"avg_open_price\": {\n                    \"type\": \"number\",\n                    \"example\": 61016.1\n                  },\n                  \"avg_close_price\": {\n                    \"type\": \"number\",\n                    \"example\": 61016.1\n                  },\n                  \"max_position_qty\": {\n                    \"type\": \"number\",\n                    \"example\": 56.6\n                  },\n                  \"closed_position_qty\": {\n                    \"type\": \"number\",\n                    \"example\": 56.6\n                  },\n                  \"side\": {\n                    \"type\": \"string\",\n                    \"example\": \"LONG\"\n                  },\n                  \"trading_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0.015\n                  },\n                  \"accumulated_funding_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0.11\n                  },\n                  \"insurance_fund_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"liquidator_fee\": {\n                    \"type\": \"number\",\n                    \"example\": 0\n                  },\n                  \"liquidation_id\": {\n                    \"type\": \"number\",\n                    \"example\": null\n                  },\n                  \"realized_pnl\": {\n                    \"type\": \"number\",\n                    \"example\": -9.09691927314905\n                  },\n                  \"open_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"close_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"last_update_timestamp\": {\n                    \"type\": \"number\",\n                    \"example\": 1685429350571\n                  },\n                  \"leverage\": {\n                    \"type\": \"integer\",\n                    \"example\": 10\n                  },\n                  \"margin_mode\": {\n                    \"type\": \"string\",\n                    \"enum\": [\n                      \"CROSS\",\n                      \"ISOLATED\"\n                    ],\n                    \"example\": \"CROSS\"\n                  },\n                  \"outcome\": {\n                    \"type\": \"string\",\n                    \"nullable\": true,\n                    \"description\": \"`UP`, `DOWN`, or `TIE` for a Predict round's expiry settlement segment; null for a segment closed by an early exit. `TIE` is `S1 = S0`.\",\n                    \"enum\": [\n                      \"UP\",\n                      \"DOWN\",\n                      \"TIE\"\n                    ]\n                  },\n                  \"settlement_price_per_share\": {\n                    \"type\": \"number\",\n                    \"nullable\": true,\n                    \"description\": \"1 or 0 for a Predict round's expiry settlement segment; 0.5 per share on both sides when `outcome` is `TIE`; null for a segment closed by an early exit. This value is always the UP-book settlement price `R`; an UP position's segment settles at `R` per share and a DOWN position's segment settles at `1 - R` per share.\"\n                  },\n                  \"settled_at\": {\n                    \"type\": \"integer\",\n                    \"nullable\": true,\n                    \"description\": \"When the system's expiry close for this segment completed. Null for a segment closed by an early exit, or while the system has not yet fully closed it.\"\n                  }\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/position_history';\nconst timestamp = Date.now().toString();\nconst signature = signMessage(timestamp + 'GET' + '/v1/position_history');\n\nfetch(url, {\n  method: 'GET',\n  headers: {\n    'Content-Type': 'application/json',\n    'orderly-account-id': 'YOUR_ACCOUNT_ID',\n    'orderly-key': 'YOUR_PUBLIC_KEY',\n    'orderly-signature': signature,\n    'orderly-timestamp': timestamp\n  }\n}).then(res => res.json()).then(console.log);",
@@ -2090,7 +2245,7 @@
         "path": "/v1/client/leverages",
         "method": "POST",
         "summary": "Update leverage setting",
-        "description": "POST /v1/client/leverages\n\nUpdate leverage settings. This endpoint supports two modes:\n\n**Single symbol mode:** When symbol is provided, update leverage for that specific symbol.\n\n**Batch mode:** When symbol is omitted, set leverage for all symbols in a single atomic operation. Each symbol's new leverage will be adjusted to min(requested_leverage, symbol_max_leverage).\n\nFor example, if BTC max leverage is 100, ETH max leverage is 100, and NEAR max leverage is 10, and the user requests leverage = 20, the result will be: BTC = 20, ETH = 20, NEAR = 10.\n\nBatch update behavior with margin modes:\n- **Cross margin symbols:** A margin check is performed assuming all cross-margin symbols are updated to the new leverage. Either all cross-margin symbol leverages are updated successfully, or none are updated.\n- **Isolated margin symbols:** The leverage update will only apply to symbols with no active isolated positions or pending orders. The update for isolated margin symbols will always go through for eligible symbols.\n\nValidation Logic:\n\n1. Check the leverage range is eligible\n\n2. Check if the position notional under the updated leverage is acceptable\n   - max_notional = (1 / (symbol_leverage * imr_factor)) ^ (1/0.8)\n   - symbol_leverage_max = round down to int → min(1 / (imr_factor * notional ^ 0.8), 1/base_imr)\n\n3. Check if the margin is enough",
+        "description": "POST /v1/client/leverages\n\nUpdate leverage settings. This endpoint supports two modes:\n\n**Single symbol mode:** When symbol is provided, update leverage for that specific symbol.\n\n**Batch mode:** When symbol is omitted, set leverage for all symbols in a single atomic operation. Each symbol's new leverage will be adjusted to min(requested_leverage, symbol_max_leverage).\n\nFor example, if BTC max leverage is 100, ETH max leverage is 100, and NEAR max leverage is 10, and the user requests leverage = 20, the result will be: BTC = 20, ETH = 20, NEAR = 10.\n\nBatch update behavior with margin modes:\n- **Cross margin symbols:** A margin check is performed assuming all cross-margin symbols are updated to the new leverage. Either all cross-margin symbol leverages are updated successfully, or none are updated.\n- **Isolated margin symbols:** The leverage update will only apply to symbols with no active isolated positions or pending orders. The update for isolated margin symbols will always go through for eligible symbols.\n\nValidation Logic:\n\n1. Check the leverage range is eligible\n\n2. Check if the position notional under the updated leverage is acceptable\n   - max_notional = (1 / (symbol_leverage * imr_factor)) ^ (1/0.8)\n   - symbol_leverage_max = round down to int → min(1 / (imr_factor * notional ^ 0.8), 1/base_imr)\n\n3. Check if the margin is enough\n\n\nSetting leverage for a Predict symbol is always rejected, including setting it to 1. In batch mode (no symbol), Predict symbols are skipped rather than attempted; other symbols are still updated normally.",
         "auth": true,
         "tags": [
           "private"
@@ -2438,7 +2593,7 @@
         "path": "/v1/order",
         "method": "POST",
         "summary": "Create order",
-        "description": "POST /v1/order\n\nPlace order maker/taker, the order executed information will be update from websocket stream.\nwill response immediately with an order created message.\n\nMARKET type order behavior: it matches until the full size is executed. If the size is too large (larger than whole book) or the matching price exceeds the price limit (refer to price_range), then the remaining quantity will be cancelled.\n\nIOC type order behavior: it matches as much as possible at the order_price. If not fully executed, then remaining quantity will be cancelled.\n\nFOK type order behavior: if the order can be fully executed at the order_price then the order gets fully executed otherwise would be cancelled without any execution.\n\nPOST_ONLY type order behavior: if the order will be executed with any maker trades at the time of placement, then it will be cancelled without any execution. If a POST_ONLY order would match only with hidden quantity at the price level, the incoming POST_ONLY order is treated as the maker side for that execution and the resting hidden order is treated as the taker side.\n\nASK type order behavior: the order price is guranteed to be the best ask price of the orderbook at the time it gets accepted.\n\nBID type order behavior: the order price is guranteed to be the best bid price of the orderbook at the time it gets accepted.\n\nvisible_quantity behavior: it sets the maximum quantity to be shown on orderbook. By default, it is equal to order_quantity, negative number and number larger than order_quantity is not allowed. If it sets to 0, the order would be hidden from the orderbook. It doesn't work for MARKET/IOC/FOK orders since orders with these types would be executed and cancelled immediately and not be shown on orderbook. For LIMIT order, as long as it's not complete, visible_quantity is the maximum quantity that shown on orderbook. When hidden quantity is matched by a new incoming order, the hidden side is marked as taker and charged the taker fee. If an order has both hidden and visible quantity, the hidden quantity is matched before the visible quantity.\n\norder_quantity are provided. The precision of the number should be within 8 digits.\n\nclient_order_id behavior: customized order_id, a unique id among open orders. Orders with the same client_order_id can be accepted only when the previous one if completed, otherwise the order will be rejected.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "POST /v1/order\n\nPlace order maker/taker, the order executed information will be update from websocket stream.\nwill response immediately with an order created message.\n\nMARKET type order behavior: it matches until the full size is executed. If the size is too large (larger than whole book) or the matching price exceeds the price limit (refer to price_range), then the remaining quantity will be cancelled.\n\nIOC type order behavior: it matches as much as possible at the order_price. If not fully executed, then remaining quantity will be cancelled.\n\nFOK type order behavior: if the order can be fully executed at the order_price then the order gets fully executed otherwise would be cancelled without any execution.\n\nPOST_ONLY type order behavior: if the order will be executed with any maker trades at the time of placement, then it will be cancelled without any execution. If a POST_ONLY order would match only with hidden quantity at the price level, the incoming POST_ONLY order is treated as the maker side for that execution and the resting hidden order is treated as the taker side.\n\nASK type order behavior: the order price is guranteed to be the best ask price of the orderbook at the time it gets accepted.\n\nBID type order behavior: the order price is guranteed to be the best bid price of the orderbook at the time it gets accepted.\n\nvisible_quantity behavior: it sets the maximum quantity to be shown on orderbook. By default, it is equal to order_quantity, negative number and number larger than order_quantity is not allowed. If it sets to 0, the order would be hidden from the orderbook. It doesn't work for MARKET/IOC/FOK orders since orders with these types would be executed and cancelled immediately and not be shown on orderbook. For LIMIT order, as long as it's not complete, visible_quantity is the maximum quantity that shown on orderbook. When hidden quantity is matched by a new incoming order, the hidden side is marked as taker and charged the taker fee. If an order has both hidden and visible quantity, the hidden quantity is matched before the visible quantity.\n\norder_quantity are provided. The precision of the number should be within 8 digits.\n\nclient_order_id behavior: customized order_id, a unique id among open orders. Orders with the same client_order_id can be accepted only when the previous one if completed, otherwise the order will be rejected.\n\nFor a Predict symbol: margin_mode must be sent as ISOLATED, or the order is rejected with BINARY_MARGIN_MODE_NOT_SUPPORTED. Only LIMIT, POST_ONLY, and IOC with an explicit protection price are accepted; any other order_type (including MARKET, ASK, BID, FOK) is rejected with BINARY_ORDER_TYPE_NOT_SUPPORTED. order_price and order_quantity must satisfy the round's quote_min/quote_max/quote_tick and base_min/base_max/base_tick without any automatic rounding; out-of-range or off-tick values are rejected outright. min_notional is always validated against the UP-book order_price x order_quantity, for both BUY and SELL. Once the platform's receive time for the request reaches the round's order cutoff before expire_at, the order is rejected with ROUND_CLOSED; clients must not auto-resubmit to the next round.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -2506,7 +2661,7 @@
         "path": "/v1/order",
         "method": "DELETE",
         "summary": "Cancel order",
-        "description": "DELETE /v1/order?order_id={order_id}&symbol={symbol}\n\nCancels a single order by order_id.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "DELETE /v1/order?order_id={order_id}&symbol={symbol}\n\nCancels a single order by order_id.\n\n\nFor a Predict symbol: once the platform's receive time for the request reaches the round's order cutoff before expire_at, this returns ROUND_CLOSED.\n\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -2577,7 +2732,7 @@
         "path": "/v1/order",
         "method": "PUT",
         "summary": "Edit order",
-        "description": "PUT /v1/order\n\nEdit a pending order by order_id. Only the order_price or order_quantity can be amended.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "PUT /v1/order\n\nEdit a pending order by order_id. Only the order_price or order_quantity can be amended.\n\nFor a Predict symbol: the amended order_price must still satisfy the round's quote_min/quote_max/quote_tick or the edit is rejected outright; order_type remains limited to LIMIT, POST_ONLY, and IOC with a protection price. Once the platform's receive time for the request reaches the round's order cutoff before expire_at, this returns ROUND_CLOSED.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -2700,7 +2855,7 @@
         "path": "/v1/trades",
         "method": "GET",
         "summary": "Get trades",
-        "description": "GET /v1/trades\n\nReturn client's trades history within a time range.\n\nOnly return the latest 500 entries.",
+        "description": "GET /v1/trades\n\nReturn client's trades history within a time range.\n\nOnly return the latest 500 entries.\n\n\nFor a Predict fill, fee is the actual USDC fee for that fill, computed as C x r x p x (1 - p) (C the fill's executed_quantity, p the fill's executed_price, r the account's Predict maker or taker rate for that fill's role, as a decimal: r = binary_maker_fee_rate/binary_taker_fee_rate in bps divided by 10000) and rounded up per fill to quote-token precision. An order's total fee is the sum of its fills' fee; it is never recomputed from an average price.",
         "auth": true,
         "tags": [
           "private"
@@ -2713,6 +2868,14 @@
             "type": "string",
             "required": false,
             "description": "",
+            "example": null
+          },
+          {
+            "name": "product_type",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Filter by product type. Only uppercase `PERP` or `BINARY` is accepted; omit to return all products. `PERP` includes all non-Predict products.",
             "example": null
           },
           {
@@ -2973,7 +3136,7 @@
         "path": "/v1/position_margin",
         "method": "POST",
         "summary": "Add or reduce position margin",
-        "description": "POST /v1/position_margin\n\nAdd or reduce margin for an existing isolated margin position. This allows you to adjust the margin allocated to a specific isolated position after it has been opened.\n\n- ADD: Transfer margin from your available balance to the isolated position, lowering the liquidation price.\n- REDUCE: Transfer margin from the isolated position back to your available balance, raising the liquidation price.\n\n**Prerequisites:** You must have an open isolated position on the specified symbol.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "POST /v1/position_margin\n\nAdd or reduce margin for an existing isolated margin position. This allows you to adjust the margin allocated to a specific isolated position after it has been opened.\n\n- ADD: Transfer margin from your available balance to the isolated position, lowering the liquidation price.\n- REDUCE: Transfer margin from the isolated position back to your available balance, raising the liquidation price.\n\n**Prerequisites:** You must have an open isolated position on the specified symbol.\n\n\nRejected with INVALID_PARAMS for a Predict symbol; Predict positions cannot have margin manually added or removed.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -3133,7 +3296,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"required\": [\n        \"data\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"account_id\",\n            \"account_mode\",\n            \"email\",\n            \"futures_maker_fee_rate\",\n            \"futures_taker_fee_rate\",\n            \"imr_factor\",\n            \"maintenance_cancel_orders\",\n            \"maker_fee_rate\",\n            \"max_leverage\",\n            \"taker_fee_rate\"\n          ],\n          \"properties\": {\n            \"account_id\": {\n              \"description\": \"Account ID of the authenticated account.\",\n              \"type\": \"string\"\n            },\n            \"email\": {\n              \"description\": \"Email address bound to the account, when available.\",\n              \"type\": \"string\",\n              \"example\": \"test@test.com\"\n            },\n            \"account_mode\": {\n              \"type\": \"string\",\n              \"example\": \"FUTURES\",\n              \"description\": \"Account mode enabled for the account.\"\n            },\n            \"max_leverage\": {\n              \"description\": \"Maximum leverage available to the account.\",\n              \"type\": \"number\",\n              \"example\": 20\n            },\n            \"taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maintenance_cancel_orders\": {\n              \"description\": \"Whether pending orders are automatically canceled during maintenance.\",\n              \"type\": \"boolean\",\n              \"example\": true\n            },\n            \"imr_factor\": {\n              \"description\": \"Initial margin ratio factor configured for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 9.1e-8,\n                \"PERP_ETH_USDC\": 0.0000012345\n              }\n            },\n            \"max_notional\": {\n              \"description\": \"Maximum notional value allowed for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 10000000,\n                \"PERP_ETH_USDC\": 2000000\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"required\": [\n        \"data\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"account_id\",\n            \"account_mode\",\n            \"binary_maker_fee_rate\",\n            \"binary_taker_fee_rate\",\n            \"email\",\n            \"futures_maker_fee_rate\",\n            \"futures_taker_fee_rate\",\n            \"imr_factor\",\n            \"maintenance_cancel_orders\",\n            \"maker_fee_rate\",\n            \"max_leverage\",\n            \"taker_fee_rate\"\n          ],\n          \"properties\": {\n            \"account_id\": {\n              \"description\": \"Account ID of the authenticated account.\",\n              \"type\": \"string\"\n            },\n            \"email\": {\n              \"description\": \"Email address bound to the account, when available.\",\n              \"type\": \"string\",\n              \"example\": \"test@test.com\"\n            },\n            \"account_mode\": {\n              \"type\": \"string\",\n              \"example\": \"FUTURES\",\n              \"description\": \"Account mode enabled for the account.\"\n            },\n            \"max_leverage\": {\n              \"description\": \"Maximum leverage available to the account.\",\n              \"type\": \"number\",\n              \"example\": 20\n            },\n            \"taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"binary_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to Orderly Predict markets, in bps. A new account defaults to 300. Always present; a missing or invalid value must not be treated as a free (zero) rate.\",\n              \"type\": \"number\",\n              \"example\": 300\n            },\n            \"binary_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to Orderly Predict markets, in bps. A new account defaults to 0. Always present; a missing or invalid value must not be treated as a free (zero) rate.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maintenance_cancel_orders\": {\n              \"description\": \"Whether pending orders are automatically canceled during maintenance.\",\n              \"type\": \"boolean\",\n              \"example\": true\n            },\n            \"imr_factor\": {\n              \"description\": \"Initial margin ratio factor configured for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 9.1e-8,\n                \"PERP_ETH_USDC\": 0.0000012345\n              }\n            },\n            \"max_notional\": {\n              \"description\": \"Maximum notional value allowed for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 10000000,\n                \"PERP_ETH_USDC\": 2000000\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/client/info';\nconst timestamp = Date.now().toString();\nconst signature = signMessage(timestamp + 'GET' + '/v1/client/info');\n\nfetch(url, {\n  method: 'GET',\n  headers: {\n    'Content-Type': 'application/json',\n    'orderly-account-id': 'YOUR_ACCOUNT_ID',\n    'orderly-key': 'YOUR_PUBLIC_KEY',\n    'orderly-signature': signature,\n    'orderly-timestamp': timestamp\n  }\n}).then(res => res.json()).then(console.log);",
@@ -3231,6 +3394,14 @@
             "example": null
           },
           {
+            "name": "product_type",
+            "in": "query",
+            "type": "string",
+            "required": false,
+            "description": "Filter by product type. Only uppercase `PERP` or `BINARY` is accepted; omit to return all products. `PERP` includes all non-Predict products.",
+            "example": null
+          },
+          {
             "name": "orderly-timestamp",
             "in": "header",
             "type": "string",
@@ -3278,7 +3449,7 @@
         "path": "/v1/orders",
         "method": "DELETE",
         "summary": "Cancel all pending orders",
-        "description": "DELETE /v1/orders?symbol={symbol}\n\nCancel a list of orders, filtered by symbol optionally. This request will cancel all open orders within the filter criteria, and will cancel all open orders if no filter is provided.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "DELETE /v1/orders?symbol={symbol}\n\nCancel a list of orders, filtered by symbol optionally. This request will cancel all open orders within the filter criteria, and will cancel all open orders if no filter is provided.\n\nWhen no symbol is given, Predict rounds that are already past their order cutoff are skipped rather than attempted, and this does not produce an error; other targets are still cancelled normally. A single Predict symbol past cutoff returns ROUND_CLOSED when that symbol is requested explicitly.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -3946,7 +4117,7 @@
         "requestBody": {
           "description": "",
           "contentType": "application/json",
-          "schema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"message\",\n    \"signature\",\n    \"userAddress\"\n  ],\n  \"properties\": {\n    \"message\": {\n      \"type\": \"object\",\n      \"required\": [\n        \"brokerId\",\n        \"chainId\",\n        \"expiration\",\n        \"orderlyKey\",\n        \"scope\",\n        \"timestamp\"\n      ],\n      \"properties\": {\n        \"brokerId\": {\n          \"type\": \"string\",\n          \"description\": \"Builder ID\"\n        },\n        \"chainId\": {\n          \"type\": \"integer\",\n          \"description\": \"Chain ID of registering chain (within those that are supported by the Network)\"\n        },\n        \"chainType\": {\n          \"type\": \"string\",\n          \"description\": \"`EVM` or `SOL`\"\n        },\n        \"orderlyKey\": {\n          \"type\": \"string\",\n          \"description\": \"orderly key to be added\"\n        },\n        \"scope\": {\n          \"type\": \"string\",\n          \"description\": \"Valid scopes are `read`, `trading`, and `asset`. Scopes are independent: `trading` does not grant `read`. Send multiple scopes as a comma-separated string, such as `read,trading`, for a key that needs both private data access and trading access.\",\n          \"example\": \"read,trading\"\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"description\": \"timestamp in UNIX milliseconds\"\n        },\n        \"expiration\": {\n          \"type\": \"number\",\n          \"description\": \"Expiration time of the key in UNIX milliseconds. The maximum allowed expiration is 365 days from creation.\"\n        },\n        \"tag\": {\n          \"type\": \"string\",\n          \"description\": \"An optional tag of string values.\"\n        },\n        \"subAccountId\": {\n          \"type\": \"string\",\n          \"description\": \"Creates the orderly key for the specified sub account ID.\"\n        }\n      },\n      \"description\": \"Message object containing the message that is signed by the wallet owner\"\n    },\n    \"signature\": {\n      \"type\": \"string\",\n      \"description\": \"The signature generated by signing the message object via EIP-712\"\n    },\n    \"userAddress\": {\n      \"type\": \"string\",\n      \"description\": \"The address of the wallet signing the message object via EIP-712\"\n    }\n  }\n}",
+          "schema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"message\",\n    \"signature\",\n    \"userAddress\"\n  ],\n  \"properties\": {\n    \"message\": {\n      \"type\": \"object\",\n      \"required\": [\n        \"brokerId\",\n        \"chainId\",\n        \"expiration\",\n        \"orderlyKey\",\n        \"scope\",\n        \"timestamp\"\n      ],\n      \"properties\": {\n        \"brokerId\": {\n          \"type\": \"string\",\n          \"description\": \"Builder ID\"\n        },\n        \"chainId\": {\n          \"type\": \"integer\",\n          \"description\": \"Chain ID of registering chain (within those that are supported by the Network)\"\n        },\n        \"chainType\": {\n          \"type\": \"string\",\n          \"description\": \"`EVM` or `SOL`\"\n        },\n        \"orderlyKey\": {\n          \"type\": \"string\",\n          \"description\": \"orderly key to be added\"\n        },\n        \"scope\": {\n          \"type\": \"string\",\n          \"description\": \"Choose `read` or `trading` according to the permissions needed. Scopes are independent: `trading` does not grant `read`. Use `read,trading` when both private data access and trading access are needed.\",\n          \"example\": \"read,trading\"\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"description\": \"timestamp in UNIX milliseconds\"\n        },\n        \"expiration\": {\n          \"type\": \"number\",\n          \"description\": \"Expiration time of the key in UNIX milliseconds. The maximum allowed expiration is 365 days from creation.\"\n        },\n        \"tag\": {\n          \"type\": \"string\",\n          \"description\": \"An optional tag of string values.\"\n        },\n        \"subAccountId\": {\n          \"type\": \"string\",\n          \"description\": \"Creates the orderly key for the specified sub account ID.\"\n        }\n      },\n      \"description\": \"Message object containing the message that is signed by the wallet owner\"\n    },\n    \"signature\": {\n      \"type\": \"string\",\n      \"description\": \"The signature generated by signing the message object via EIP-712\"\n    },\n    \"userAddress\": {\n      \"type\": \"string\",\n      \"description\": \"The address of the wallet signing the message object via EIP-712\"\n    }\n  }\n}",
           "required": false
         },
         "responses": [
@@ -4132,7 +4303,7 @@
         "path": "/v1/batch-order",
         "method": "POST",
         "summary": "Batch create order",
-        "description": "POST /v1/batch-order\n\nCreates up to 10 orders in one request. Send the orders in the orders JSON array. Each order in the request counts as one order toward the overall create order rate limit.\n\nSupports reduce-only orders. Set reduce_only: true on an individual item in the orders array to restrict that order to reducing an existing position. Configure this flag independently for each order in the batch.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "POST /v1/batch-order\n\nCreates up to 10 orders in one request. Send the orders in the orders JSON array. Each order in the request counts as one order toward the overall create order rate limit.\n\nSupports reduce-only orders. Set reduce_only: true on an individual item in the orders array to restrict that order to reducing an existing position. Configure this flag independently for each order in the batch.\nEach Predict item in the array follows the same Predict validation as POST /v1/order (margin_mode must be ISOLATED, order_type limited to LIMIT, POST_ONLY, and IOC with a protection price, price/quantity bounds enforced without rounding, min_notional validated against the UP-book notional). Each item is evaluated against its own round's order cutoff independently; an item past cutoff is rejected with ROUND_CLOSED without affecting the other items.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -4200,7 +4371,7 @@
         "path": "/v1/batch-order",
         "method": "DELETE",
         "summary": "Batch cancel orders",
-        "description": "DELETE /v1/batch-order?order_ids={order_id1},{order_id2}\n\nCancel a list of orders by order_ids. The maximum orders that can be cancelled within 1 batch cancel request is 10. \n\nThis endpoint will return invalid order_id error if 0 order_ids are given or all of the given order_ids are invalid. \n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "DELETE /v1/batch-order?order_ids={order_id1},{order_id2}\n\nCancel a list of orders by order_ids. The maximum orders that can be cancelled within 1 batch cancel request is 10. \n\nThis endpoint will return invalid order_id error if 0 order_ids are given or all of the given order_ids are invalid. \n\nFor a Predict order, once the platform's receive time for the request reaches that round's order cutoff before expire_at, that item returns ROUND_CLOSED.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -4263,7 +4434,7 @@
         "path": "/v1/client/order",
         "method": "DELETE",
         "summary": "Cancel order by client_order_id",
-        "description": "DELETE /v1/client/order?client_order_id={client_order_id}&symbol={symbol}\n\nCancel an order by client_order_id.\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "DELETE /v1/client/order?client_order_id={client_order_id}&symbol={symbol}\n\nCancel an order by client_order_id.\n\nFor a Predict symbol, once the platform's receive time for the request reaches the round's order cutoff before expire_at, this returns ROUND_CLOSED.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -4334,7 +4505,7 @@
         "path": "/v1/client/batch-order",
         "method": "DELETE",
         "summary": "Batch cancel orders by client_order_id",
-        "description": "DELETE /v1/client/batch-order?client_order_ids={client_order_id1},{client_order_id2}\n\nCancel a list of orders by client_order_ids. The maximum orders that can be cancelled within 1 batch cancel request is 10.\n\nThis endpoint will return invalid client_order_id error if 0 client_order_ids are given or all of the given client_order_ids are invalid. \n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "DELETE /v1/client/batch-order?client_order_ids={client_order_id1},{client_order_id2}\n\nCancel a list of orders by client_order_ids. The maximum orders that can be cancelled within 1 batch cancel request is 10.\n\nThis endpoint will return invalid client_order_id error if 0 client_order_ids are given or all of the given client_order_ids are invalid. \n\nFor a Predict order, once the platform's receive time for the request reaches that round's order cutoff before expire_at, that item returns ROUND_CLOSED.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -4460,7 +4631,7 @@
         "path": "/v1/orderbook/{symbol}",
         "method": "GET",
         "summary": "Orderbook snapshot",
-        "description": "GET /v1/orderbook/{symbol}\n\nSnapshot of the current orderbook. Price of asks/bids are in descending order.",
+        "description": "GET /v1/orderbook/{symbol}\n\nSnapshot of the current orderbook. Price of asks/bids are in descending order.\n\nFor a Predict symbol, the response also includes down_asks and down_bids, a server-derived DOWN book computed from the same UP snapshot. asks and bids keep their existing UP semantics and payload; all four arrays share the same timestamp.",
         "auth": true,
         "tags": [
           "private"
@@ -4521,7 +4692,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"asks\",\n            \"bids\",\n            \"timestamp\"\n          ],\n          \"properties\": {\n            \"asks\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"price\",\n                  \"quantity\"\n                ],\n                \"properties\": {\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 10669.4\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 1.56263218\n                  }\n                }\n              }\n            },\n            \"bids\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"$ref\": \"#/components/schemas/OrderbookEntry\"\n              }\n            },\n            \"timestamp\": {\n              \"type\": \"integer\",\n              \"description\": \"Unix epoch time in milliseconds\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"asks\",\n            \"bids\",\n            \"timestamp\"\n          ],\n          \"properties\": {\n            \"asks\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": \"object\",\n                \"required\": [\n                  \"price\",\n                  \"quantity\"\n                ],\n                \"properties\": {\n                  \"price\": {\n                    \"type\": \"number\",\n                    \"example\": 10669.4\n                  },\n                  \"quantity\": {\n                    \"type\": \"number\",\n                    \"example\": 1.56263218\n                  }\n                }\n              }\n            },\n            \"bids\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"$ref\": \"#/components/schemas/OrderbookEntry\"\n              }\n            },\n            \"down_asks\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"$ref\": \"#/components/schemas/OrderbookEntry\"\n              },\n              \"description\": \"Present only for Predict symbols. Derived from UP `bids` as `1 - price` per level, ordered lowest price first.\"\n            },\n            \"down_bids\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"$ref\": \"#/components/schemas/OrderbookEntry\"\n              },\n              \"description\": \"Present only for Predict symbols. Derived from UP `asks` as `1 - price` per level, ordered highest price first.\"\n            },\n            \"timestamp\": {\n              \"type\": \"integer\",\n              \"description\": \"Unix epoch time in milliseconds\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/orderbook/{symbol}';\nconst timestamp = Date.now().toString();\nconst signature = signMessage(timestamp + 'GET' + '/v1/orderbook/{symbol}');\n\nfetch(url, {\n  method: 'GET',\n  headers: {\n    'Content-Type': 'application/json',\n    'orderly-account-id': 'YOUR_ACCOUNT_ID',\n    'orderly-key': 'YOUR_PUBLIC_KEY',\n    'orderly-signature': signature,\n    'orderly-timestamp': timestamp\n  }\n}).then(res => res.json()).then(console.log);",
@@ -4531,7 +4702,7 @@
         "path": "/v1/kline",
         "method": "GET",
         "summary": "Get kline",
-        "description": "GET /v1/kline\n\nGet the latest klines (OHLC) of the specified symbol.\n\nPlease note that for symbols with low trading activity, the kline might be generated through the mid price of the orderbook in addition to any executed trades on the platform.",
+        "description": "GET /v1/kline\n\nGet the latest klines (OHLC) of the specified symbol.\n\nPlease note that for symbols with low trading activity, the kline might be generated through the mid price of the orderbook in addition to any executed trades on the platform.\n\nA Predict symbol returns empty rows; Predict has no kline of its own. Query the underlying PERP_BTC_USDC instead.",
         "auth": false,
         "tags": [
           "public"
@@ -5509,7 +5680,7 @@
         "path": "/v1/internal_transfer_history",
         "method": "GET",
         "summary": "Get internal transfer history",
-        "description": "GET /v1/internal_transfer_history\n\nOrderly key must has asset scope to access this endpoint.",
+        "description": "GET /v1/internal_transfer_history\n\nReturns internal transfer history for the authenticated account.",
         "auth": true,
         "tags": [
           "private"
@@ -6238,7 +6409,7 @@
         "path": "/v1/algo/order",
         "method": "POST",
         "summary": "Create algo order",
-        "description": "POST /v1/algo/order\n\nPlace maker/taker order that requires an additional trigger for order execution such as stop orders.\n\nSTOP type order bahavior: an order to buy or sell at the market/limit price once the asset has traded at or through a specified price (the \"stop price\"). If the asset reaches the stop price, the order becomes a market order and is filled at the next available market price.\n\nTo place Positional TP/SL order, the input fields is 2 layer and includes an array of the objects named childOrder. The take-profit or stop-loss order should be the objects in the array. For the sub-order in childOrder, please input CLOSE_POSITION as type, and TAKE_PROFIT or STOP_LOSS in algoType field.\nTo place Trailing Stop order, please use TRAILING_STOP as algoType and MARKET as type. Please also input your trailing rate setting in callbackRate field.\n\nSample request can be found [here](/docs/build-on-omnichain/user-flows/algo-order-samples)\n\nNote: This endpoint requires trading scope in orderly key.",
+        "description": "POST /v1/algo/order\n\nPlace maker/taker order that requires an additional trigger for order execution such as stop orders.\n\nSTOP type order bahavior: an order to buy or sell at the market/limit price once the asset has traded at or through a specified price (the \"stop price\"). If the asset reaches the stop price, the order becomes a market order and is filled at the next available market price.\n\nTo place Positional TP/SL order, the input fields is 2 layer and includes an array of the objects named childOrder. The take-profit or stop-loss order should be the objects in the array. For the sub-order in childOrder, please input CLOSE_POSITION as type, and TAKE_PROFIT or STOP_LOSS in algoType field.\nTo place Trailing Stop order, please use TRAILING_STOP as algoType and MARKET as type. Please also input your trailing rate setting in callbackRate field.\n\nSample request can be found [here](/docs/build-on-omnichain/user-flows/algo-order-samples)\n\nAlgo orders are rejected for Predict symbols.\n\nNote: This endpoint requires trading scope in orderly key.",
         "auth": true,
         "tags": [
           "private"
@@ -10600,7 +10771,7 @@
         "requestBody": {
           "description": "",
           "contentType": "application/json",
-          "schema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"message\",\n    \"signature\",\n    \"userAddress\"\n  ],\n  \"properties\": {\n    \"message\": {\n      \"type\": \"object\",\n      \"required\": [\n        \"delegateContract\",\n        \"brokerId\",\n        \"chainId\",\n        \"expiration\",\n        \"orderlyKey\",\n        \"scope\",\n        \"timestamp\"\n      ],\n      \"properties\": {\n        \"delegateContract\": {\n          \"type\": \"string\",\n          \"description\": \"Delegate contract address authorized to act for the account.\"\n        },\n        \"brokerId\": {\n          \"type\": \"string\",\n          \"description\": \"Builder ID\"\n        },\n        \"chainId\": {\n          \"type\": \"integer\",\n          \"description\": \"Chain ID of registering chain (within those that are supported by the Network)\"\n        },\n        \"orderlyKey\": {\n          \"type\": \"string\",\n          \"description\": \"orderly key to be added\"\n        },\n        \"scope\": {\n          \"type\": \"string\",\n          \"description\": \"Valid scopes are `read`, `trading`, and `asset`. Scopes are independent: `trading` does not grant `read`. Send multiple scopes as a comma-separated string, such as `read,trading`, for a key that needs both private data access and trading access.\",\n          \"example\": \"read,trading\"\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"description\": \"timestamp in UNIX milliseconds\"\n        },\n        \"expiration\": {\n          \"type\": \"number\",\n          \"description\": \"Expiration time of the key in UNIX milliseconds. The maximum allowed expiration is 365 days from creation.\"\n        }\n      },\n      \"description\": \"Message object containing the message that is signed by the wallet owner\"\n    },\n    \"signature\": {\n      \"type\": \"string\",\n      \"description\": \"Signature generated by signing the message object.\"\n    },\n    \"userAddress\": {\n      \"type\": \"string\",\n      \"description\": \"Address of the wallet that signed the message object.\"\n    }\n  }\n}",
+          "schema": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"message\",\n    \"signature\",\n    \"userAddress\"\n  ],\n  \"properties\": {\n    \"message\": {\n      \"type\": \"object\",\n      \"required\": [\n        \"delegateContract\",\n        \"brokerId\",\n        \"chainId\",\n        \"expiration\",\n        \"orderlyKey\",\n        \"scope\",\n        \"timestamp\"\n      ],\n      \"properties\": {\n        \"delegateContract\": {\n          \"type\": \"string\",\n          \"description\": \"Delegate contract address authorized to act for the account.\"\n        },\n        \"brokerId\": {\n          \"type\": \"string\",\n          \"description\": \"Builder ID\"\n        },\n        \"chainId\": {\n          \"type\": \"integer\",\n          \"description\": \"Chain ID of registering chain (within those that are supported by the Network)\"\n        },\n        \"orderlyKey\": {\n          \"type\": \"string\",\n          \"description\": \"orderly key to be added\"\n        },\n        \"scope\": {\n          \"type\": \"string\",\n          \"description\": \"Choose `read` or `trading` according to the permissions needed. Scopes are independent: `trading` does not grant `read`. Use `read,trading` when both private data access and trading access are needed.\",\n          \"example\": \"read,trading\"\n        },\n        \"timestamp\": {\n          \"type\": \"number\",\n          \"description\": \"timestamp in UNIX milliseconds\"\n        },\n        \"expiration\": {\n          \"type\": \"number\",\n          \"description\": \"Expiration time of the key in UNIX milliseconds. The maximum allowed expiration is 365 days from creation.\"\n        }\n      },\n      \"description\": \"Message object containing the message that is signed by the wallet owner\"\n    },\n    \"signature\": {\n      \"type\": \"string\",\n      \"description\": \"Signature generated by signing the message object.\"\n    },\n    \"userAddress\": {\n      \"type\": \"string\",\n      \"description\": \"Address of the wallet that signed the message object.\"\n    }\n  }\n}",
           "required": false
         },
         "responses": [
@@ -12457,7 +12628,7 @@
           {
             "code": 200,
             "description": "OK",
-            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"required\": [\n        \"data\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"account_id\",\n            \"account_mode\",\n            \"email\",\n            \"futures_maker_fee_rate\",\n            \"futures_taker_fee_rate\",\n            \"imr_factor\",\n            \"maintenance_cancel_orders\",\n            \"maker_fee_rate\",\n            \"max_leverage\",\n            \"taker_fee_rate\"\n          ],\n          \"properties\": {\n            \"account_id\": {\n              \"description\": \"Account ID of the authenticated account.\",\n              \"type\": \"string\"\n            },\n            \"email\": {\n              \"description\": \"Email address bound to the account, when available.\",\n              \"type\": \"string\",\n              \"example\": \"test@test.com\"\n            },\n            \"account_mode\": {\n              \"type\": \"string\",\n              \"example\": \"FUTURES\",\n              \"description\": \"Account mode enabled for the account.\"\n            },\n            \"max_leverage\": {\n              \"description\": \"Maximum leverage available to the account.\",\n              \"type\": \"number\",\n              \"example\": 20\n            },\n            \"taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maintenance_cancel_orders\": {\n              \"description\": \"Whether pending orders are automatically canceled during maintenance.\",\n              \"type\": \"boolean\",\n              \"example\": true\n            },\n            \"imr_factor\": {\n              \"description\": \"Initial margin ratio factor configured for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 9.1e-8,\n                \"PERP_ETH_USDC\": 0.0000012345\n              }\n            },\n            \"max_notional\": {\n              \"description\": \"Maximum notional value allowed for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 10000000,\n                \"PERP_ETH_USDC\": 2000000\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
+            "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"required\": [\n        \"data\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"account_id\",\n            \"account_mode\",\n            \"binary_maker_fee_rate\",\n            \"binary_taker_fee_rate\",\n            \"email\",\n            \"futures_maker_fee_rate\",\n            \"futures_taker_fee_rate\",\n            \"imr_factor\",\n            \"maintenance_cancel_orders\",\n            \"maker_fee_rate\",\n            \"max_leverage\",\n            \"taker_fee_rate\"\n          ],\n          \"properties\": {\n            \"account_id\": {\n              \"description\": \"Account ID of the authenticated account.\",\n              \"type\": \"string\"\n            },\n            \"email\": {\n              \"description\": \"Email address bound to the account, when available.\",\n              \"type\": \"string\",\n              \"example\": \"test@test.com\"\n            },\n            \"account_mode\": {\n              \"type\": \"string\",\n              \"example\": \"FUTURES\",\n              \"description\": \"Account mode enabled for the account.\"\n            },\n            \"max_leverage\": {\n              \"description\": \"Maximum leverage available to the account.\",\n              \"type\": \"number\",\n              \"example\": 20\n            },\n            \"taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to standard markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"rwa_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to RWA markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"binary_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to Orderly Predict markets, in bps. A new account defaults to 300. Always present; a missing or invalid value must not be treated as a free (zero) rate.\",\n              \"type\": \"number\",\n              \"example\": 300\n            },\n            \"binary_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to Orderly Predict markets, in bps. A new account defaults to 0. Always present; a missing or invalid value must not be treated as a free (zero) rate.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_taker_fee_rate\": {\n              \"description\": \"Taker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"futures_maker_fee_rate\": {\n              \"description\": \"Maker fee rate applied to perpetual futures markets.\",\n              \"type\": \"number\",\n              \"example\": 0\n            },\n            \"maintenance_cancel_orders\": {\n              \"description\": \"Whether pending orders are automatically canceled during maintenance.\",\n              \"type\": \"boolean\",\n              \"example\": true\n            },\n            \"imr_factor\": {\n              \"description\": \"Initial margin ratio factor configured for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 9.1e-8,\n                \"PERP_ETH_USDC\": 0.0000012345\n              }\n            },\n            \"max_notional\": {\n              \"description\": \"Maximum notional value allowed for each symbol.\",\n              \"type\": \"object\",\n              \"additionalProperties\": {\n                \"type\": \"number\"\n              },\n              \"example\": {\n                \"PERP_BTC_USDC\": 10000000,\n                \"PERP_ETH_USDC\": 2000000\n              }\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
         "example": "const url = 'https://api.orderly.org/v1/admin/client/info';\nconst timestamp = Date.now().toString();\nconst signature = signMessage(timestamp + 'GET' + '/v1/admin/client/info');\n\nfetch(url, {\n  method: 'GET',\n  headers: {\n    'Content-Type': 'application/json',\n    'orderly-account-id': 'YOUR_ACCOUNT_ID',\n    'orderly-key': 'YOUR_PUBLIC_KEY',\n    'orderly-signature': signature,\n    'orderly-timestamp': timestamp\n  }\n}).then(res => res.json()).then(console.log);",
@@ -15156,6 +15327,12 @@
     },
     {
       "name": "GetIpInfoResponse",
+      "description": "",
+      "type": "unknown",
+      "properties": null
+    },
+    {
+      "name": "GetProductRestrictedAreasResponse",
       "description": "",
       "type": "unknown",
       "properties": null
@@ -19113,6 +19290,394 @@
       "properties": null
     },
     {
+      "name": "BinaryRoundInfoRow",
+      "description": "",
+      "type": "object",
+      "properties": [
+        {
+          "name": "symbol",
+          "type": "object",
+          "description": "The round's permanent Predict symbol. Never constructed by the client.",
+          "required": true,
+          "example": "<binary_symbol>",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "product_type",
+          "type": "object",
+          "description": "Always `BINARY`. Clients use this field to classify the product and must not parse it from the symbol.",
+          "required": true,
+          "example": "BINARY",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "status",
+          "type": "object",
+          "description": "Round status. Only `ACTIVE`, `DELISTING`, `RECYCLING`, or `DELISTED`; trading controls never set another value.",
+          "required": true,
+          "example": null,
+          "enum": [
+            "ACTIVE",
+            "DELISTING",
+            "RECYCLING",
+            "DELISTED"
+          ],
+          "format": null
+        },
+        {
+          "name": "activated_at",
+          "type": "object",
+          "description": "When the round opened for trading (t_active). Null before it opens.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "observation_start_at",
+          "type": "object",
+          "description": "t0, the time boundary used to record S0.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "expire_at",
+          "type": "object",
+          "description": "t1, the expiry boundary for ordinary order placement, editing, and cancellation.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "s0",
+          "type": "object",
+          "description": "S0. Null before t0 or before it has been recorded. This is the only S0 field; there is no `strike_price` alias.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "index_price_symbol",
+          "type": "object",
+          "description": "The underlying's Index symbol, formatted as `PERP_{underlying}_USDC`.",
+          "required": true,
+          "example": "PERP_BTC_USDC",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "fee_model",
+          "type": "object",
+          "description": "Always `BINARY_PROBABILITY`, meaning each fill is charged in USDC as `C x r x p x (1 - p)`, where `r` is the account's Predict maker or taker rate in bps divided by 10000.",
+          "required": true,
+          "example": "BINARY_PROBABILITY",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "s1",
+          "type": "object",
+          "description": "S1. Always null before the result is published.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "outcome",
+          "type": "object",
+          "description": "`UP`, `DOWN`, or `TIE` once the result is published; null before that. `S1 > S0` is `UP`, `S1 < S0` is `DOWN`, `S1 = S0` is `TIE`.",
+          "required": true,
+          "example": null,
+          "enum": [
+            "UP",
+            "DOWN",
+            "TIE"
+          ],
+          "format": null
+        },
+        {
+          "name": "settlement_price_per_share",
+          "type": "object",
+          "description": "Settlement price per share once the result is published. 1 or 0 for `UP`/`DOWN`; 0.5 per share on both UP and DOWN for `TIE`. Null before the result is published. This value is always the UP-book settlement price `R`; an UP position settles at `R` per share and a DOWN position settles at `1 - R` per share.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "result_committed_at",
+          "type": "object",
+          "description": "When the result was first published. Null before that. Does not by itself mean a user's funds have settled; see `GET /v1/position_history`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "rule_version",
+          "type": "object",
+          "description": "Always `binary-v1`.",
+          "required": true,
+          "example": "binary-v1",
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "quote_min",
+          "type": "object",
+          "description": "Minimum order price. Currently fixed at `0.01`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "quote_max",
+          "type": "object",
+          "description": "Maximum order price. Currently fixed at `0.99`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "quote_tick",
+          "type": "object",
+          "description": "Order price tick size. Currently fixed at `0.01`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "base_min",
+          "type": "object",
+          "description": "Minimum order quantity in shares. Currently fixed at `0.01`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "base_max",
+          "type": "object",
+          "description": "Maximum order quantity in shares. Currently fixed at `10000`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "base_tick",
+          "type": "object",
+          "description": "Order quantity tick size in shares. Currently fixed at `0.01`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "min_notional",
+          "type": "object",
+          "description": "Minimum notional value. Currently fixed at `1`.",
+          "required": true,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "funding_period",
+          "type": "object",
+          "description": "Funding period in hours, present when the corresponding configuration is available. Predict does not support liquidation, so `std_liquidation_fee`, `liquidator_fee`, `claim_insurance_fund_discount`, and `liquidation_tier` are omitted rather than zero-filled.",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "cap_funding",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "floor_funding",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "interest_rate",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "cap_ir",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "floor_ir",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "imr_factor",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "deviation_factor",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "mark_index_price_deviation_floor",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "mark_index_price_deviation_cap",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        }
+      ],
+      "required": [
+        "symbol",
+        "product_type",
+        "status",
+        "activated_at",
+        "observation_start_at",
+        "expire_at",
+        "s0",
+        "index_price_symbol",
+        "fee_model",
+        "s1",
+        "outcome",
+        "settlement_price_per_share",
+        "result_committed_at",
+        "rule_version",
+        "quote_min",
+        "quote_max",
+        "quote_tick",
+        "base_min",
+        "base_max",
+        "base_tick",
+        "min_notional"
+      ]
+    },
+    {
+      "name": "BinaryRoundInfoListResponse",
+      "description": "",
+      "type": "unknown",
+      "properties": null
+    },
+    {
+      "name": "BinaryPriceEvidence",
+      "description": "Null before the result is published. Not an independent evidence resource, actual price-fetch timestamp, or audit proof.",
+      "type": "object",
+      "properties": [
+        {
+          "name": "s0",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "s1",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        }
+      ],
+      "required": []
+    },
+    {
+      "name": "BinaryRoundInfoResponse",
+      "description": "",
+      "type": "unknown",
+      "properties": null
+    },
+    {
+      "name": "IndexPriceHistoryEntry",
+      "description": "",
+      "type": "object",
+      "properties": [
+        {
+          "name": "timestamp",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        },
+        {
+          "name": "index_price",
+          "type": "object",
+          "description": "",
+          "required": false,
+          "example": null,
+          "enum": null,
+          "format": null
+        }
+      ],
+      "required": []
+    },
+    {
+      "name": "IndexPriceHistoryResponse",
+      "description": "",
+      "type": "unknown",
+      "properties": null
+    },
+    {
       "name": "OrderbookResponse",
       "description": "",
       "type": "unknown",
@@ -20482,12 +21047,12 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-09-30T07:14:10.340Z",
+    "generatedAt": "2026-11-03T07:41:40.045Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/orderly.openapi.yaml",
     "version": "1.0.0",
-    "totalEndpoints": 232,
+    "totalEndpoints": 236,
     "totalStreams": 8,
-    "totalSchemas": 231,
+    "totalSchemas": 238,
     "mode": "direct-parsing"
   }
 }

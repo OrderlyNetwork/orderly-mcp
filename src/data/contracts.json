@@ -13,6 +13,11 @@
         "testnet": "0xEf54C221Fc94517877F0F40eCd71E0A3866D66C2",
         "description": "USDT token contract"
       },
+      "USDG": {
+        "mainnet": "0x004b506865409877c9fa29bfb1eba929984b9bbc",
+        "testnet": null,
+        "description": "USDG contract"
+      },
       "Vault": {
         "mainnet": "0x816f722424B49Cf1275cc86DA9840Fbd5a6167e9",
         "testnet": "0x0EaC556c0C2321BA25b9DC01e4e3c95aD5CDCd2f",
@@ -479,7 +484,7 @@
     "description": "Orderly L2 is the internal chain where the Ledger contract lives. The Ledger contract (verifyingContract) is used for EIP-712 signatures for on-chain operations: withdrawals, internal transfers, and settle PnL. There is only ONE Ledger contract per network (mainnet/testnet). Vault contracts are on each supported EVM chain."
   },
   "_metadata": {
-    "generatedAt": "2026-09-30T07:14:11.611Z",
+    "generatedAt": "2026-11-03T07:41:41.391Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/build-on-omnichain/addresses.mdx",
     "totalChains": 13
   }
