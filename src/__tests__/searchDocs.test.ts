@@ -333,6 +333,12 @@ describe('searchOrderlyDocs', () => {
     expect(text).toContain('Liquidations: Triggers, Tiers, and Fees');
   });
 
+  it('should report the current SDK version, not a stale one', async () => {
+    const text = (await searchOrderlyDocs('latest SDK version', 3, 'docs', 'full')).content[0].text;
+    expect(text).toContain('Current:** SDK v3.4.0');
+    expect(text).not.toContain('Current:** SDK v3.1.3');
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
