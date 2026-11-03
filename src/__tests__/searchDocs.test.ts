@@ -339,6 +339,16 @@ describe('searchOrderlyDocs', () => {
     expect(text).not.toContain('Current:** SDK v3.1.3');
   });
 
+  it('should return Perp Anything docs for builder-market queries', async () => {
+    const text = (await searchOrderlyDocs('perp anything', 3, 'docs')).content[0].text;
+    expect(text).toContain('Perp Anything: Builder-Operated Perpetual Markets');
+  });
+
+  it('should return Builder Oracle docs for oracle queries', async () => {
+    const text = (await searchOrderlyDocs('builder oracle', 3, 'docs')).content[0].text;
+    expect(text).toContain('Builder Oracle: Builder-Pushed and BYOK Price Sources');
+  });
+
   // --- Orderly Predict corpus ----------------------------------------------
   // Predict sections are curated chunks inside documentation.json, so plain
   // prediction questions are answerable through the normal docs search.
