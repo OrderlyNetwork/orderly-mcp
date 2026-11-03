@@ -8,6 +8,7 @@ export interface ApiInfoResult {
 interface ApiEndpoint {
   path: string;
   method: string;
+  summary?: string;
   description: string;
   auth: boolean;
   rateLimit?: string;
@@ -76,8 +77,9 @@ function getRestFuseInstance(): Fuse<ApiEndpoint> {
     const data = apiData as ApiData;
     const fuseOptions = {
       keys: [
-        { name: 'path', weight: 0.5 },
-        { name: 'description', weight: 0.4 },
+        { name: 'path', weight: 0.4 },
+        { name: 'summary', weight: 0.35 },
+        { name: 'description', weight: 0.15 },
         { name: 'method', weight: 0.1 },
       ],
       threshold: 0.4,
@@ -109,6 +111,93 @@ function getWsFuseInstance(): Fuse<WebSocketStream> {
     wsFuseInstance = new Fuse(data.websocket.streams, fuseOptions);
   }
   return wsFuseInstance;
+}
+
+function renderRestEndpoint(match: ApiEndpoint): string {
+  let text = `# ${match.method} ${match.path}\n\n`;
+  if (match.summary) {
+    text += `**Summary:** ${match.summary}\n\n`;
+  }
+  text += `${match.description}\n\n`;
+  text += `**Authentication:** ${match.auth ? 'Required 🔒' : 'Not required'}`;
+  if (match.rateLimit) {
+    text += `\n**Rate Limit:** ${match.rateLimit}`;
+  }
+  text += `\n\n`;
+
+  if (match.parameters && match.parameters.length > 0) {
+    text += `## Parameters\n\n`;
+    match.parameters.forEach((param) => {
+      text += `- **${param.name}** (${param.type})${param.required ? ' *required*' : ''}\n`;
+      text += `  ${param.description}\n\n`;
+    });
+  }
+
+  if (match.requestBody && match.requestBody.schema) {
+    text += `## Request Body${match.requestBody.required ? '' : ' (optional)'}\n\n`;
+    if (match.requestBody.description) {
+      text += `${match.requestBody.description}\n\n`;
+    }
+    text += `\`\`\`json\n${match.requestBody.schema}\`\`\`\n\n`;
+  }
+
+  if (match.responses && match.responses.length > 0) {
+    text += `## Response\n\n`;
+    match.responses.forEach((resp) => {
+      text += `**${resp.code}** ${resp.description}\n\n`;
+      text += `\`\`\`json\n${resp.schema}\`\`\`\n\n`;
+    });
+  }
+
+  if (match.example) {
+    text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\``;
+  }
+
+  return text;
+}
+
+/**
+ * Resolve a REST endpoint query. Exact paths return every method registered on
+ * that path (a path like /v1/order has GET/POST/PUT/DELETE handlers); free-text
+ * queries match against path, summary, description, and method.
+ */
+function resolveRestEndpoints(
+  endpoints: ApiEndpoint[],
+  query: string
+): { matches: ApiEndpoint[]; availableMethods?: string[] } | null {
+  const methodMatch = query.match(/^(GET|POST|PUT|DELETE|PATCH)\s+(.+)$/i);
+  const method = methodMatch?.[1]?.toUpperCase() ?? null;
+  const pathQuery = (methodMatch?.[2] ?? query).trim().toLowerCase();
+
+  const onPath = endpoints.filter((ep) => ep.path.toLowerCase() === pathQuery);
+  if (onPath.length > 0) {
+    const matches = method ? onPath.filter((ep) => ep.method === method) : onPath;
+    if (matches.length === 0) {
+      return { matches: [], availableMethods: onPath.map((ep) => ep.method) };
+    }
+    return { matches };
+  }
+
+  const fuse = getRestFuseInstance();
+  const results = fuse
+    .search(pathQuery, { limit: 5 })
+    .filter((result) => (result.score ?? 1) < 0.6);
+
+  if (results.length === 0) return null;
+
+  const bestPath = results[0].item.path;
+  const siblings = endpoints.filter((ep) => ep.path === bestPath);
+
+  if (method) {
+    const filtered = siblings.filter((ep) => ep.method === method);
+    if (filtered.length === 0) {
+      return { matches: [], availableMethods: siblings.map((ep) => ep.method) };
+    }
+    return { matches: filtered };
+  }
+  // Free-text queries return the single best endpoint; only exact path queries
+  // expand to every method registered on that path.
+  return { matches: [results[0].item] };
 }
 
 export async function getApiInfo(type: string, endpoint?: string): Promise<ApiInfoResult> {
@@ -163,8 +252,9 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
 
       text += `## Available Endpoints\n\n`;
       data.rest.endpoints.forEach((ep) => {
-        text += `- **${ep.method} ${ep.path}**${ep.auth ? ' 🔒' : ''}\n`;
-        text += `  ${ep.description}\n`;
+        text += `- **${ep.method} ${ep.path}**${ep.auth ? ' 🔒' : ''}`;
+        if (ep.summary) text += ` — ${ep.summary}`;
+        text += '\n';
         if (ep.rateLimit) {
           text += `  Rate limit: ${ep.rateLimit}\n`;
         }
@@ -176,13 +266,9 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       };
     }
 
-    // Find specific endpoint using Fuse.js
-    const normalizedEndpoint = endpoint.toLowerCase().trim();
-    const fuse = getRestFuseInstance();
-    const searchResults = fuse.search(normalizedEndpoint, { limit: 5 });
-    const qualityResults = searchResults.filter((result) => (result.score ?? 1) < 0.6);
+    const resolved = resolveRestEndpoints(data.rest.endpoints, endpoint.trim());
 
-    if (qualityResults.length === 0) {
+    if (!resolved) {
       return {
         content: [
           {
@@ -193,45 +279,18 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       };
     }
 
-    // Use best match
-    const match = qualityResults[0].item;
-
-    let text = `# ${match.method} ${match.path}\n\n`;
-    text += `${match.description}\n\n`;
-    text += `**Authentication:** ${match.auth ? 'Required 🔒' : 'Not required'}`;
-    if (match.rateLimit) {
-      text += `\n**Rate Limit:** ${match.rateLimit}`;
-    }
-    text += `\n\n`;
-
-    if (match.parameters && match.parameters.length > 0) {
-      text += `## Parameters\n\n`;
-      match.parameters.forEach((param) => {
-        text += `- **${param.name}** (${param.type})${param.required ? ' *required*' : ''}\n`;
-        text += `  ${param.description}\n\n`;
-      });
+    if (resolved.matches.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `No ${endpoint.trim().split(/\s+/)[0].toUpperCase()} handler for that path. Available methods: ${resolved.availableMethods?.join(', ') ?? 'none'}.`,
+          },
+        ],
+      };
     }
 
-    if (match.requestBody && match.requestBody.schema) {
-      text += `## Request Body${match.requestBody.required ? '' : ' (optional)'}\n\n`;
-      if (match.requestBody.description) {
-        text += `${match.requestBody.description}\n\n`;
-      }
-      text += `\`\`\`json\n${match.requestBody.schema}\`\`\`\n\n`;
-    }
-
-    if (match.responses && match.responses.length > 0) {
-      text += `## Response\n\n`;
-      match.responses.forEach((resp) => {
-        text += `**${resp.code}** ${resp.description}\n\n`;
-        text += `\`\`\`json\n${resp.schema}\`\`\`\n\n`;
-      });
-    }
-
-    if (match.example) {
-      text += `## Example\n\n\`\`\`typescript\n${match.example}\n\`\`\``;
-    }
-
+    const text = resolved.matches.map(renderRestEndpoint).join('\n\n---\n\n');
     return {
       content: [{ type: 'text', text }],
     };
