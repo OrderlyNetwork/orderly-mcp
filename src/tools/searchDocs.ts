@@ -548,19 +548,17 @@ export async function searchOrderlyDocs(
   const fuse = getFuseInstance();
   const wantsPredict =
     effectiveScope === 'docs' && tokens.some((t) => PREDICT_INTENT_TOKENS.has(t));
-  const mergedResults = multiTokenSearch(
-    fuse,
-    tokens,
-    wantsPredict ? limit * 3 : limit,
-    allowedTypes
-  );
+  // Fetch a wider window so the category re-rank below cannot drop valid hits.
+  const mergedResults = multiTokenSearch(fuse, tokens, limit * 3, allowedTypes);
 
-  if (wantsPredict) {
-    mergedResults.sort(
-      (a, b) =>
-        Number(b.item.category === 'Orderly Predict') -
-        Number(a.item.category === 'Orderly Predict')
-    );
+  if (effectiveScope === 'docs') {
+    mergedResults.sort((a, b) => {
+      const aPredict = Number(a.item.category === 'Orderly Predict');
+      const bPredict = Number(b.item.category === 'Orderly Predict');
+      // With predict intent, Predict docs lead; without it, they must not
+      // outrank core docs for generic queries like "create order".
+      return wantsPredict ? bPredict - aPredict : aPredict - bPredict;
+    });
     mergedResults.length = Math.min(mergedResults.length, limit);
   }
 

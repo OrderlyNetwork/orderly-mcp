@@ -295,21 +295,21 @@ describe('searchOrderlyDocs', () => {
     const text = (await searchOrderlyDocs('create order', 3, 'docs')).content[0].text;
     const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
     expect(top).toMatch(/Order/);
-    expect(top).not.toMatch(/Referral/);
+    expect(top).not.toMatch(/Referral|Predict/);
   });
 
   it('should rank order docs above plugin docs for "place order"', async () => {
     const text = (await searchOrderlyDocs('place order', 3, 'docs')).content[0].text;
     const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
     expect(top).toMatch(/Order/);
-    expect(top).not.toMatch(/Plugin/);
+    expect(top).not.toMatch(/Plugin|Predict/);
   });
 
   it('should tolerate the "positon" typo without surfacing deposit docs', async () => {
     const text = (await searchOrderlyDocs('positon', 3, 'docs')).content[0].text;
     const top = [...text.matchAll(/^## \d+\. (.+)$/gm)][0]?.[1] ?? '';
     expect(top).toMatch(/[Pp]osition/);
-    expect(top).not.toMatch(/[Dd]eposit/);
+    expect(top).not.toMatch(/[Dd]eposit|Predict/);
   });
 
   it('should expand "tp sl" to take-profit/stop-loss docs', async () => {
