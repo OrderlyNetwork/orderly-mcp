@@ -66,7 +66,7 @@ export async function getContractAddresses(
 
   // Build response
   let text = `# ${chain.charAt(0).toUpperCase() + chain.slice(1)} Contract Addresses\n\n`;
-  text += `**Chain ID:** ${normalizedNetwork === 'mainnet' ? chainData.chainId : chainData.testnetChainId || 'N/A'}\n\n`;
+  text += `**Chain ID:** ${normalizedNetwork === 'mainnet' ? (chainData.chainId ?? 'N/A') : (chainData.testnetChainId ?? 'N/A')}\n\n`;
 
   const contracts = chainData.contracts;
 

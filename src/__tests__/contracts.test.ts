@@ -26,4 +26,10 @@ describe('getContractAddresses', () => {
     expect(result.content[0].text).toContain('testnet');
     expect(result.content[0].text).toContain('11155111'); // Sepolia chain ID
   });
+
+  it('should print N/A instead of null for chains without a chain ID', async () => {
+    const result = await getContractAddresses('solana', 'all', 'mainnet');
+    expect(result.content[0].text).toContain('**Chain ID:** N/A');
+    expect(result.content[0].text).not.toContain('null');
+  });
 });
