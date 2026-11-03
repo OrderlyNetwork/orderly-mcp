@@ -510,6 +510,177 @@ const orderlySignature = Buffer.from(signature).toString('base64url');
 }));`,
         },
         {
+          name: 'Best Bid/Offer',
+          topic: '{symbol}@bbo',
+          description:
+            'Best bid and ask for one symbol. For Orderly Predict symbols, adds `down_bid` and `down_ask` (derived from the UP book).',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description:
+                'Symbol to subscribe to (e.g., PERP_ETH_USDC, or a Predict round symbol)',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@bbo'
+}));`,
+        },
+        {
+          name: 'Best Bid/Offer (all symbols)',
+          topic: 'bbos',
+          description:
+            'Best bid/ask for every live symbol, pushed once per second. Use this for multi-market pickers instead of per-symbol order books; compute the DOWN quote for Predict symbols as 1 - UP price.',
+          auth: false,
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'bbos'
+}));`,
+        },
+        {
+          name: 'Orderbook Update',
+          topic: '{symbol}@orderbookupdate',
+          description:
+            'Incremental orderbook updates. For Orderly Predict symbols, includes `down_asks` and `down_bids` derived from the UP book.',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description: 'Symbol to subscribe to',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@orderbookupdate'
+}));`,
+        },
+        {
+          name: 'Trade',
+          topic: '{symbol}@trade',
+          description: 'Real-time public trades for one symbol.',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description: 'Symbol to subscribe to',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@trade'
+}));`,
+        },
+        {
+          name: 'Price Changes',
+          topic: 'price_changes',
+          description:
+            'Rolling price-change statistics for all symbols. Predict round symbols are excluded from this topic.',
+          auth: false,
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'price_changes'
+}));`,
+        },
+        {
+          name: 'Mark Prices (all symbols)',
+          topic: 'markprices',
+          description: 'Mark price snapshots for all symbols.',
+          auth: false,
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'markprices'
+}));`,
+        },
+        {
+          name: 'Index Prices (all symbols)',
+          topic: 'indexprices',
+          description: 'Index price snapshots for all symbols.',
+          auth: false,
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'indexprices'
+}));`,
+        },
+        {
+          name: 'Kline',
+          topic: '{symbol}@kline_{time}',
+          description:
+            'Candlestick updates for one symbol and interval (for example 1m, 5m, 1h). For Orderly Predict, request kline for the underlying (PERP_BTC_USDC), not the round symbol.',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description: 'Symbol to subscribe to',
+            },
+            {
+              name: 'time',
+              type: 'string',
+              required: true,
+              description: 'Kline interval (e.g., 1m, 5m, 15m, 1h, 4h, 1d)',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@kline_1m'
+}));`,
+        },
+        {
+          name: 'Open Interest',
+          topic: '{symbol}@openinterest',
+          description: 'Open interest updates for one symbol.',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description: 'Symbol to subscribe to',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@openinterest'
+}));`,
+        },
+        {
+          name: 'Estimated Funding Rate',
+          topic: '{symbol}@estfundingrate',
+          description:
+            'Streaming estimated funding rate for one symbol. The same value is available as `est_funding_rate` on market info.',
+          auth: false,
+          parameters: [
+            {
+              name: 'symbol',
+              type: 'string',
+              required: true,
+              description: 'Symbol to subscribe to',
+            },
+          ],
+          example: `ws.send(JSON.stringify({
+  id: '1',
+  event: 'subscribe',
+  topic: 'PERP_ETH_USDC@estfundingrate'
+}));`,
+        },
+        {
           name: '24h Ticker',
           topic: '24hrTicker',
           description: '24-hour rolling statistics for all symbols.',

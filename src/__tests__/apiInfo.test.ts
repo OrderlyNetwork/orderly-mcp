@@ -71,5 +71,18 @@ describe('getApiInfo WebSocket resolution', () => {
     const text = textOf(await getApiInfo('websocket'));
     expect(text).toContain('wss://ws.orderly.org');
     expect(text).toContain('orderbook');
+    expect(text).toContain('bbos');
+    expect(text).toContain('{symbol}@bbo');
+    expect(text).toContain('{symbol}@orderbookupdate');
+  });
+
+  it('returns public market-data streams by topic', async () => {
+    const bbos = textOf(await getApiInfo('websocket', 'bbos'));
+    expect(bbos).toContain('bbos');
+    expect(bbos).toContain('every live symbol');
+
+    const obu = textOf(await getApiInfo('websocket', 'orderbookupdate'));
+    expect(obu).toContain('orderbookupdate');
+    expect(obu).toContain('down_asks');
   });
 });
