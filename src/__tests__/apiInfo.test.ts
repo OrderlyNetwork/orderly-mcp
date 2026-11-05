@@ -21,8 +21,12 @@ describe('getApiInfo REST endpoint resolution', () => {
     const text = textOf(await getApiInfo('rest', '/v1/faucet/usdc'));
     expect(text).toContain('# POST /v1/faucet/usdc');
     expect(text).toContain('**Base URL:** https://testnet-operator-evm.orderly.org');
+    expect(text).toContain('**Summary:** Request testnet faucet USDC');
     expect(text).toContain('https://testnet-operator-evm.orderly.org/v1/faucet/usdc');
     expect(text).toContain('https://testnet-operator-sol.orderly.org/v1/faucet/usdc');
+    expect(text).toContain('Required for EVM; omit for Solana');
+    expect(text).toContain('## Request Body');
+    expect(text).not.toContain('## Request Body (optional)');
     expect(text).toContain("method: 'POST'");
     expect(text).not.toContain("const url = 'https://api.orderly.org/v1/faucet/usdc'");
   });

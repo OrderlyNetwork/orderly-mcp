@@ -29,6 +29,24 @@ const OPENAPI_URL =
   'https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/orderly.openapi.yaml';
 const OUTPUT_FILE = path.join(projectRoot, 'src', 'data', 'api.json');
 
+// Local corrections for gaps in the upstream OpenAPI spec, confirmed against
+// live endpoint behavior.
+const ENDPOINT_OVERRIDES = {
+  'POST /v1/faucet/usdc': {
+    summary: 'Request testnet faucet USDC',
+    exampleBody: {
+      user_address: '0x...',
+      broker_id: 'your_broker_id',
+      chain_id: '421614',
+    },
+    requestBody: {
+      required: true,
+      chainIdDescription:
+        'Destination chain ID for EVM faucet deposits. Required for EVM; omit for Solana.',
+    },
+  },
+};
+
 // Download OpenAPI spec
 async function downloadOpenAPISpec() {
   console.log(`📥 Downloading OpenAPI spec from ${OPENAPI_URL}...\n`);
@@ -72,12 +90,30 @@ function extractEndpoints(spec) {
       if (typeof details !== 'object' || !details.summary) continue;
 
       const requestBody = extractRequestBody(details, spec);
+      const methodName = method.toUpperCase();
+      const override = ENDPOINT_OVERRIDES[`${methodName} ${path}`];
+      if (override?.requestBody && requestBody) {
+        if (override.requestBody.required !== undefined) {
+          requestBody.required = override.requestBody.required;
+        }
+        if (override.requestBody.chainIdDescription) {
+          try {
+            const schema = JSON.parse(requestBody.schema);
+            if (schema.properties?.chain_id) {
+              schema.properties.chain_id.description = override.requestBody.chainIdDescription;
+            }
+            requestBody.schema = JSON.stringify(schema, null, 2);
+          } catch {
+            // Keep the upstream schema if it is not valid JSON.
+          }
+        }
+      }
       const serverUrl = details.servers?.[0]?.url;
       const globalServerUrl = spec.servers?.[0]?.url;
       const endpoint = {
         path,
-        method: method.toUpperCase(),
-        summary: details.summary || '',
+        method: methodName,
+        summary: override?.summary || details.summary || '',
         description: extractDescription(details.description),
         auth: isPrivateEndpoint(details),
         tags: details.tags || [],
@@ -86,7 +122,7 @@ function extractEndpoints(spec) {
         ...(serverUrl && serverUrl !== globalServerUrl ? { baseUrl: serverUrl } : {}),
         requestBody,
         responses: extractResponses(details, spec),
-        example: generateExample(path, method.toUpperCase(), details, requestBody),
+        example: generateExample(path, methodName, details, requestBody),
         errors: [],
       };
 
@@ -285,15 +321,6 @@ function extractResponses(details, spec) {
   });
 }
 
-// Concrete bodies for endpoints where a type-only skeleton is not useful.
-const EXAMPLE_BODY_OVERRIDES = {
-  'POST /v1/faucet/usdc': {
-    user_address: '0x...',
-    broker_id: 'your_broker_id',
-    chain_id: '421614',
-  },
-};
-
 // Placeholder value for a schema property with no explicit example.
 function schemaPlaceholder(schema) {
   switch (schema?.type) {
@@ -336,7 +363,7 @@ function generateExample(path, method, details, requestBody) {
   // the testnet faucet is only served by the operator domains).
   const baseUrl = details.servers?.[0]?.url || 'https://api.orderly.org';
   const url = `${baseUrl}${path}`;
-  const override = EXAMPLE_BODY_OVERRIDES[`${method} ${path}`];
+  const bodyOverride = ENDPOINT_OVERRIDES[`${method} ${path}`]?.exampleBody;
 
   let example = '';
 
@@ -356,7 +383,7 @@ fetch(url, {
   }${requestBody ? ',\n  body: JSON.stringify(body)' : ''}
 }).then(res => res.json()).then(console.log);`;
   } else if (requestBody && method !== 'GET' && method !== 'HEAD') {
-    const body = override || buildBodyExample(requestBody.schema);
+    const body = bodyOverride || buildBodyExample(requestBody.schema);
     example = `const url = '${url}';
 const body = ${JSON.stringify(body, null, 2)};
 

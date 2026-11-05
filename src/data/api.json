@@ -6385,7 +6385,7 @@
       {
         "path": "/v1/faucet/usdc",
         "method": "POST",
-        "summary": "Get faucet usdc(testnet only)",
+        "summary": "Request testnet faucet USDC",
         "description": "Testnet-only endpoint for requesting faucet USDC.\n\nPOST https://testnet-operator-evm.orderly.org/v1/faucet/usdc\n\nPOST https://testnet-operator-sol.orderly.org/v1/faucet/usdc\n\nEVM testnet claims receive 1,000 USDC. Solana testnet claims receive 100 USDC.\n\nEach account can claim from the faucet up to 5 times.\n\nUse the EVM operator domain for EVM addresses and the Solana operator domain for Solana addresses. Do not use a mainnet domain.",
         "auth": false,
         "tags": [
@@ -6397,8 +6397,8 @@
         "requestBody": {
           "description": "",
           "contentType": "application/json",
-          "schema": "{\n  \"required\": [\n    \"user_address\",\n    \"broker_id\"\n  ],\n  \"type\": \"object\",\n  \"properties\": {\n    \"chain_id\": {\n      \"type\": \"string\",\n      \"description\": \"Destination chain ID for EVM faucet deposits. Omit this field for Solana.\"\n    },\n    \"user_address\": {\n      \"type\": \"string\",\n      \"description\": \"Wallet address that will receive the test USDC. For Solana, provide a base58 address such as `Zions51qQNUgWNyp4JegUFoMUpgFx43jBUsYmHtDPdr`.\"\n    },\n    \"broker_id\": {\n      \"type\": \"string\",\n      \"description\": \"Broker ID associated with the receiving account.\"\n    }\n  }\n}",
-          "required": false
+          "schema": "{\n  \"required\": [\n    \"user_address\",\n    \"broker_id\"\n  ],\n  \"type\": \"object\",\n  \"properties\": {\n    \"chain_id\": {\n      \"type\": \"string\",\n      \"description\": \"Destination chain ID for EVM faucet deposits. Required for EVM; omit for Solana.\"\n    },\n    \"user_address\": {\n      \"type\": \"string\",\n      \"description\": \"Wallet address that will receive the test USDC. For Solana, provide a base58 address such as `Zions51qQNUgWNyp4JegUFoMUpgFx43jBUsYmHtDPdr`.\"\n    },\n    \"broker_id\": {\n      \"type\": \"string\",\n      \"description\": \"Broker ID associated with the receiving account.\"\n    }\n  }\n}",
+          "required": true
         },
         "responses": [
           {
@@ -21176,7 +21176,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-11-05T10:27:12.726Z",
+    "generatedAt": "2026-11-05T10:34:11.211Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/orderly.openapi.yaml",
     "version": "1.0.0",
     "totalEndpoints": 236,
