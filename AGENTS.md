@@ -170,7 +170,7 @@ src/
 
 The documentation is auto-generated using NEAR AI Cloud. All data files in `src/data/` are created by scripts, not manually edited.
 
-**Exception:** the `predict-*` chunks in `documentation.json` are hand-curated Orderly Predict docs (including the live fee schedule). They are not produced by the generators; preserve them when improving or regenerating the corpus, and keep `src/__tests__/predictDocs.test.ts` green.
+**Exception:** the hand-curated chunks in `documentation.json` — `predict-*` (including the live fee schedule), `basics-*`, `perp-anything-*`, and `faucet-testnet` — are not produced by the generators. Preserve them when improving or regenerating the corpus, and keep `src/__tests__/predictDocs.test.ts`, `src/__tests__/marketBasicsDocs.test.ts`, `src/__tests__/perpAnythingDocs.test.ts`, and `src/__tests__/faucetDocs.test.ts` green.
 
 ### Data Generation Workflow
 
