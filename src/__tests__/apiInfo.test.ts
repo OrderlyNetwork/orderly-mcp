@@ -38,6 +38,14 @@ describe('getApiInfo REST endpoint resolution', () => {
     );
   });
 
+  it('resolves the free-text "faucet" query to the operator domain', async () => {
+    const text = textOf(await getApiInfo('rest', 'faucet'));
+    expect(text).toContain('# POST /v1/faucet/usdc');
+    expect(text).toContain('**Base URL:** https://testnet-operator-evm.orderly.org');
+    expect(text).toContain('Required for EVM; omit for Solana');
+    expect(text).not.toContain("const url = 'https://api.orderly.org/v1/faucet/usdc'");
+  });
+
   it('filters by an explicit method prefix', async () => {
     const text = textOf(await getApiInfo('rest', 'POST /v1/order'));
     expect(text).toContain('# POST /v1/order');
