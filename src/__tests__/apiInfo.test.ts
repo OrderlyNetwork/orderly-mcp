@@ -31,6 +31,13 @@ describe('getApiInfo REST endpoint resolution', () => {
     expect(text).not.toContain("const url = 'https://api.orderly.org/v1/faucet/usdc'");
   });
 
+  it('shows per-endpoint base URL overrides in the endpoint index', async () => {
+    const text = textOf(await getApiInfo('rest'));
+    expect(text).toContain(
+      '**POST /v1/faucet/usdc** — Request testnet faucet USDC [base: https://testnet-operator-evm.orderly.org]'
+    );
+  });
+
   it('filters by an explicit method prefix', async () => {
     const text = textOf(await getApiInfo('rest', 'POST /v1/order'));
     expect(text).toContain('# POST /v1/order');

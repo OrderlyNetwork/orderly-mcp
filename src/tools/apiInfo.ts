@@ -258,6 +258,7 @@ export async function getApiInfo(type: string, endpoint?: string): Promise<ApiIn
       data.rest.endpoints.forEach((ep) => {
         text += `- **${ep.method} ${ep.path}**${ep.auth ? ' 🔒' : ''}`;
         if (ep.summary) text += ` — ${ep.summary}`;
+        if (ep.baseUrl) text += ` [base: ${ep.baseUrl}]`;
         text += '\n';
         if (ep.rateLimit) {
           text += `  Rate limit: ${ep.rateLimit}\n`;
