@@ -11,6 +11,7 @@ interface ApiEndpoint {
   summary?: string;
   description: string;
   auth: boolean;
+  baseUrl?: string | null;
   rateLimit?: string;
   parameters?: Array<{
     name: string;
@@ -115,6 +116,9 @@ function getWsFuseInstance(): Fuse<WebSocketStream> {
 
 function renderRestEndpoint(match: ApiEndpoint): string {
   let text = `# ${match.method} ${match.path}\n\n`;
+  if (match.baseUrl) {
+    text += `**Base URL:** ${match.baseUrl}\n\n`;
+  }
   if (match.summary) {
     text += `**Summary:** ${match.summary}\n\n`;
   }

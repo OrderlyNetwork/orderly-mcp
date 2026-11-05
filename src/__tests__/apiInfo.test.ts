@@ -17,6 +17,16 @@ describe('getApiInfo REST endpoint resolution', () => {
     expect(text).toContain('# PUT /v1/order');
   });
 
+  it('documents the testnet faucet on the operator domain', async () => {
+    const text = textOf(await getApiInfo('rest', '/v1/faucet/usdc'));
+    expect(text).toContain('# POST /v1/faucet/usdc');
+    expect(text).toContain('**Base URL:** https://testnet-operator-evm.orderly.org');
+    expect(text).toContain('https://testnet-operator-evm.orderly.org/v1/faucet/usdc');
+    expect(text).toContain('https://testnet-operator-sol.orderly.org/v1/faucet/usdc');
+    expect(text).toContain("method: 'POST'");
+    expect(text).not.toContain("const url = 'https://api.orderly.org/v1/faucet/usdc'");
+  });
+
   it('filters by an explicit method prefix', async () => {
     const text = textOf(await getApiInfo('rest', 'POST /v1/order'));
     expect(text).toContain('# POST /v1/order');

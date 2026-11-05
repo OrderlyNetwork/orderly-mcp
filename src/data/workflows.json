@@ -5873,6 +5873,7 @@
         {
           "title": "Request USDC from Faucet",
           "description": "Use the testnet faucet to request USDC for testing.",
+          "code": "const url = 'https://testnet-operator-evm.orderly.org/v1/faucet/usdc';\nconst body = { user_address: '0x...', broker_id: 'your_broker_id', chain_id: '421614' };\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
           "important": "The testnet faucet does NOT send USDC directly to your wallet address. Instead, it credits USDC directly to your Orderly account balance."
         },
         {
@@ -9217,7 +9218,7 @@
         {
           "title": "Get Testnet Funds via Faucet",
           "description": "Use the faucet endpoint to get testnet USDC credited directly to your Orderly account (not your wallet). The funds can be withdrawn to any supported chain.",
-          "code": "// Faucet endpoint:\n// https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-faucet-usdctestnet-only\n\n// You can also use the Chainlink faucet for LINK tokens:\n// https://faucets.chain.link/\n// Then select 'pay with ORDER' in the Orderly One UI (uses LINK on testnet)",
+          "code": "// Faucet endpoint:\n// POST https://testnet-operator-evm.orderly.org/v1/faucet/usdc\n\nconst url = 'https://testnet-operator-evm.orderly.org/v1/faucet/usdc';\nconst body = { user_address: '0x...', broker_id: 'your_broker_id', chain_id: '421614' };\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);\n\n// You can also use the Chainlink faucet for LINK tokens:\n// https://faucets.chain.link/",
           "important": "The faucet credits USDC directly to your Orderly account, not your wallet. Testnet broker IDs are not fully isolated — other users could theoretically use the same broker ID."
         },
         {
@@ -19185,6 +19186,7 @@
             {
               "title": "Request USDC from Faucet",
               "description": "Use the testnet faucet to request USDC for testing.",
+              "code": "const url = 'https://testnet-operator-evm.orderly.org/v1/faucet/usdc';\nconst body = { user_address: '0x...', broker_id: 'your_broker_id', chain_id: '421614' };\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
               "important": "The testnet faucet does NOT send USDC directly to your wallet address. Instead, it credits USDC directly to your Orderly account balance."
             },
             {
@@ -25466,7 +25468,7 @@
             {
               "title": "Get Testnet Funds via Faucet",
               "description": "Use the faucet endpoint to get testnet USDC credited directly to your Orderly account (not your wallet). The funds can be withdrawn to any supported chain.",
-              "code": "// Faucet endpoint:\n// https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-faucet-usdctestnet-only\n\n// You can also use the Chainlink faucet for LINK tokens:\n// https://faucets.chain.link/\n// Then select 'pay with ORDER' in the Orderly One UI (uses LINK on testnet)",
+              "code": "// Faucet endpoint:\n// POST https://testnet-operator-evm.orderly.org/v1/faucet/usdc\n\nconst url = 'https://testnet-operator-evm.orderly.org/v1/faucet/usdc';\nconst body = { user_address: '0x...', broker_id: 'your_broker_id', chain_id: '421614' };\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);\n\n// You can also use the Chainlink faucet for LINK tokens:\n// https://faucets.chain.link/",
               "important": "The faucet credits USDC directly to your Orderly account, not your wallet. Testnet broker IDs are not fully isolated — other users could theoretically use the same broker ID."
             },
             {

@@ -71,6 +71,9 @@ function extractEndpoints(spec) {
     for (const [method, details] of Object.entries(methods)) {
       if (typeof details !== 'object' || !details.summary) continue;
 
+      const requestBody = extractRequestBody(details, spec);
+      const serverUrl = details.servers?.[0]?.url;
+      const globalServerUrl = spec.servers?.[0]?.url;
       const endpoint = {
         path,
         method: method.toUpperCase(),
@@ -80,9 +83,10 @@ function extractEndpoints(spec) {
         tags: details.tags || [],
         rateLimit: extractRateLimit(details.description),
         parameters: extractParameters(details, spec),
-        requestBody: extractRequestBody(details, spec),
+        ...(serverUrl && serverUrl !== globalServerUrl ? { baseUrl: serverUrl } : {}),
+        requestBody,
         responses: extractResponses(details, spec),
-        example: generateExample(path, method.toUpperCase(), details),
+        example: generateExample(path, method.toUpperCase(), details, requestBody),
         errors: [],
       };
 
@@ -281,17 +285,65 @@ function extractResponses(details, spec) {
   });
 }
 
+// Concrete bodies for endpoints where a type-only skeleton is not useful.
+const EXAMPLE_BODY_OVERRIDES = {
+  'POST /v1/faucet/usdc': {
+    user_address: '0x...',
+    broker_id: 'your_broker_id',
+    chain_id: '421614',
+  },
+};
+
+// Placeholder value for a schema property with no explicit example.
+function schemaPlaceholder(schema) {
+  switch (schema?.type) {
+    case 'integer':
+    case 'number':
+      return 0;
+    case 'boolean':
+      return false;
+    case 'array':
+      return [];
+    case 'object':
+      return {};
+    default:
+      return '...';
+  }
+}
+
+// Build a request-body skeleton from an extracted schema JSON string.
+function buildBodyExample(schema) {
+  if (!schema) return {};
+  let parsed;
+  try {
+    parsed = JSON.parse(schema);
+  } catch {
+    return {};
+  }
+  const properties = parsed?.properties || {};
+  return Object.fromEntries(
+    Object.entries(properties).map(([name, prop]) => [
+      name,
+      prop?.example ?? schemaPlaceholder(prop),
+    ])
+  );
+}
+
 // Generate code example
-function generateExample(path, method, details) {
+function generateExample(path, method, details, requestBody) {
   const isPrivate = isPrivateEndpoint(details);
-  const baseUrl = 'https://api.orderly.org';
+  // Operation-level servers override the global mainnet base URL (for example,
+  // the testnet faucet is only served by the operator domains).
+  const baseUrl = details.servers?.[0]?.url || 'https://api.orderly.org';
+  const url = `${baseUrl}${path}`;
+  const override = EXAMPLE_BODY_OVERRIDES[`${method} ${path}`];
 
   let example = '';
 
   if (isPrivate) {
-    example = `const url = '${baseUrl}${path}';
+    example = `const url = '${url}';
 const timestamp = Date.now().toString();
-const signature = signMessage(timestamp + '${method}' + '${path}'${details.requestBody ? ' + JSON.stringify(body)' : ''});
+const signature = signMessage(timestamp + '${method}' + '${path}'${requestBody ? ' + JSON.stringify(body)' : ''});
 
 fetch(url, {
   method: '${method}',
@@ -301,10 +353,23 @@ fetch(url, {
     'orderly-key': 'YOUR_PUBLIC_KEY',
     'orderly-signature': signature,
     'orderly-timestamp': timestamp
-  }${details.requestBody ? ',\n  body: JSON.stringify(body)' : ''}
+  }${requestBody ? ',\n  body: JSON.stringify(body)' : ''}
 }).then(res => res.json()).then(console.log);`;
+  } else if (requestBody && method !== 'GET' && method !== 'HEAD') {
+    const body = override || buildBodyExample(requestBody.schema);
+    example = `const url = '${url}';
+const body = ${JSON.stringify(body, null, 2)};
+
+fetch(url, {
+  method: '${method}',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body)
+}).then(res => res.json()).then(console.log);`;
+  } else if (method !== 'GET' && method !== 'HEAD') {
+    example = `const url = '${url}';
+fetch(url, { method: '${method}' }).then(res => res.json()).then(console.log);`;
   } else {
-    example = `const url = '${baseUrl}${path}';
+    example = `const url = '${url}';
 fetch(url).then(res => res.json()).then(console.log);`;
   }
 

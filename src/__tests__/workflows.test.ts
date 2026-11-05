@@ -93,4 +93,12 @@ describe('explainWorkflow', () => {
     const result = await explainWorkflow('place first order');
     expect(result.content[0].text.split('\n')[0]).toContain('Place and Manage a Limit Order');
   });
+
+  it('should document the testnet faucet on the operator domain', async () => {
+    const result = await explainWorkflow('Testing with USDC Faucet on Arbitrum Sepolia Testnet');
+    const text = result.content[0].text;
+    expect(text).toContain('https://testnet-operator-evm.orderly.org/v1/faucet/usdc');
+    expect(text).toContain("method: 'POST'");
+    expect(text).not.toContain('GET /v1/public/faucet');
+  });
 });

@@ -182,6 +182,7 @@
             "example": null
           }
         ],
+        "baseUrl": "https://data-api.orderly.network",
         "requestBody": null,
         "responses": [
           {
@@ -190,7 +191,7 @@
             "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"success\": {\n      \"type\": \"boolean\",\n      \"description\": \"Whether the request succeeded.\",\n      \"example\": true\n    },\n    \"timestamp\": {\n      \"type\": \"integer\",\n      \"format\": \"int64\",\n      \"description\": \"Response timestamp in Unix milliseconds.\"\n    },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"rows\": {\n          \"type\": \"array\",\n          \"description\": \"Daily conversion volume records for the requested scope.\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"date\": {\n                \"type\": \"string\",\n                \"format\": \"date\",\n                \"description\": \"UTC date of the conversion volume.\",\n                \"example\": \"2026-09-24\"\n              },\n              \"convert_volume\": {\n                \"type\": \"number\",\n                \"description\": \"Asset conversion volume for the date and requested builder or platform scope. Covers conversions initiated by Orderly trading services; excludes on-chain spot swaps executed directly between a wallet and a swap service.\",\n                \"example\": 736.390842\n              }\n            }\n          }\n        },\n        \"snapshot_time\": {\n          \"type\": \"integer\",\n          \"format\": \"int64\",\n          \"description\": \"Data snapshot timestamp in Unix milliseconds.\"\n        },\n        \"meta\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"records_per_page\": {\n              \"type\": \"integer\",\n              \"description\": \"Requested number of records per page.\"\n            },\n            \"current_page\": {\n              \"type\": \"integer\",\n              \"description\": \"Current page number, starting from 1.\"\n            },\n            \"total\": {\n              \"type\": \"integer\",\n              \"description\": \"Total number of records matching the query.\"\n            }\n          }\n        }\n      }\n    }\n  }\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/orderly/api/v1/data/convert_volume';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://data-api.orderly.network/orderly/api/v1/data/convert_volume';\nfetch(url).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -245,6 +246,7 @@
             "example": 1000
           }
         ],
+        "baseUrl": "https://data-api.orderly.network",
         "requestBody": null,
         "responses": [
           {
@@ -253,7 +255,7 @@
             "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"success\": {\n      \"type\": \"boolean\",\n      \"description\": \"Whether the request succeeded.\",\n      \"example\": true\n    },\n    \"timestamp\": {\n      \"type\": \"integer\",\n      \"format\": \"int64\",\n      \"description\": \"Response timestamp in Unix milliseconds.\"\n    },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"rows\": {\n          \"type\": \"array\",\n          \"description\": \"Daily conversion volume records for the requested scope.\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"date\": {\n                \"type\": \"string\",\n                \"format\": \"date\",\n                \"description\": \"UTC date of the conversion volume.\",\n                \"example\": \"2026-09-24\"\n              },\n              \"convert_volume\": {\n                \"type\": \"number\",\n                \"description\": \"Asset conversion volume for the date and requested builder or platform scope. Covers conversions initiated by Orderly trading services; excludes on-chain spot swaps executed directly between a wallet and a swap service.\",\n                \"example\": 736.390842\n              }\n            }\n          }\n        },\n        \"snapshot_time\": {\n          \"type\": \"integer\",\n          \"format\": \"int64\",\n          \"description\": \"Data snapshot timestamp in Unix milliseconds.\"\n        },\n        \"meta\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"records_per_page\": {\n              \"type\": \"integer\",\n              \"description\": \"Requested number of records per page.\"\n            },\n            \"current_page\": {\n              \"type\": \"integer\",\n              \"description\": \"Current page number, starting from 1.\"\n            },\n            \"total\": {\n              \"type\": \"integer\",\n              \"description\": \"Total number of records matching the query.\"\n            }\n          }\n        }\n      }\n    }\n  }\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/orderly/api/v1/data/convert_volume/historical';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://data-api.orderly.network/orderly/api/v1/data/convert_volume/historical';\nfetch(url).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -308,6 +310,7 @@
             "example": "example_dex"
           }
         ],
+        "baseUrl": "https://dex-api.orderly.network",
         "requestBody": null,
         "responses": [
           {
@@ -336,7 +339,7 @@
             "schema": null
           }
         ],
-        "example": "const url = 'https://api.orderly.org/api/public/v1/blogposts';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://dex-api.orderly.network/api/public/v1/blogposts';\nfetch(url).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -367,6 +370,7 @@
             "example": "example_dex"
           }
         ],
+        "baseUrl": "https://dex-api.orderly.network",
         "requestBody": null,
         "responses": [
           {
@@ -405,7 +409,7 @@
             "schema": null
           }
         ],
-        "example": "const url = 'https://api.orderly.org/api/public/v1/blogposts/{slug}';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://dex-api.orderly.network/api/public/v1/blogposts/{slug}';\nfetch(url).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -4061,7 +4065,7 @@
             "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"account_id\"\n          ],\n          \"properties\": {\n            \"account_id\": {\n              \"type\": \"string\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/register_account';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/register_account';\nconst body = {\n  \"message\": {},\n  \"signature\": \"...\",\n  \"userAddress\": \"...\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -4127,7 +4131,7 @@
             "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"orderly_key\"\n          ],\n          \"properties\": {\n            \"id\": {\n              \"description\": \"Internal ID of the created orderly key record.\",\n              \"type\": \"integer\",\n              \"example\": 123\n            },\n            \"orderly_key\": {\n              \"description\": \"orderly key added to the account.\",\n              \"type\": \"string\",\n              \"example\": \"ed25519:FRXntsPJBCy6dzKv9WPw4eYSw3rKU9Npz3T6UmvvJc9Z\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/orderly_key';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/orderly_key';\nconst body = {\n  \"message\": {},\n  \"signature\": \"...\",\n  \"userAddress\": \"...\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -6389,6 +6393,7 @@
         ],
         "rateLimit": null,
         "parameters": [],
+        "baseUrl": "https://testnet-operator-evm.orderly.org",
         "requestBody": {
           "description": "",
           "contentType": "application/json",
@@ -6402,7 +6407,7 @@
             "schema": "{\n  \"required\": [\n    \"success\"\n  ],\n  \"type\": \"object\",\n  \"properties\": {\n    \"success\": {\n      \"description\": \"Indicates whether the request was successful.\",\n      \"type\": \"boolean\",\n      \"example\": true\n    },\n    \"timestamp\": {\n      \"description\": \"Server timestamp in milliseconds.\",\n      \"type\": \"integer\",\n      \"example\": 1702989203989\n    }\n  }\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/faucet/usdc';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://testnet-operator-evm.orderly.org/v1/faucet/usdc';\nconst body = {\n  \"user_address\": \"0x...\",\n  \"broker_id\": \"your_broker_id\",\n  \"chain_id\": \"421614\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -10727,7 +10732,7 @@
             "schema": "{\n  \"required\": [\n    \"success\"\n  ],\n  \"type\": \"object\",\n  \"properties\": {\n    \"success\": {\n      \"description\": \"Indicates whether the request was successful.\",\n      \"type\": \"boolean\",\n      \"example\": true\n    },\n    \"timestamp\": {\n      \"description\": \"Server timestamp in milliseconds.\",\n      \"type\": \"integer\",\n      \"example\": 1702989203989\n    }\n  }\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/admin/points/stage';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/admin/points/stage';\nfetch(url, { method: 'DELETE' }).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -10754,7 +10759,7 @@
             "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"user_id\": {\n              \"type\": \"integer\",\n              \"example\": 100338\n            },\n            \"account_id\": {\n              \"type\": \"string\",\n              \"example\": \"0xd890c9b8b86fba7312b919e32bbabd619228b32d59f6d0f68fdf4451a684a654\"\n            },\n            \"valid_signer\": {\n              \"type\": \"string\",\n              \"example\": \"0xc6c4c5c41efa74ebc63c675dcf7034e8382f3a42\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/delegate_signer';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/delegate_signer';\nconst body = {\n  \"message\": {},\n  \"signature\": \"0x8668447f28534dc1b76566e41f5fcdeb6b131355b9cf428f3fae5c134e9a0fc55642a2771860484651e61043e8ac67a1a6e54031a4c66de44acd77c9d9b281e81b\",\n  \"userAddress\": \"0xDd3287043493E0a08d2B348397554096728B459c\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -10781,7 +10786,7 @@
             "schema": "{\n  \"allOf\": [\n    {\n      \"required\": [\n        \"success\"\n      ],\n      \"type\": \"object\",\n      \"properties\": {\n        \"success\": {\n          \"description\": \"Indicates whether the request was successful.\",\n          \"type\": \"boolean\",\n          \"example\": true\n        },\n        \"timestamp\": {\n          \"description\": \"Server timestamp in milliseconds.\",\n          \"type\": \"integer\",\n          \"example\": 1702989203989\n        }\n      }\n    },\n    {\n      \"type\": \"object\",\n      \"required\": [\n        \"data\"\n      ],\n      \"properties\": {\n        \"data\": {\n          \"type\": \"object\",\n          \"required\": [\n            \"orderly_key\"\n          ],\n          \"properties\": {\n            \"id\": {\n              \"description\": \"Internal ID of the created orderly key record.\",\n              \"type\": \"integer\",\n              \"example\": 123\n            },\n            \"orderly_key\": {\n              \"description\": \"orderly key added to the account.\",\n              \"type\": \"string\",\n              \"example\": \"ed25519:FRXntsPJBCy6dzKv9WPw4eYSw3rKU9Npz3T6UmvvJc9Z\"\n            }\n          }\n        }\n      }\n    }\n  ]\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/delegate_orderly_key';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/delegate_orderly_key';\nconst body = {\n  \"message\": {},\n  \"signature\": \"...\",\n  \"userAddress\": \"...\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -12017,7 +12022,7 @@
             "schema": "{\n  \"required\": [\n    \"success\"\n  ],\n  \"type\": \"object\",\n  \"properties\": {\n    \"success\": {\n      \"description\": \"Indicates whether the request was successful.\",\n      \"type\": \"boolean\",\n      \"example\": true\n    },\n    \"timestamp\": {\n      \"description\": \"Server timestamp in milliseconds.\",\n      \"type\": \"integer\",\n      \"example\": 1702989203989\n    }\n  }\n}"
           }
         ],
-        "example": "const url = 'https://api.orderly.org/v1/sv_operation_request';\nfetch(url).then(res => res.json()).then(console.log);",
+        "example": "const url = 'https://api.orderly.org/v1/sv_operation_request';\nconst body = {\n  \"message\": {},\n  \"signature\": \"...\",\n  \"userAddress\": \"...\",\n  \"verifyingContract\": \"...\"\n};\n\nfetch(url, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n}).then(res => res.json()).then(console.log);",
         "errors": []
       },
       {
@@ -21171,7 +21176,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-11-03T09:23:08.080Z",
+    "generatedAt": "2026-11-05T10:27:12.726Z",
     "source": "https://raw.githubusercontent.com/OrderlyNetwork/documentation-public/refs/heads/main/orderly.openapi.yaml",
     "version": "1.0.0",
     "totalEndpoints": 236,
